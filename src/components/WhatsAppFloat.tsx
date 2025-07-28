@@ -1,0 +1,22 @@
+import { MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const WhatsAppFloat = () => {
+  const handleWhatsAppClick = () => {
+    const message = "Olá! Vim pelo site da UniCV Polo Manaus Flores e gostaria de saber mais sobre os cursos e a oferta especial de 30% de desconto!";
+    const whatsappUrl = `https://wa.me/559220201260?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  return (
+    <Button
+      onClick={handleWhatsAppClick}
+      className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-green-500 hover:bg-green-600 shadow-floating animate-float"
+      size="sm"
+    >
+      <MessageCircle className="h-6 w-6 text-white" />
+    </Button>
+  );
+};
+
+export default WhatsAppFloat;
