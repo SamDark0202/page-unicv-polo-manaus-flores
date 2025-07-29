@@ -64,7 +64,9 @@ const Footer = () => {
               variant="outline" 
               size="lg" 
               className="text-lg px-8 py-6 border-white text-[#F09300] hover:bg-white hover:text-primary"
-              onClick={handleWhatsApp}
+              onClick={() => {if (typeof window.fbq !== 'undefined') {
+                              fbq('track', 'Contact');}
+                              handleWhatsApp();}}
             >
               <MessageCircle className="h-5 w-5 mr-2" />
               WhatsApp

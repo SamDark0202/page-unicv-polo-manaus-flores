@@ -5,7 +5,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Phone, Mail, User, MessageCircle } from "lucide-react";
-
+// Declare fbq on the Window interface for TypeScript
+declare global {
+  interface Window {
+    fbq?: (...args: any[]) => void;
+  }
+}
 interface LeadFormProps {
   title?: string;
   description?: string;
@@ -60,6 +65,9 @@ const LeadForm = ({
   };
 
   const handleWhatsApp = () => {
+       if (typeof window.fbq !== 'undefined') {
+        fbq('track', 'Contact');
+       }
     const message = `Olá! Vi o site da UniCV Polo Manaus Flores e gostaria de saber mais sobre a bolsa de 30% de desconto. Meu nome é ${formData.name || "[Nome]"}.`;
     const phone = "559220201260"; // WhatsApp number
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
