@@ -5,9 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Phone, Mail, User, MessageCircle } from "lucide-react";
-import { GoogleReCaptchaProvider, useGoogleReCaptcha } from "react-google-recaptcha-v3";
-
-const SITE_KEY = "6Lch1ZIrAAAAAOR6s3Q1JP9OmhepIBFTdZpE9LI2";
 
 interface LeadFormProps {
   title?: string;
@@ -15,10 +12,10 @@ interface LeadFormProps {
   variant?: "default" | "compact" | "hero";
 }
 
-const LeadFormContent = ({
-  title,
-  description,
-  variant,
+const LeadForm = ({ 
+  title = "Garanta sua Bolsa de 30%", 
+  description = "Preencha seus dados e receba mais informações sobre nossos cursos",
+  variant = "default" 
 }: LeadFormProps) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -27,44 +24,22 @@ const LeadFormContent = ({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const { executeRecaptcha } = useGoogleReCaptcha();
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!executeRecaptcha) {
-      toast({
-        title: "Verificação indisponível!",
-        description: "Não foi possível validar o reCAPTCHA.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const token = await executeRecaptcha("lead_form");
-    setRecaptchaToken(token);
-
-    if (!token) {
-      toast({
-        title: "Verificação necessária!",
-        description: "Por favor, tente novamente.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
 
+    // Envia os dados para o webhook
     try {
       await fetch("https://hook.us2.make.com/myxuyjhu632m7hzt5lpqhoik7v4es1sp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...formData, recaptchaToken: token }),
+        body: JSON.stringify(formData),
       });
     } catch (error) {
+      // Opcional: tratar erro de envio
       toast({
         title: "Erro ao enviar dados!",
         description: "Tente novamente em instantes.",
@@ -79,14 +54,14 @@ const LeadFormContent = ({
       description: "Em breve nossa equipe entrará em contato com você.",
     });
 
+    // Reset form
     setFormData({ name: "", phone: "", email: "" });
-    setRecaptchaToken(null);
     setIsSubmitting(false);
   };
 
   const handleWhatsApp = () => {
     const message = `Olá! Vi o site da UniCV Polo Manaus Flores e gostaria de saber mais sobre a bolsa de 30% de desconto. Meu nome é ${formData.name || "[Nome]"}.`;
-    const phone = "559220201260";
+    const phone = "559220201260"; // WhatsApp number
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
@@ -194,6 +169,7 @@ const LeadFormContent = ({
               />
             </div>
           </div>
+          
           <div className="space-y-3">
             <Button 
               type="submit" 
@@ -214,6 +190,7 @@ const LeadFormContent = ({
               Falar no WhatsApp Agora
             </Button>
           </div>
+          
           <p className="text-xs text-muted-foreground text-center">
             Seus dados estão seguros conosco. Não enviamos spam.
           </p>
@@ -222,11 +199,5 @@ const LeadFormContent = ({
     </Card>
   );
 };
-
-const LeadForm = (props: LeadFormProps) => (
-  <GoogleReCaptchaProvider reCaptchaKey={SITE_KEY}>
-    <LeadFormContent {...props} />
-  </GoogleReCaptchaProvider>
-);
 
 export default LeadForm;
