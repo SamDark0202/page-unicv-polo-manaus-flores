@@ -3,6 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Phone, Mail, MapPin, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
+// Declare fbq on the Window interface for TypeScript
+declare global {
+  interface Window {
+    fbq?: (...args: any[]) => void;
+  }
+}
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
@@ -73,8 +80,22 @@ const Header = () => {
 
           {/* CTA Button */}
           <div className="hidden lg:flex items-center space-x-4">
-            <Button variant="hero" asChild>
-              <Link to="https://wa.me/559220201260?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20cursos%20da%20UniCV%20Polo%20Manaus%20Flores%20e%20as%20condi%C3%A7%C3%B5es%20especiais.">Quero minha Bolsa!</Link>
+            <Button
+              variant="hero"
+              asChild
+            >
+              <a
+                href="https://wa.me/559220201260?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20cursos%20da%20UniCV%20Polo%20Manaus%20Flores%20e%20as%20condi%C3%A7%C3%B5es%20especiais."
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  if (typeof window.fbq === "function") {
+                    window.fbq('track', 'Contact');
+                  }
+                }}
+              >
+                Quero minha Bolsa!
+              </a>
             </Button>
           </div>
 

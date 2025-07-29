@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 
 const WhatsAppFloat = () => {
   const handleWhatsAppClick = () => {
+    if (typeof window.fbq === "function") {
+      window.fbq('track', 'Contact');
+    }
     const message = "Olá! Vim pelo site da UniCV Polo Manaus Flores e gostaria de saber mais sobre os cursos e a oferta especial de 30% de desconto!";
     const whatsappUrl = `https://wa.me/559220201260?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');

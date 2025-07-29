@@ -14,6 +14,13 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
+// Declare fbq on the Window interface for TypeScript
+declare global {
+  interface Window {
+    fbq?: (...args: any[]) => void;
+  }
+}
+
 const Footer = () => {
   const modalidades = [
     { name: "Graduação Bacharelado", link: "/bacharelado" },
@@ -197,11 +204,14 @@ const Footer = () => {
                   <Linkedin className="h-5 w-5" />
                 </a>
                 <button
-                  onClick={handleWhatsApp}
-                  className="bg-accent p-2 rounded-lg hover:bg-accent-light transition-colors text-accent-foreground"
+                  onClick={() => {if (typeof window.fbq !== 'undefined') {
+                       fbq('track', 'Contact');}
+                     handleWhatsApp();}}
+                    className="bg-accent p-2 rounded-lg hover:bg-accent-light transition-colors text-accent-foreground"
                 >
-                  <MessageCircle className="h-5 w-5" />
+                 <MessageCircle className="h-5 w-5" />
                 </button>
+
               </div>
             </div>
           </div>
