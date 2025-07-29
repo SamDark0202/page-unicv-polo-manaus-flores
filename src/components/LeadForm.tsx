@@ -5,9 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Phone, Mail, User, MessageCircle } from "lucide-react";
-import ReCAPTCHA from "react-google-recaptcha";
+import { GoogleReCaptchaProvider, useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
-const SITE_KEY = "6LeC0pIrAAAAAHNAtbFNmFhXGIW5PlQZSj34Ynno";
+const SITE_KEY = "6Lch1ZIrAAAAAOR6s3Q1JP9OmhepIBFTdZpE9LI2";
 
 interface LeadFormProps {
   title?: string;
@@ -15,10 +15,10 @@ interface LeadFormProps {
   variant?: "default" | "compact" | "hero";
 }
 
-const LeadForm = ({ 
-  title = "Garanta sua Bolsa de 30%", 
-  description = "Preencha seus dados e receba mais informações sobre nossos cursos",
-  variant = "default" 
+const LeadFormContent = ({
+  title,
+  description,
+  variant,
 }: LeadFormProps) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -26,16 +26,29 @@ const LeadForm = ({
     email: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const { toast } = useToast();
+  const { executeRecaptcha } = useGoogleReCaptcha();
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!recaptchaToken) {
+    if (!executeRecaptcha) {
+      toast({
+        title: "Verificação indisponível!",
+        description: "Não foi possível validar o reCAPTCHA.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const token = await executeRecaptcha("lead_form");
+    setRecaptchaToken(token);
+
+    if (!token) {
       toast({
         title: "Verificação necessária!",
-        description: "Por favor, confirme que você não é um robô.",
+        description: "Por favor, tente novamente.",
         variant: "destructive",
       });
       return;
@@ -43,14 +56,13 @@ const LeadForm = ({
 
     setIsSubmitting(true);
 
-    // Envia os dados para o webhook
     try {
       await fetch("https://hook.us2.make.com/myxuyjhu632m7hzt5lpqhoik7v4es1sp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...formData, recaptchaToken }),
+        body: JSON.stringify({ ...formData, recaptchaToken: token }),
       });
     } catch (error) {
       toast({
@@ -67,7 +79,6 @@ const LeadForm = ({
       description: "Em breve nossa equipe entrará em contato com você.",
     });
 
-    // Reset form
     setFormData({ name: "", phone: "", email: "" });
     setRecaptchaToken(null);
     setIsSubmitting(false);
@@ -75,7 +86,7 @@ const LeadForm = ({
 
   const handleWhatsApp = () => {
     const message = `Olá! Vi o site da UniCV Polo Manaus Flores e gostaria de saber mais sobre a bolsa de 30% de desconto. Meu nome é ${formData.name || "[Nome]"}.`;
-    const phone = "559220201260"; // WhatsApp number
+    const phone = "559220201260";
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
@@ -116,11 +127,6 @@ const LeadForm = ({
               />
             </div>
           </div>
-          <ReCAPTCHA
-            sitekey={SITE_KEY}
-            onChange={token => setRecaptchaToken(token)}
-            className="mb-4"
-          />
           <Button 
             type="submit" 
             variant="hero" 
@@ -188,11 +194,6 @@ const LeadForm = ({
               />
             </div>
           </div>
-          <ReCAPTCHA
-            sitekey={SITE_KEY}
-            onChange={token => setRecaptchaToken(token)}
-            className="mb-4"
-          />
           <div className="space-y-3">
             <Button 
               type="submit" 
@@ -221,5 +222,11 @@ const LeadForm = ({
     </Card>
   );
 };
+
+const LeadForm = (props: LeadFormProps) => (
+  <GoogleReCaptchaProvider reCaptchaKey={SITE_KEY}>
+    <LeadFormContent {...props} />
+  </GoogleReCaptchaProvider>
+);
 
 export default LeadForm;
