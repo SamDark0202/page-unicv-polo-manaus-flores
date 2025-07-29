@@ -5,6 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Phone, Mail, User, MessageCircle } from "lucide-react";
+import ReCAPTCHA from "react-google-recaptcha";
+
+const SITE_KEY = "6LeC0pIrAAAAAHNAtbFNmFhXGIW5PlQZSj34Ynno";
 
 interface LeadFormProps {
   title?: string;
@@ -23,10 +26,21 @@ const LeadForm = ({
     email: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!recaptchaToken) {
+      toast({
+        title: "Verificação necessária!",
+        description: "Por favor, confirme que você não é um robô.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Envia os dados para o webhook
@@ -36,10 +50,9 @@ const LeadForm = ({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, recaptchaToken }),
       });
     } catch (error) {
-      // Opcional: tratar erro de envio
       toast({
         title: "Erro ao enviar dados!",
         description: "Tente novamente em instantes.",
@@ -56,6 +69,7 @@ const LeadForm = ({
 
     // Reset form
     setFormData({ name: "", phone: "", email: "" });
+    setRecaptchaToken(null);
     setIsSubmitting(false);
   };
 
@@ -102,6 +116,11 @@ const LeadForm = ({
               />
             </div>
           </div>
+          <ReCAPTCHA
+            sitekey={SITE_KEY}
+            onChange={token => setRecaptchaToken(token)}
+            className="mb-4"
+          />
           <Button 
             type="submit" 
             variant="hero" 
@@ -169,7 +188,11 @@ const LeadForm = ({
               />
             </div>
           </div>
-          
+          <ReCAPTCHA
+            sitekey={SITE_KEY}
+            onChange={token => setRecaptchaToken(token)}
+            className="mb-4"
+          />
           <div className="space-y-3">
             <Button 
               type="submit" 
@@ -190,7 +213,6 @@ const LeadForm = ({
               Falar no WhatsApp Agora
             </Button>
           </div>
-          
           <p className="text-xs text-muted-foreground text-center">
             Seus dados estão seguros conosco. Não enviamos spam.
           </p>
