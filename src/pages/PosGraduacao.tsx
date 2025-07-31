@@ -5,8 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Award, Clock, Star, TrendingUp, CheckCircle, BookOpen, Users, Target } from "lucide-react";
+import { useState } from "react";
 
 const PosGraduacao = () => {
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState("Todas");
+
   const areas = [
     {
       categoria: "Agronegócio",
@@ -434,10 +437,13 @@ const PosGraduacao = () => {
     "Diferencial competitivo"
   ];
 
+  const categorias = ["Todas", ...areas.map(area => area.categoria)];
+  const areasFiltradas = categoriaSelecionada === "Todas" ? areas : areas.filter(area => area.categoria === categoriaSelecionada);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       {/* Hero Section */}
       <section className="bg-gradient-hero text-white py-16 lg:py-24">
         <div className="container mx-auto px-4">
@@ -485,7 +491,7 @@ const PosGraduacao = () => {
               e conquistar melhores oportunidades profissionais.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {beneficios.map((beneficio, index) => (
               <Card key={index} className="text-center shadow-soft hover:shadow-elevated transition-all duration-300">
@@ -496,7 +502,7 @@ const PosGraduacao = () => {
               </Card>
             ))}
           </div>
-          
+
           {/* Stats */}
           <Card className="bg-gradient-primary text-primary-foreground shadow-floating">
             <CardContent className="p-8 lg:p-12">
@@ -533,13 +539,24 @@ const PosGraduacao = () => {
             <h2 className="text-3xl lg:text-4xl font-bold mb-6">
               Áreas de Especialização
             </h2>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl text-muted-foreground mb-4">
               Mais de 200 especializações distribuídas em 11 grandes áreas do conhecimento
             </p>
+            <div className="max-w-xl mx-auto">
+              <select
+                value={categoriaSelecionada}
+                onChange={(e) => setCategoriaSelecionada(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+              >
+                {categorias.map((cat, i) => (
+                  <option key={i} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          
+
           <div className="space-y-8">
-            {areas.map((area, index) => (
+            {areasFiltradas.map((area, index) => (
               <Card key={index} className="shadow-soft hover:shadow-elevated transition-all duration-300">
                 <CardHeader>
                   <div className="flex items-center space-x-3">
@@ -586,9 +603,9 @@ const PosGraduacao = () => {
               </Card>
             ))}
           </div>
-          
+
           {/* MBA Highlight */}
-          <Card className="bg-gradient-accent text-accent-foreground shadow-floating mt-12">
+          <Card className="bg-[#02683E] text-accent-foreground shadow-floating mt-12">
             <CardContent className="p-8 lg:p-12">
               <div className="text-center">
                 <Target className="h-12 w-12 mx-auto mb-4" />
@@ -620,7 +637,7 @@ const PosGraduacao = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           {/* CTA */}
           <div className="text-center mt-12">
             <Card className="bg-gradient-primary text-primary-foreground shadow-floating max-w-2xl mx-auto">
@@ -629,7 +646,7 @@ const PosGraduacao = () => {
                   Pronto para se especializar?
                 </h3>
                 <p className="mb-6 text-primary-foreground/90">
-                  Aproveite nossa oferta especial: 30% de desconto + matrícula por R$ 100
+                  Aproveite nossa oferta especial: 30% de desconto <strong className="text-white font-semibold">+ matrícula por R$ 100</strong>
                 </p>
                 <Button variant="secondary" size="lg" asChild>
                   <a href="#contato">Solicitar Informações</a>
@@ -651,7 +668,7 @@ const PosGraduacao = () => {
               Nossa equipe está pronta para esclarecer suas dúvidas sobre as especializações
             </p>
           </div>
-          
+
           <div className="max-w-2xl mx-auto">
             <LeadForm 
               title="Quero saber mais sobre Pós-Graduação"

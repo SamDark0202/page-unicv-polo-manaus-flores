@@ -164,7 +164,7 @@ const Modalidades = () => {
         </div>
 
         {/* Special Program Highlight */}
-        <Card className="bg-gradient-accent text-accent-foreground shadow-floating">
+        <Card className="bg-[#02683E] text-accent-foreground shadow-floating mt-12">
           <CardContent className="p-8 lg:p-12">
             <div className="text-center max-w-4xl mx-auto">
               <div className="flex items-center justify-center space-x-3 mb-6">

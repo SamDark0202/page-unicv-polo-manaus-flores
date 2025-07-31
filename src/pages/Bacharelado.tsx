@@ -1,12 +1,15 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadForm from "@/components/LeadForm";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Clock, Star, Users, CheckCircle, BookOpen } from "lucide-react";
+import { GraduationCap, Clock, Star, CheckCircle, Search } from "lucide-react";
 
 const Bacharelado = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+
   const cursos = [
     { nome: "Administração", duracao: "4 anos", descricao: "Formação em gestão empresarial e organizacional" },
     { nome: "Administração Pública", duracao: "3 anos", descricao: "Gestão de organizações públicas" },
@@ -47,23 +50,24 @@ const Bacharelado = () => {
     "Diploma com validade nacional"
   ];
 
+  const cursosFiltrados = cursos.filter(curso =>
+    curso.nome.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
-      {/* Hero Section */}
+
       <section className="bg-gradient-hero text-white py-16 lg:py-24">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-4xl mx-auto">
             <Badge variant="secondary" className="mb-4 bg-warning text-warning-foreground">
               Graduação Bacharelado
             </Badge>
-            <h1 className="text-4xl lg:text-6xl font-bold mb-6">
-              Graduação Bacharelado
-            </h1>
+            <h1 className="text-4xl lg:text-6xl font-bold mb-6">Graduação Bacharelado</h1>
             <p className="text-xl lg:text-2xl text-blue-100 mb-8">
-              Formação completa e ampla para sua carreira profissional. 
-              <strong> 28 cursos disponíveis</strong> com duração de 3 a 5 anos.
+              Formação completa e ampla para sua carreira profissional.{" "}
+              <strong>28 cursos disponíveis</strong> com duração de 3 a 5 anos.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="text-center">
@@ -86,7 +90,6 @@ const Bacharelado = () => {
         </div>
       </section>
 
-      {/* Benefits Section */}
       <section className="py-16 bg-gradient-subtle">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
@@ -94,11 +97,10 @@ const Bacharelado = () => {
               Por que escolher Bacharelado?
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              O bacharelado oferece formação ampla e sólida, preparando você para atuar 
-              em diversas áreas do mercado de trabalho.
+              O bacharelado oferece formação ampla e sólida, preparando você para atuar em diversas áreas do mercado de trabalho.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {beneficios.map((beneficio, index) => (
               <Card key={index} className="text-center shadow-soft hover:shadow-elevated transition-all duration-300">
@@ -112,20 +114,30 @@ const Bacharelado = () => {
         </div>
       </section>
 
-      {/* Courses List */}
+      {/* Lista de cursos com busca */}
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-              Cursos de Bacharelado Disponíveis
-            </h2>
-            <p className="text-xl text-muted-foreground">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Cursos de Bacharelado Disponíveis</h2>
+            <p className="text-xl text-muted-foreground mb-6">
               Escolha entre nossos 28 cursos de bacharelado reconhecidos pelo MEC
             </p>
+            <div className="flex justify-center mb-8">
+              <div className="relative w-full max-w-md">
+                <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Buscar curso..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 w-full rounded-lg border border-muted shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {cursos.map((curso, index) => (
+            {cursosFiltrados.map((curso, index) => (
               <Card key={index} className="hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -165,14 +177,11 @@ const Bacharelado = () => {
               </Card>
             ))}
           </div>
-          
-          {/* CTA */}
+
           <div className="text-center">
             <Card className="bg-gradient-primary text-primary-foreground shadow-floating max-w-2xl mx-auto">
               <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-4">
-                  Pronto para começar sua graduação?
-                </h3>
+                <h3 className="text-2xl font-bold mb-4">Pronto para começar sua graduação?</h3>
                 <p className="mb-6 text-primary-foreground/90">
                   Aproveite nossa oferta especial: 30% de desconto + matrícula por R$ 100
                 </p>
@@ -185,18 +194,15 @@ const Bacharelado = () => {
         </div>
       </section>
 
-      {/* Contact Section */}
       <section id="contato" className="py-16 bg-gradient-subtle">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-              Solicite Mais Informações
-            </h2>
+            <h2 className="text-3xl lg:text-4xl font-bold mb-6">Solicite Mais Informações</h2>
             <p className="text-xl text-muted-foreground">
               Nossa equipe está pronta para esclarecer suas dúvidas sobre os cursos de bacharelado
             </p>
           </div>
-          
+
           <div className="max-w-2xl mx-auto">
             <LeadForm 
               title="Quero saber mais sobre Bacharelado"
