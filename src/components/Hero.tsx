@@ -87,7 +87,7 @@ const Hero = () => {
             {/* Special Offer */}
             <Card className="bg-warning/10 border-warning text-warning-foreground p-6">
               <div className="text-center space-y-2">
-                <div className="text-2xl font-bold">🔥 OFERTA ESPECIAL</div>
+                <div className="text-2xl font-bold">OFERTA ESPECIAL</div>
                 <div className="text-lg">
                   <span className="line-through text-warning/70">R$ 200</span> 
                   <span className="ml-2 text-2xl font-bold">R$ 100</span>
