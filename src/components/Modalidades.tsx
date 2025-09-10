@@ -197,7 +197,7 @@ const Modalidades = () => {
               <Button variant="secondary" size="lg" className="text-lg px-8" asChild>
                 <Link to="/tecnologo">
                   Saiba Mais sobre o Programa
-                  <ArrowRight className="h-5 w-5 ml-2" />
+                  <ArrowRight className="h-4 w-4 ml-2" />
                 </Link>
               </Button>
             </div>
