@@ -13,7 +13,6 @@ import {
   BookOpen,
   Shield
 } from "lucide-react";
-import entrevistaMp4 from "../assets/entrevista_unicv.mp4";
 
 const Diferenciais = () => {
   const diferenciais = [
@@ -211,7 +210,7 @@ const Diferenciais = () => {
         </div>
       </section>
 
-      {/* Adicionado no fim da sessão de Diferenciais: componente de vídeo / entrevista */}
+      {/* Entrevista (YouTube embed, sem import de MP4) */}
       <section
         id="entrevista"
         className="mt-12 bg-gray-50/60 dark:bg-transparent rounded-lg p-6 shadow-sm"
@@ -221,21 +220,21 @@ const Diferenciais = () => {
             Estamos em movimento — Entrevista com nosso gestor
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground mb-6">
-            Nesta entrevista exclusiva, nosso gestor compartilha insights sobre as transformações no ensino EAD, responde às principais dúvidas e apresenta as iniciativas que já estão em andamento. Confira o vídeo e conheça de perto nossa atuação.
+            Nesta entrevista exclusiva, nosso gestor compartilha insights sobre
+            as transformações no ensino EAD, responde às principais dúvidas e
+            apresenta as iniciativas que já estão em andamento. Confira o vídeo
+            e conheça de perto nossa atuação.
           </p>
 
           <div className="w-full">
             <div className="aspect-video w-full rounded-md overflow-hidden shadow-md">
-              <video
-                src={entrevistaMp4}
-                controls
-                controlsList="nodownload"
-                playsInline
-                className="w-full h-full object-cover bg-black"
-                aria-label="Entrevista com o gestor sobre mudanças no ensino EAD"
-              >
-                Seu navegador não suporta o elemento de vídeo.
-              </video>
+              <iframe
+                src="https://www.youtube-nocookie.com/embed/myBlIsXWU-E?rel=0&modestbranding=1&playsinline=1"
+                title="Entrevista com o gestor sobre mudanças no ensino EAD"
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
             </div>
           </div>
         </div>
