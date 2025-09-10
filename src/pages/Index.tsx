@@ -68,7 +68,7 @@ const Index = () => {
                       </div>
                       <div>
                         <h4 className="font-semibold mb-1">E-mail</h4>
-                        <p className="text-muted-foreground">polo.manaus.flores@unicv.edu.br</p>
+                        <p className="text-muted-foreground break-all">polo.manaus.flores@unicv.edu.br</p>
                       </div>
                     </div>
                     

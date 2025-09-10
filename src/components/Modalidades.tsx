@@ -194,7 +194,7 @@ const Modalidades = () => {
                   <div className="text-sm opacity-90">reconhecido pelo MEC</div>
                 </div>
               </div>
-              <Button variant="secondary" size="lg" className="text-lg px-8" asChild>
+              <Button variant="secondary" size="lg" className="text-lg px-8 w-full md:w-auto" asChild>
                 <Link to="/tecnologo">
                   Saiba Mais sobre o Programa
                   <ArrowRight className="h-4 w-4 ml-2" />
