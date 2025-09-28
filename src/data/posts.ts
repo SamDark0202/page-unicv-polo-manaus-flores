@@ -88,7 +88,7 @@ posts.push({
   title: 'Transformação e Inspiração Profissional: O Futuro das Carreiras até 2030',
   date: '2025-09-30',
   author: 'UniCV Polo Manaus Flores',
-  imageUrl: '/src/assets/Imgblog/O Futuro das Carreiras até 2030.png',
+  imageUrl: 'https://raw.githubusercontent.com/SamDark0202/page-unicv-polo-manaus-flores/refs/heads/main/src/assets/Imgblog/O%20Futuro%20das%20Carreiras%20at%C3%A9%202030.png',
   excerpt: 'Descubra carreiras em alta até 2030 e como um diploma EAD pode acelerar sua transformação profissional.',
   content: `
     <h1>Transformação e Inspiração Profissional: O Futuro das Carreiras até 2030 🚀</h1>
