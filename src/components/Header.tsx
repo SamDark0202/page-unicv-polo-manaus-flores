@@ -20,6 +20,7 @@ const Header = () => {
     { name: "Licenciatura", href: "/licenciatura" },
     { name: "Tecnólogo", href: "/tecnologo" },
     { name: "Pós-Graduação", href: "/pos-graduacao" },
+    { name: "Blog", href: "/Blog" },
   ];
 
   const isCurrentPage = (href: string) => location.pathname === href;

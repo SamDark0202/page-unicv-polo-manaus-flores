@@ -9,7 +9,9 @@ import Bacharelado from "./pages/Bacharelado";
 import Licenciatura from "./pages/Licenciatura";
 import Tecnologo from "./pages/Tecnologo";
 import PosGraduacao from "./pages/PosGraduacao";
+import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
+import PostPage from "./pages/Blog/[slug]"; // Importe a página do Post
 
 const queryClient = new QueryClient();
 
@@ -26,6 +28,8 @@ const App = () => (
           <Route path="/licenciatura" element={<Licenciatura />} />
           <Route path="/tecnologo" element={<Tecnologo />} />
           <Route path="/pos-graduacao" element={<PosGraduacao />} />
+          <Route path="/Blog" element={<Blog />} />
+          <Route path="/Blog/:slug" element={<PostPage />} /> {/* Adicione a rota do Post */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
