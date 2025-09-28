@@ -15,7 +15,7 @@ export const posts: Post[] = [
     title: 'Cantinho de Estudos Minimalista: Como Montar o Espaço Ideal para Estudar em Casa no EAD',
     date: '2025-09-29',
     author: 'UniCV Polo Manaus Flores',
-    imageUrl: '../src/assets/Imgblog/Cantinho de Estudos Minimalista o “produto” mais poderoso do seu EAD.png',
+    imageUrl: 'https://raw.githubusercontent.com/SamDark0202/page-unicv-polo-manaus-flores/refs/heads/main/src/assets/Imgblog/Cantinho%20de%20Estudos%20Minimalista%20o%20%E2%80%9Cproduto%E2%80%9D%20mais%20poderoso%20do%20seu%20EAD.png',
     excerpt: 'Transforme um espaço simples da sua casa em um motor de foco e disciplina. Menos distrações, mais progresso — e um atalho real para o seu diploma EAD.',
     content: `
       <h2>O poder do ambiente no seu aprendizado</h2>
