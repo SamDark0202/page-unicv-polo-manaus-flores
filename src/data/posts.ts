@@ -147,3 +147,65 @@ posts.push({
       <p><strong>Ensino EAD:</strong> não importa de onde você seja — <strong>nosso polo atende todas as regiões</strong>. Seu campus agora cabe no seu cantinho.</p>
     `,
 });
+
+
+posts.push({
+    slug: 'noite-ou-dia-sua-rotina-sua-faculdade',
+    title: 'Noite ou Dia: Sua Rotina, Sua Faculdade',
+    date: '2025-10-03',
+    author: 'UniCV Polo Manaus Flores',
+    imageUrl: '../src/assets/Imgblog/noite-ou-dia-sua-rotina-sua-faculdade.png',
+    excerpt: 'Descubra como a flexibilidade do EAD permite que você estude de acordo com a sua rotina — seja de manhã, à tarde ou à noite.',
+    content: `
+      <h1>Noite ou Dia: Sua Rotina, Sua Faculdade 🌙☀️</h1>
+      <p><em>Meta Description:</em> Estude no seu tempo! Veja como a faculdade EAD do UniCV se adapta à sua rotina, seja de manhã, à tarde ou à noite.</p>
+      <br>
+
+      <h2>Faculdade que se Adapta à Sua Vida</h2>
+      <p>Conciliar estudos, trabalho e vida pessoal pode parecer desafiador.<br>
+      Mas com a flexibilidade do <strong>Ensino a Distância</strong>, você tem a liberdade de escolher o momento ideal para aprender.<br>
+      Seja de madrugada, no intervalo do trabalho ou após colocar os filhos para dormir — sua faculdade está sempre com você.</p>
+      <br>
+
+      <h2>Estudar de Dia</h2>
+      <p>Para quem prefere a energia do início do dia, estudar pela manhã é sinônimo de foco e produtividade.<br>
+      Você aproveita a mente descansada e transforma suas primeiras horas em aprendizado de qualidade.</p>
+      <br>
+
+      <h2>Estudar à Noite</h2>
+      <p>Já quem escolhe a noite encontra um momento de silêncio e tranquilidade.<br>
+      É quando a correria do dia já passou, e você pode se dedicar sem distrações.<br>
+      Muitos alunos relatam que esse é o período mais criativo e inspirador para aprofundar os estudos.</p>
+      <br>
+
+      <h2>O Que Realmente Importa</h2>
+      <p>Mais importante do que o horário é a <strong>consistência</strong>.<br>
+      Criar uma rotina de estudos, mesmo que seja apenas uma ou duas horas por dia, garante progresso constante.<br>
+      E com os recursos digitais do <strong>UniCV</strong>, você tem videoaulas, materiais de apoio e suporte sempre à disposição.</p>
+      <br>
+
+      <h2>Benefícios da Flexibilidade do EAD</h2>
+      <ul>
+        <li><strong>Estude onde e quando quiser</strong> 📱💻</li>
+        <li><strong>Equilibre trabalho e estudos</strong> ⚖️</li>
+        <li><strong>Avance no seu ritmo</strong> ⏳</li>
+        <li><strong>Tenha acompanhamento e suporte</strong> 🤝</li>
+      </ul>
+      <br>
+
+      <h2>Conclusão: Sua Faculdade, Sua Rotina</h2>
+      <p>Noite ou dia, o importante é não parar.<br>
+      Sua faculdade se molda à sua rotina, oferecendo a oportunidade de transformar seu futuro sem abrir mão daquilo que importa no presente.</p>
+      <br>
+
+      <hr />
+    
+      <p><strong>Conheça agora mesmo os cursos de Graduação e Pós-Graduação EAD do UniCV</strong>, com flexibilidade, qualidade e mensalidades acessíveis.</p>
+      <p>
+        <a href="https://www.unicvpoloam.com.br/" target="_blank" rel="noopener" style="color: #ce9e0d;">
+          Clique aqui </a> e conheça nossos cursos
+        
+      </p>
+      <p><strong>Ensino EAD:</strong> não importa de onde você seja — <strong>nosso polo atende todas as regiões</strong>. Seu campus agora cabe no seu cantinho.</p>
+    `,
+ });
