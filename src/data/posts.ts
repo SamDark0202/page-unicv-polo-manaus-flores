@@ -154,7 +154,7 @@ posts.push({
     title: 'Noite ou Dia: Sua Rotina, Sua Faculdade',
     date: '2025-10-03',
     author: 'UniCV Polo Manaus Flores',
-    imageUrl: '../src/assets/Imgblog/noite-ou-dia-sua-rotina-sua-faculdade.png',
+    imageUrl: 'https://raw.githubusercontent.com/SamDark0202/page-unicv-polo-manaus-flores/refs/heads/main/src/assets/Imgblog/noite-ou-dia-sua-rotina-sua-faculdade.png',
     excerpt: 'Descubra como a flexibilidade do EAD permite que você estude de acordo com a sua rotina — seja de manhã, à tarde ou à noite.',
     content: `
       <h1>Noite ou Dia: Sua Rotina, Sua Faculdade 🌙☀️</h1>
