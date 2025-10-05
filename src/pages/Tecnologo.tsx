@@ -289,7 +289,7 @@ const Tecnologo = () => {
               </div>
             </div>
 
-            <Button variant="secondary" size="lg" className="text-lg px-8" asChild>
+            <Button variant="secondary" size="lg" className="text-lg px-8 w-full md:w-auto" asChild>
               <a href="#contato">Saiba como Aproveitar seu Técnico</a>
             </Button>
           </div>
