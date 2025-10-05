@@ -25,7 +25,7 @@ const Modalidades = () => {
       duracao: "4 a 5 anos",
       link: "/bacharelado",
       color: "bg-primary",
-      examples: ["Administração", "Engenharias", "Psicologia", "Direito"]
+      examples: ["Administração", "Engenharias", "Psicanálise", "Nutrição"]
     },
     {
       icon: BookOpen,
@@ -55,11 +55,11 @@ const Modalidades = () => {
     {
       icon: Award,
       title: "Pós-Graduação",
-      subtitle: "12-18 meses",
+      subtitle: "4-12 meses",
       description: "Especialização para aprofundar conhecimentos e alavancar sua carreira profissional.",
       highlights: ["Especialização", "Networking", "Crescimento profissional"],
       cursos: "200+ especializações",
-      duracao: "12 a 18 meses",
+      duracao: "4 a 12 meses",
       link: "/pos-graduacao",
       color: "bg-secondary",
       examples: ["MBA Gestão", "Direito Digital", "Educação Especial", "Engenharia"]

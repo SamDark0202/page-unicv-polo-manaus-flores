@@ -18,7 +18,7 @@ interface LeadFormProps {
 }
 
 const LeadForm = ({ 
-  title = "Garanta sua Bolsa de 30%", 
+  title = "Garanta sua Bolsa Agora!", 
   description = "Preencha seus dados e receba mais informações sobre nossos cursos",
   variant = "default" 
 }: LeadFormProps) => {
@@ -68,7 +68,7 @@ const LeadForm = ({
        if (typeof window.fbq !== 'undefined') {
         fbq('track', 'Contact');
        }
-    const message = `Olá! Vi o site da UniCV Polo Manaus Flores e gostaria de saber mais sobre a bolsa de 30% de desconto. Meu nome é ${formData.name || "[Nome]"}.`;
+    const message = `Olá! Vi o site da UniCV Polo Manaus Flores e gostaria de saber mais sobre como gartir uma bolsa de desconto. Meu nome é ${formData.name || "[Nome]"}.`;
     const phone = "559220201260"; // WhatsApp number
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
@@ -185,7 +185,7 @@ const LeadForm = ({
               className="w-full h-12"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Enviando..." : "Garantir Minha Bolsa de 30%!"}
+              {isSubmitting ? "Enviando..." : "Garantir Minha Bolsa!"}
             </Button>
             
             <Button 

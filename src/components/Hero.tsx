@@ -39,8 +39,8 @@ const Hero = () => {
                 </span>
               </h1>
               <p className="text-xl lg:text-2xl text-blue-100 leading-relaxed">
-                Graduação e Pós-graduação EAD com <strong>30% de desconto</strong> + 
-                Matrícula por apenas <strong>R$ 100</strong>
+                Graduação e Pós-graduação EAD com até<strong> 60% de desconto</strong> + 
+                Matrícula por apenas <strong>R$ 99,00</strong>
               </p>
             </div>
 
@@ -84,18 +84,7 @@ const Hero = () => {
               </div>
             </div>
 
-            {/* Special Offer */}
-            <Card className="bg-warning/10 border-warning text-warning-foreground p-6">
-              <div className="text-center space-y-2">
-                <div className="text-2xl font-bold">OFERTA ESPECIAL</div>
-                <div className="text-lg">
-                  <span className="line-through text-warning/70">R$ 200</span> 
-                  <span className="ml-2 text-2xl font-bold">R$ 100</span>
-                  <span className="ml-2">de matrícula</span>
-                </div>
-                <div className="text-sm">+ 30% de desconto nas mensalidades</div>
-              </div>
-            </Card>
+           
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">

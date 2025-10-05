@@ -42,7 +42,7 @@ const Header = () => {
               </div>
             </div>
             <div className="flex items-center space-x-2 text-custom-green font-semibold">
-              <span>Bolsa de 30% OFF + Matrícula por R$ 100!</span>
+              <span>Últimas vagas com Bolsas de até 60% de Desconto!</span>
             </div>
           </div>
         </div>
