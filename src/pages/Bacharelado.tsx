@@ -62,7 +62,7 @@ const Bacharelado = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-4xl mx-auto">
             <Badge variant="secondary" className="mb-4 bg-warning text-warning-foreground">
-              Graduação Bacharelado
+              Modalidade EAD
             </Badge>
             <h1 className="text-4xl lg:text-6xl font-bold mb-6">Graduação Bacharelado</h1>
             <p className="text-xl lg:text-2xl text-blue-100 mb-8">
@@ -178,19 +178,9 @@ const Bacharelado = () => {
             ))}
           </div>
 
-          <div className="text-center">
-            <Card className="bg-gradient-primary text-primary-foreground shadow-floating max-w-2xl mx-auto">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-4">Pronto para começar sua graduação?</h3>
-                <p className="mb-6 text-primary-foreground/90">
-                  Aproveite nossa oferta especial: 30% de desconto + matrícula por R$ 100
-                </p>
-                <Button variant="secondary" size="lg" asChild>
-                  <a href="#contato">Solicitar Informações</a>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+          {cursosFiltrados.length === 0 && (
+            <p className="text-center text-muted-foreground">Não possuímos o curso no momento.</p>
+          )}
         </div>
       </section>
 

@@ -449,10 +449,10 @@ const PosGraduacao = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-4xl mx-auto">
             <Badge variant="secondary" className="mb-4 bg-accent text-accent-foreground">
-              Pós-Graduação EAD
+              Modalidade EAD
             </Badge>
             <h1 className="text-4xl lg:text-6xl font-bold mb-6">
-              Pós-Graduação EAD
+              Pós-Graduação
             </h1>
             <p className="text-xl lg:text-2xl text-blue-100 mb-8">
               Especialize-se e acelere sua carreira profissional. 
@@ -483,7 +483,7 @@ const PosGraduacao = () => {
       <section className="py-16 bg-gradient-subtle">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-6">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-6 ">
               Por que fazer uma Pós-Graduação?
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
@@ -492,7 +492,22 @@ const PosGraduacao = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          {/* Video Highlight */}
+          <div className="mt-12 flex justify-center ">
+            <div className="relative aspect-video w-3/4 rounded-xl overflow-hidden shadow-md">
+              <video
+                src="https://res.cloudinary.com/dtfcavqgi/video/upload/v1759690431/V%C3%8DDEO_P%C3%93S-GRADUA%C3%87%C3%83O_OPORTUNIDADES_-_YOUTUBE_e8h1sn.mp4"
+                loop
+                autoPlay
+                muted={false}
+                controls
+                controlsList="nodownload"
+                className="min-w-full min-h-full absolute object-cover"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 mt-12">
             {beneficios.map((beneficio, index) => (
               <Card key={index} className="text-center shadow-soft hover:shadow-elevated transition-all duration-300">
                 <CardContent className="p-6">
@@ -638,22 +653,7 @@ const PosGraduacao = () => {
             </CardContent>
           </Card>
 
-          {/* CTA */}
-          <div className="text-center mt-12">
-            <Card className="bg-gradient-primary text-primary-foreground shadow-floating max-w-2xl mx-auto">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-4">
-                  Pronto para se especializar?
-                </h3>
-                <p className="mb-6 text-primary-foreground/90">
-                  Aproveite nossa oferta especial: 30% de desconto <strong className="text-white font-semibold">+ matrícula por R$ 100</strong>
-                </p>
-                <Button variant="secondary" size="lg" asChild>
-                  <a href="#contato">Solicitar Informações</a>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+  
         </div>
       </section>
 

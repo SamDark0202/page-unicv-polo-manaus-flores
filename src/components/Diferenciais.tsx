@@ -84,10 +84,23 @@ const Diferenciais = () => {
             </p>
           </div>
 
-          
+          {/* Video Highlight */}
+          <div className="mt-12 flex justify-center">
+            <div className="relative aspect-video w-3/4 rounded-xl overflow-hidden shadow-md">
+              <video
+                src="https://res.cloudinary.com/dtfcavqgi/video/upload/v1759688368/Gradua%C3%A7%C3%A3o_EAD_Youtube_ogmveh.mp4"
+                loop
+                autoPlay
+                muted={false}
+                controls
+                controlsList="nodownload"
+                className="min-w-full min-h-full absolute object-cover"
+              />
+            </div>
+          </div>
 
           {/* Diferenciais Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
             {diferenciais.map((diferencial, index) => {
               const IconComponent = diferencial.icon;
               return (
@@ -122,89 +135,6 @@ const Diferenciais = () => {
             })}
           </div>
 
-          {/* Program Highlight */}
-          <div className="mt-16">
-            <Card className="bg-gradient-primary text-primary-foreground shadow-floating">
-              <CardContent className="p-8 lg:p-12">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                  <div>
-                    <div className="flex items-center space-x-3 mb-4">
-                      <Trophy className="h-8 w-8 text-warning" />
-                      <Badge
-                        variant="secondary"
-                        className="bg-warning text-warning-foreground"
-                      >
-                        Programa Exclusivo
-                      </Badge>
-                    </div>
-                    <h3 className="text-3xl font-bold mb-4">
-                      Técnico para Tecnólogo em 1 Ano
-                    </h3>
-                    <p className="text-lg text-primary-foreground/90 mb-6">
-                      Se você já possui curso técnico, pode concluir sua
-                      graduação tecnóloga em apenas 1 ano, aproveitando
-                      conhecimentos já adquiridos.
-                    </p>
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-3">
-                        <CheckCircle className="h-5 w-5 text-accent" />
-                        <span>
-                          Aproveitamento de disciplinas do curso técnico
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <CheckCircle className="h-5 w-5 text-accent" />
-                        <span>Conclusão acelerada em até 12 meses</span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <CheckCircle className="h-5 w-5 text-accent" />
-                        <span>Mesmo diploma reconhecido pelo MEC</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="bg-white/10 p-8 rounded-2xl">
-                      <div className="text-5xl font-bold mb-2">1 ANO</div>
-                      <div className="text-xl">para se formar</div>
-                      <div className="text-sm mt-2 opacity-90">
-                        vs. 2-3 anos tradicional
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Entrevista (YouTube embed, sem import de MP4) */}
-      <section
-        id="entrevista"
-        className="mt-12 bg-gray-50/60 dark:bg-transparent rounded-lg p-6 shadow-sm"
-      >
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-primary-600 dark:text-primary-400 mb-3">
-            Estamos em movimento — Entrevista com nosso gestor
-          </h2>
-          <p className="text-sm sm:text-base text-muted-foreground mb-6">
-            Nesta entrevista exclusiva, nosso gestor compartilha insights sobre
-            as transformações no ensino EAD, responde às principais dúvidas e
-            apresenta as iniciativas que já estão em andamento. Confira o vídeo
-            e conheça de perto nossa atuação.
-          </p>
-
-          <div className="w-full">
-            <div className="aspect-video w-full rounded-md overflow-hidden shadow-md">
-              <iframe
-                src="https://www.youtube-nocookie.com/embed/myBlIsXWU-E?rel=0&modestbranding=1&playsinline=1"
-                title="Entrevista com o gestor sobre mudanças no ensino EAD"
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            </div>
-          </div>
         </div>
       </section>
     </>

@@ -113,7 +113,7 @@ const Tecnologo = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-4xl mx-auto">
             <Badge variant="secondary" className="mb-4 bg-warning text-warning-foreground">
-              Graduação Tecnólogo
+              Modalidade EAD
             </Badge>
             <h1 className="text-4xl lg:text-6xl font-bold mb-6">Graduação Tecnólogo</h1>
             <p className="text-xl lg:text-2xl text-blue-100 mb-8">
@@ -140,55 +140,29 @@ const Tecnologo = () => {
         </div>
       </section>
 
-      {/* Técnico para Tecnólogo em 1 Ano */}
-      <section className="py-16 bg-[#FFF8E7] text-neutral-900">
+      {/* Benefícios dos Cursos Tecnólogos */}
+      <section className="py-16 bg-gradient-subtle">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="flex items-center justify-center space-x-3 mb-6">
-              <Trophy className="h-12 w-12" />
-              <Badge variant="secondary" className="bg-yellow-100 text-yellow-900 text-lg px-6 py-2">
-                Programa Exclusivo
-              </Badge>
-            </div>
-            <h2 className="text-3xl lg:text-5xl font-bold mb-6">Técnico para Tecnólogo em 1 Ano</h2>
-            <p className="text-xl lg:text-2xl text-neutral-800 mb-8">
-              Já possui curso técnico? Aproveite seus conhecimentos e conclua sua graduação tecnóloga em tempo recorde!
+          <div className="text-center max-w-4xl mx-auto mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-6">Por que Escolher um Curso Tecnólogo?</h2>
+            <p className="text-xl text-muted-foreground">
+              Os cursos tecnólogos são ideais para quem busca uma formação rápida, prática e focada no mercado de trabalho.
             </p>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {programaEspecial.map((item, index) => (
-                <Card key={index} className="bg-white/80 border border-neutral-300 text-neutral-900">
-                  <CardContent className="p-6 text-center">
-                    <Zap className="h-8 w-8 mx-auto mb-3 text-warning" />
-                    <p className="font-medium">{item}</p>
-                  </CardContent>
-                </Card>
-              ))}
+          {/* Video Highlight */}
+          <div className="mt-12 flex justify-center">
+            <div className="relative aspect-video w-3/4 rounded-xl overflow-hidden shadow-md">
+              <video
+                src="https://res.cloudinary.com/dtfcavqgi/video/upload/v1759689947/GRADUA%C3%87%C3%83O_EAD_COM_1_5_ANOS_zkth5e.mp4"
+                loop
+                autoPlay
+                muted={false}
+                controls
+                controlsList="nodownload"
+                className="min-w-full min-h-full absolute object-cover"
+              />
             </div>
-
-            <div className="bg-white/90 p-8 rounded-2xl mb-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="text-center">
-                  <div className="text-4xl font-bold mb-2">70%</div>
-                  <div className="text-lg">Tempo Reduzido</div>
-                  <div className="text-sm opacity-90">vs. curso tradicional</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-4xl font-bold mb-2">100%</div>
-                  <div className="text-lg">Reconhecido MEC</div>
-                  <div className="text-sm opacity-90">mesmo diploma</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-4xl font-bold mb-2">12</div>
-                  <div className="text-lg">Meses Máximo</div>
-                  <div className="text-sm opacity-90">para formatura</div>
-                </div>
-              </div>
-            </div>
-
-            <Button variant="secondary" size="lg" className="text-lg px-8" asChild>
-              <a href="#contato">Saiba como Aproveitar seu Técnico</a>
-            </Button>
           </div>
         </div>
       </section>
@@ -257,16 +231,67 @@ const Tecnologo = () => {
           </div>
 
           <div className="text-center">
-           
-             <CardContent className="bg-yellow-100 text-green-900 p-6 rounded-lg shadow-lg">
-               <h3 className="text-2xl font-bold mb-4">Pronto para acelerar sua carreira?</h3>
-               <p className="mb-6 text-black">
-                 Aproveite nossa oferta especial: 30% de desconto <strong className="text-black font-semibold">+ matrícula por R$ 100</strong>
-               </p>
-             </CardContent>
-                
-             
-           
+            {cursosFiltrados.length === 0 && (
+              <p className="text-muted-foreground">Nenhum curso encontrado. Tente outro termo de busca.</p>
+            )}
+            {cursosFiltrados.length < cursos.length && (
+              <Button variant="link" size="sm" onClick={() => setSearchTerm("")}>
+                Ver todos os cursos
+              </Button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Técnico para Tecnólogo em 1 Ano */}
+      <section className="py-16 bg-[#FFF8E7] text-neutral-900">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="flex items-center justify-center space-x-3 mb-6">
+              <Trophy className="h-12 w-12" />
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-900 text-lg px-6 py-2">
+                Programa Exclusivo
+              </Badge>
+            </div>
+            <h2 className="text-3xl lg:text-5xl font-bold mb-6">Técnico para Tecnólogo em 1 Ano</h2>
+            <p className="text-xl lg:text-2xl text-neutral-800 mb-8">
+              Já possui curso técnico? Aproveite seus conhecimentos e conclua sua graduação tecnóloga em tempo recorde!
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              {programaEspecial.map((item, index) => (
+                <Card key={index} className="bg-white/80 border border-neutral-300 text-neutral-900">
+                  <CardContent className="p-6 text-center">
+                    <Zap className="h-8 w-8 mx-auto mb-3 text-warning" />
+                    <p className="font-medium">{item}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="bg-white/90 p-8 rounded-2xl mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="text-center">
+                  <div className="text-4xl font-bold mb-2">70%</div>
+                  <div className="text-lg">Tempo Reduzido</div>
+                  <div className="text-sm opacity-90">vs. curso tradicional</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-bold mb-2">100%</div>
+                  <div className="text-lg">Reconhecido MEC</div>
+                  <div className="text-sm opacity-90">mesmo diploma</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-bold mb-2">12</div>
+                  <div className="text-lg">Meses Máximo</div>
+                  <div className="text-sm opacity-90">para formatura</div>
+                </div>
+              </div>
+            </div>
+
+            <Button variant="secondary" size="lg" className="text-lg px-8" asChild>
+              <a href="#contato">Saiba como Aproveitar seu Técnico</a>
+            </Button>
           </div>
         </div>
       </section>

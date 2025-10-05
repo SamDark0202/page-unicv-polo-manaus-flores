@@ -110,12 +110,7 @@ const Modalidades = () => {
                     {modalidade.description}
                   </p>
 
-                  {/* Special badge for Tecnólogo */}
-                  {modalidade.special && (
-                    <Badge variant="secondary" className="w-full mb-4 bg-warning/10 text-warning border-warning">
-                      🚀 {modalidade.special}
-                    </Badge>
-                  )}
+                
 
                   {/* Course info */}
                   <div className="space-y-3 mb-6">

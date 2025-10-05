@@ -9,11 +9,16 @@ import { Link } from "react-router-dom";
 const Hero = () => {
   return (
     <section className="relative bg-gradient-hero text-white overflow-hidden">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
-        style={{ backgroundImage: `url(${heroImage})` }}
-      />
+      {/* Background Video */}
+      <div className="absolute inset-0 overflow-hidden opacity-20">
+        <video
+          src="https://res.cloudinary.com/dtfcavqgi/video/upload/v1759686310/CONHE%C3%87A_O_UNICV_bahbov.mp4"
+          loop
+          autoPlay
+          muted
+          className="min-w-full min-h-full absolute object-cover"
+        />
+      </div>
       
       {/* Content */}
       <div className="relative container mx-auto px-4 py-16 lg:py-24">
