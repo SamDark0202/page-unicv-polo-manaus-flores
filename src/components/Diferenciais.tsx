@@ -84,39 +84,7 @@ const Diferenciais = () => {
             </p>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            <Card className="text-center p-6 shadow-soft hover:shadow-elevated transition-all duration-300">
-              <CardContent className="p-0">
-                <div className="text-3xl font-bold text-primary mb-2">5.0</div>
-                <div className="text-sm text-muted-foreground">Nota MEC</div>
-              </CardContent>
-            </Card>
-            <Card className="text-center p-6 shadow-soft hover:shadow-elevated transition-all duration-300">
-              <CardContent className="p-0">
-                <div className="text-3xl font-bold text-primary mb-2">900+</div>
-                <div className="text-sm text-muted-foreground">
-                  Polos no Brasil
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="text-center p-6 shadow-soft hover:shadow-elevated transition-all duration-300">
-              <CardContent className="p-0">
-                <div className="text-3xl font-bold text-primary mb-2">100%</div>
-                <div className="text-sm text-muted-foreground">
-                  Professores Mestres
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="text-center p-6 shadow-soft hover:shadow-elevated transition-all duration-300">
-              <CardContent className="p-0">
-                <div className="text-3xl font-bold text-primary mb-2">15+</div>
-                <div className="text-sm text-muted-foreground">
-                  Anos de Experiência
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          
 
           {/* Diferenciais Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

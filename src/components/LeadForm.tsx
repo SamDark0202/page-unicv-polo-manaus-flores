@@ -178,25 +178,17 @@ const LeadForm = ({
             </div>
           </div>
           
-          <div className="space-y-3">
+            <div className="space-y-3">
             <Button 
               type="submit" 
               variant="hero" 
-              className="w-full h-12"
+              className="w-full h-12 bg-[#02683e] hover:bg-[#02683e]/90"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Enviando..." : "Garantir Minha Bolsa!"}
             </Button>
             
-            <Button 
-              type="button" 
-              variant="whatsapp" 
-              className="w-full h-12"
-              onClick={handleWhatsApp}
-            >
-              <MessageCircle className="h-5 w-5 mr-2" />
-              Falar no WhatsApp Agora
-            </Button>
+            
           </div>
           
           <p className="text-xs text-muted-foreground text-center">

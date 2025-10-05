@@ -54,7 +54,7 @@ const Footer = () => {
             Não Perca Esta Oportunidade!
           </h2>
           <p className="text-xl mb-8 text-primary-foreground/90">
-            Bolsa de 30% + Matrícula por R$ 100 por tempo limitado
+            Bolsa com até 60% de Desconto + Matrícula por R$ 99,00 por tempo limitado
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="secondary" size="lg" className="text-lg px-8" asChild>

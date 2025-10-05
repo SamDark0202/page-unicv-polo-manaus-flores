@@ -32,6 +32,13 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+             {/* Lead Form */}
+            <div>
+              <LeadForm 
+                title="Solicite Informações"
+                description="Preencha o formulário e nossa equipe entrará em contato para esclarecer todas suas dúvidas sobre nossos cursos e condições especiais."
+              />
+            </div>
             {/* Contact Info */}
             <div className="space-y-8">
               <Card className="shadow-soft">
@@ -87,38 +94,9 @@ const Index = () => {
                   </div>
                 </CardContent>
               </Card>
-              
-              {/* Special Offers Reminder */}
-              <Card className="bg-gradient-primary text-primary-foreground shadow-elevated">
-                <CardContent className="p-8">
-                  <h3 className="text-xl font-bold mb-4">🎯 Oferta Especial Ativa!</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="h-5 w-5 text-accent" />
-                      <span>30% de desconto nas mensalidades</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="h-5 w-5 text-accent" />
-                      <span>Taxa de matrícula: R$ 100 (era R$ 200)</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="h-5 w-5 text-accent" />
-                      <span>Programa Técnico → Tecnólogo em 1 ano</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
-            
-            {/* Lead Form */}
-            <div>
-              <LeadForm 
-                title="Solicite Informações"
-                description="Preencha o formulário e nossa equipe entrará em contato para esclarecer todas suas dúvidas sobre nossos cursos e condições especiais."
-              />
-            </div>
-          </div>
-        </div>
+           </div>
+         </div>
       </section>
       
       <Footer />
