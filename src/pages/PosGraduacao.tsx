@@ -452,11 +452,11 @@ const PosGraduacao = () => {
               Pós-Graduação EAD
             </Badge>
             <h1 className="text-4xl lg:text-6xl font-bold mb-6">
-              Pós-Graduação
+              Pós-Graduação EAD
             </h1>
             <p className="text-xl lg:text-2xl text-blue-100 mb-8">
               Especialize-se e acelere sua carreira profissional. 
-              <strong> 200+ especializações disponíveis</strong> com duração de 12 a 18 meses.
+              <strong> 200+ especializações disponíveis</strong> com duração de 4 a 12 meses.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="text-center">
@@ -464,7 +464,7 @@ const PosGraduacao = () => {
                 <div className="text-sm opacity-90">Especializações</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold mb-2">12-18</div>
+                <div className="text-3xl font-bold mb-2">4-12</div>
                 <div className="text-sm opacity-90">Meses de Duração</div>
               </div>
               <div className="text-center">
