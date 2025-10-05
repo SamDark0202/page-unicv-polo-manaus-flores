@@ -106,7 +106,7 @@ const Hero = () => {
           <div className="lg:pl-8">
             <LeadForm 
               title="Garanta sua Bolsa Agora!"
-              description="Preencha seus dados e ganhe 30% de desconto + matrícula por R$ 100"
+              description="Preencha seus dados e ganhe 50% de desconto na sua matrícula!"
             />
           </div>
         </div>
