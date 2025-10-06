@@ -281,8 +281,8 @@ posts.push({
     <p><strong>Leia também:</strong></p>
     <ul>
       <li><a href="https://www.unicvpoloam.com.br/blog/noite-ou-dia-sua-rotina-sua-faculdade" target="_blank" rel="noopener" style="color: #ce9e0d;">Noite ou Dia: Sua Rotina, Sua Faculdade</a></li>
-      <li><a href="https://www.unicvpoloam.com.br/graduacao" target="_blank" rel="noopener" style="color: #ce9e0d;">Conheça nossos Cursos de Graduação</a></li>
-      <li><a href="https://www.unicvpoloam.com.br/pos" target="_blank" rel="noopener" style="color: #ce9e0d;">Aprimore-se com nossas Pós-Graduações</a></li>
+      <li><a href="https://www.unicvpoloam.com.br" target="_blank" rel="noopener" style="color: #ce9e0d;">Conheça nossos Cursos de Graduação</a></li>
+      <li><a href="https://www.unicvpoloam.com.br/pos-graduacao" target="_blank" rel="noopener" style="color: #ce9e0d;">Aprimore-se com nossas Pós-Graduações</a></li>
     </ul>
 
     <script type="application/ld+json">
