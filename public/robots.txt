@@ -10,6 +10,3 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: Mediapartners-Google
-
-User-agent: Google-Display-Ads-Bot
