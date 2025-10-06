@@ -13,6 +13,7 @@ import {
   Star
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import logoImage from "@/assets/LOGO UNICV.png"; // ✅ Import da logo
 
 // Declare fbq on the Window interface for TypeScript
 declare global {
@@ -84,9 +85,13 @@ const Footer = () => {
               <div className="bg-gradient-primary p-2 rounded-lg">
                 <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
+              {/* Substituição: texto -> logo */}
               <div>
-                <div className="font-bold text-xl">UniCV</div>
-                <div className="text-sm text-secondary-foreground/80">Polo Manaus Flores</div>
+                <img
+                  src={logoImage}
+                  alt="Logo UniCV Polo Manaus Flores"
+                  className="h-10 w-auto"
+                />
               </div>
             </div>
             <p className="text-secondary-foreground/80 leading-relaxed">
@@ -213,7 +218,6 @@ const Footer = () => {
                 >
                  <MessageCircle className="h-5 w-5" />
                 </button>
-
               </div>
             </div>
           </div>
