@@ -18,7 +18,6 @@ import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
 import PostPage from "./pages/Blog/[slug]";
 import ParceriaEducacional from "./pages/ParceriaEducacional";
-import AdsTxt from "./pages/AdsTxt";
 
 const queryClient = new QueryClient();
 
@@ -52,7 +51,6 @@ const AppRoutes = () => {
         <Route path="/pos-graduacao" element={<PosGraduacao />} />
         <Route path="/Blog" element={<Blog />} />
         <Route path="/Blog/:slug" element={<PostPage />} />
-        <Route path="/ads.txt" element={<AdsTxt />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
