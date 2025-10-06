@@ -209,3 +209,103 @@ posts.push({
       <p><strong>Ensino EAD:</strong> não importa de onde você seja — <strong>nosso polo atende todas as regiões</strong>. Seu campus agora cabe no seu cantinho.</p>
     `,
  });
+
+
+ posts.push({
+  slug: 'gestao-do-conhecimento',
+  title: 'Gestão do Conhecimento: O Capital Invisível que Move as Organizações',
+  date: '2025-10-06',
+  author: 'Reginaldo Oliveira ( Doutor Imposto )',
+  imageUrl: 'https://raw.githubusercontent.com/SamDark0202/page-unicv-polo-manaus-flores/refs/heads/main/src/assets/Imgblog/gestao-do-conhecimento.png',
+  excerpt: 'Descubra como transformar informações em conhecimento estratégico, fortalecer sua carreira e entender por que o aprendizado contínuo é o diferencial competitivo das empresas modernas.',
+  content: `
+    <meta name="description" content="Entenda o poder da gestão do conhecimento nas empresas modernas, como ela impulsiona decisões estratégicas e por que investir em educação superior é essencial para transformar informação em sabedoria aplicada.">
+    <br>
+
+
+    <strong style="font-size: 26px;">Gestão do Conhecimento: O Capital Invisível das Empresas Modernas</strong>
+    <p>Em um mundo onde os dados são abundantes, o verdadeiro diferencial está em <strong>transformar informação em conhecimento</strong>. Para isso, não bastam ferramentas ou tecnologia — é preciso <em>tempo, interpretação e experiência humana</em>. O conhecimento nasce da combinação entre valores, vivência e criatividade, tornando-se o combustível essencial para inovação e competitividade.</p>
+    <p>Segundo <strong>Reginaldo Oliveira (Doutor Imposto)</strong>, o conhecimento não é algo que se arquiva — ele vive nas pessoas, na troca de ideias e na aplicação prática. É um ativo invisível, mas de valor incalculável, que determina o futuro das empresas e profissionais.</p>
+    <br>
+
+    <strong style="font-size: 24px;">Por Que as Empresas Valorizam o Conhecimento?</strong>
+    <p>As organizações perceberam que o conhecimento é diretamente ligado à <strong>ação estratégica</strong>. Ele se manifesta nas decisões tomadas, nas soluções criadas e na agilidade com que equipes se adaptam às mudanças. Uma empresa que domina seus processos e estimula o aprendizado constante ganha vantagem competitiva.</p>
+    <ul>
+      <li>Decisões mais assertivas em <strong>marketing, vendas e gestão</strong>;</li>
+      <li>Maior velocidade na <strong>inovação e lançamento de produtos</strong>;</li>
+      <li>Engajamento e retenção de talentos qualificados;</li>
+      <li>Redução de custos por meio de aprendizado organizacional.</li>
+    </ul>
+    <p>Essa consciência deu origem ao conceito de <strong>capital intelectual</strong> — um ativo que, embora intangível, sustenta o crescimento e diferencia as organizações de sucesso.</p>
+    <br>
+
+    <strong style="font-size: 24px;">O Profissional Como Centro da Transformação</strong>
+    <p>Em um cenário de reformas tributárias, automação e inteligência artificial, a <strong>capacitação contínua</strong> se tornou obrigatória. Não se trata apenas de “saber fazer”, mas de <strong>entender o porquê</strong>. A habilidade de interpretar o contexto e antecipar mudanças define quem se destaca.</p>
+    <p>Empresas que investem em treinamento e conhecimento colhem resultados sólidos. Já profissionais que buscam aprimoramento constante tornam-se indispensáveis — e é aí que a <strong>formação acadêmica</strong> entra como base desse processo.</p>
+    <br>
+
+    <strong style="font-size: 24px;">A Relação Entre Conhecimento e Formação Superior</strong>
+    <p>O aprendizado técnico e estratégico nasce da educação formal. Na <a href="https://www.unicvpoloam.com.br/" target="_blank" rel="noopener" style="color: #ce9e0d;">UniCV Polo Manaus Flores</a>, o estudante encontra o ambiente ideal para desenvolver competências essenciais à gestão do conhecimento — seja em cursos de <a href="https://www.unicvpoloam.com.br/graduacao" target="_blank" rel="noopener" style="color: #ce9e0d;">Graduação</a> ou <a href="https://www.unicvpoloam.com.br/pos" target="_blank" rel="noopener" style="color: #ce9e0d;">Pós-Graduação</a>.</p>
+    <p>O formato <strong>EAD</strong> permite ao aluno aprender no próprio ritmo, conciliando estudo e trabalho, o que é essencial para quem busca aplicar o conhecimento diretamente na rotina profissional. Cursos voltados à <a href="https://www.unicvpoloam.com.br/licenciatura" target="_blank" rel="noopener" style="color: #ce9e0d;">educação</a>, <a href="https://www.unicvpoloam.com.br/administracao" target="_blank" rel="noopener" style="color: #ce9e0d;">gestão</a> e <a href="https://www.unicvpoloam.com.br/tecnologo" target="_blank" rel="noopener" style="color: #ce9e0d;">tecnologia</a> tornam o profissional mais completo e preparado para atuar em ambientes que valorizam o capital intelectual.</p>
+    <br>
+
+    <strong style="font-size: 24px;">Gestão do Conhecimento e o Futuro do Trabalho</strong>
+    <p>Vivemos um período de mudanças profundas — novas leis, transformações digitais e modelos de trabalho híbrido. Nesse contexto, quem domina a gestão do conhecimento é capaz de:</p>
+    <ul>
+      <li>Adaptar-se a novas legislações e contextos tributários;</li>
+      <li>Usar dados e inteligência artificial para gerar insights;</li>
+      <li>Tomar decisões baseadas em análise e não em suposições;</li>
+      <li>Promover uma cultura de aprendizado contínuo.</li>
+    </ul>
+    <p>Como afirma Reginaldo Oliveira, “a reforma tributária é apenas um exemplo das mudanças que exigirão profissionais atentos, estratégicos e com base sólida”.</p>
+    <br>
+
+    <strong style="font-size: 24px;">O Papel da Educação na Era da Informação</strong>
+    <p>Em um ambiente de negócios cada vez mais volátil, <strong>investir em conhecimento é investir em sobrevivência</strong>. O profissional que se antecipa às transformações domina o presente e constrói o futuro. A educação formal é o elo entre o saber e o fazer — entre o teórico e o aplicável.</p>
+    <p>Por isso, o <a href="https://www.unicvpoloam.com.br/" target="_blank" rel="noopener" style="color: #ce9e0d;">UniCV Polo Manaus Flores</a> oferece formações que conectam o aprendizado acadêmico às demandas reais do mercado, preparando o aluno para ser agente de mudança dentro e fora das organizações.</p>
+    <p>Quer evoluir profissionalmente? Conheça nossos cursos e transforme informação em sabedoria aplicada: <a href="https://www.unicvpoloam.com.br/graduacao" target="_blank" rel="noopener" style="color: #ce9e0d;">Graduação</a> | <a href="https://www.unicvpoloam.com.br/pos" target="_blank" rel="noopener" style="color: #ce9e0d;">Pós-Graduação</a> | <a href="https://www.unicvpoloam.com.br/tecnologo" target="_blank" rel="noopener" style="color: #ce9e0d;">Técnico para Tecnólogo</a>.</p>
+    <br>
+
+    <strong style="font-size: 24px;">Conclusão: Conhecimento é o Novo Petróleo</strong>
+    <p>Assim como o petróleo moveu a economia do século XX, o <strong>conhecimento move a economia do século XXI</strong>. É ele que alimenta a inovação, sustenta a competitividade e define os líderes do futuro.</p>
+    <p>Invista no seu capital intelectual. Invista em você. Estude, aprenda e esteja pronto para as transformações que estão apenas começando.</p>
+    <br>
+
+    <p>Para leitura completa do artigo original de <strong>Reginaldo Oliveira (Doutor Imposto)</strong>, acesse: 
+      <a href="https://www.reginaldo.cnt.br/2025/10/gestao-do-conhecimento.html" target="_blank" rel="noopener" style="color: #ce9e0d;">Gestão do Conhecimento — Artigo Completo</a>.
+    </p>
+    <br>
+
+    <hr />
+
+    <p><strong>Leia também:</strong></p>
+    <ul>
+      <li><a href="https://www.unicvpoloam.com.br/blog/noite-ou-dia-sua-rotina-sua-faculdade" target="_blank" rel="noopener" style="color: #ce9e0d;">Noite ou Dia: Sua Rotina, Sua Faculdade</a></li>
+      <li><a href="https://www.unicvpoloam.com.br/graduacao" target="_blank" rel="noopener" style="color: #ce9e0d;">Conheça nossos Cursos de Graduação</a></li>
+      <li><a href="https://www.unicvpoloam.com.br/pos" target="_blank" rel="noopener" style="color: #ce9e0d;">Aprimore-se com nossas Pós-Graduações</a></li>
+    </ul>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Gestão do Conhecimento: O Capital Invisível que Move as Organizações",
+      "datePublished": "2025-10-06",
+      "author": {
+        "@type": "Person",
+        "name": "Reginaldo Oliveira ( Doutor Imposto )"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "UniCV Polo Manaus Flores"
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://www.unicvpoloam.com.br/"
+      },
+      "image": "https://raw.githubusercontent.com/SamDark0202/page-unicv-polo-manaus-flores/refs/heads/main/src/assets/Imgblog/gestao-do-conhecimento.png",
+      "description": "Artigo completo sobre gestão do conhecimento e sua importância estratégica nas empresas modernas, com conexões diretas à formação acadêmica e ao aprendizado contínuo."
+    }
+    </script>
+  `
+});
