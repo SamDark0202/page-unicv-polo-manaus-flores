@@ -59,7 +59,7 @@ const Header = () => {
         <div className="hidden lg:flex items-center space-x-4">
           <Button variant="hero" asChild>
             <a
-              href="https://wa.me/559220201260?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20cursos%20da%20UniCV%20Polo%20Manaus%20Flores%20e%20as%20condi%C3%A7%C3%B5es%20especiais."
+              href="https://wa.me/559220201260?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20cursos%20da%20UniCV%20e%20as%20condi%C3%A7%C3%B5es%20especiais."
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => {

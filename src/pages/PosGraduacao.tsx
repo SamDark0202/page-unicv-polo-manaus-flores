@@ -605,7 +605,7 @@ const PosGraduacao = () => {
                       size="sm" 
                       variant="outline"
                       onClick={() => {
-                        const message = `Olá! Tenho interesse em Pós-graduação na área de ${area.categoria} e gostaria de saber mais sobre a oferta especial de 30% de desconto!`;
+                        const message = `Olá! Tenho interesse em Pós-graduação na área de ${area.categoria} e gostaria de saber mais sobre como garatir uma bolsa de desconto!`;
                         const whatsappUrl = `https://wa.me/559220201260?text=${encodeURIComponent(message)}`;
                         window.open(whatsappUrl, '_blank');
                       }}

@@ -40,7 +40,7 @@ const Footer = () => {
   ];
 
   const handleWhatsApp = () => {
-    const message = "Olá! Gostaria de saber mais sobre os cursos da UniCV Polo Manaus Flores e as condições especiais.";
+    const message = "Olá! Gostaria de saber mais sobre os cursos da UniCV e as condições especiais.";
     const phone = "559220201260";
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");

@@ -188,7 +188,7 @@ const Licenciatura = () => {
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        const message = `Olá! Tenho interesse no curso de ${curso.nome} (Licenciatura) e gostaria de saber mais sobre a oferta especial de 30% de desconto!`;
+                        const message = `Olá! Tenho interesse no curso de ${curso.nome} (Licenciatura) e gostaria de saber mais sobre como garatir uma bolsa de desconto!`;
                         const whatsappUrl = `https://wa.me/559220201260?text=${encodeURIComponent(message)}`;
                         window.open(whatsappUrl, '_blank');
                       }}
