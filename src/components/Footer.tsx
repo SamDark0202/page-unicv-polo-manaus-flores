@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Instagram, 
-  Facebook, 
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Instagram,
+  Facebook,
   Linkedin,
   MessageCircle,
   GraduationCap,
@@ -35,7 +35,7 @@ const Footer = () => {
     "Pedagogia",
     "Análise de Sistemas",
     "MBA Gestão Empresarial",
-    "Psicologia",
+    "Serviço Social",
     "Marketing Digital"
   ];
 
@@ -61,13 +61,16 @@ const Footer = () => {
             <Button variant="secondary" size="lg" className="text-lg px-8" asChild>
               <a href="#contato">Garantir Minha Bolsa</a>
             </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
+            <Button
+              variant="outline"
+              size="lg"
               className="text-lg px-8 py-6 border-white text-[#F09300] hover:bg-white hover:text-primary"
-              onClick={() => {if (typeof window.fbq !== 'undefined') {
-                              fbq('track', 'Contact');}
-                              handleWhatsApp();}}
+              onClick={() => {
+                if (typeof window.fbq !== "undefined") {
+                  fbq("track", "Contact");
+                }
+                handleWhatsApp();
+              }}
             >
               <MessageCircle className="h-5 w-5 mr-2" />
               WhatsApp
@@ -85,7 +88,6 @@ const Footer = () => {
               <div className="bg-gradient-primary p-2 rounded-lg">
                 <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
-              {/* Substituição: texto -> logo */}
               <div>
                 <img
                   src={logoImage}
@@ -94,10 +96,12 @@ const Footer = () => {
                 />
               </div>
             </div>
+
             <p className="text-secondary-foreground/80 leading-relaxed">
-              Mais de uma década transformando vidas através da educação de qualidade. 
-              Nota máxima MEC e presente em todo o Brasil.
+              Mais de uma década transformando vidas através da educação de qualidade.
+              Presente em todo o Brasil.
             </p>
+
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Star className="h-4 w-4 text-[#11493C]" />
@@ -107,6 +111,25 @@ const Footer = () => {
                 <MapPin className="h-4 w-4 text-[#11493C]" />
                 <span className="text-sm">900+ Polos</span>
               </div>
+            </div>
+
+            {/* 🔽 ADIÇÃO SOLICITADA ABAIXO */}
+            <div className="mt-4 text-left">
+              <p className="text-sm text-secondary-foreground/80 mb-2">
+                Consulte aqui o cadastro da Instituição no Sistema e-MEC
+              </p>
+              <a
+                href="https://emec.mec.gov.br/emec/consulta-cadastro/detalhamento/d96957f455f6405d14c6542552b0f6eb/MzY0OQ=="
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block"
+              >
+                <img
+                  src="https://unicv.edu.br/wp-content/uploads/elementor/thumbs/QR-code-footer-qcrkfgegejqs2ln4okid3scfy04njjpsp9lcpnirio.png"
+                  alt="QR Code e-MEC"
+                  className="w-24 h-24 mx-auto transition-transform hover:scale-105"
+                />
+              </a>
             </div>
           </div>
 
@@ -164,8 +187,8 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-5 w-5 text-primary" />
-                <a 
-                  href="tel:+559220201260" 
+                <a
+                  href="tel:+559220201260"
                   className="text-sm text-secondary-foreground/80 hover:text-secondary-foreground"
                 >
                   (92) 2020-1260
@@ -173,8 +196,8 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-primary" />
-                <a 
-                  href="mailto:polo.manaus.flores@gmail.com" 
+                <a
+                  href="mailto:polo.manaus.flores@gmail.com"
                   className="text-sm text-secondary-foreground/80 hover:text-secondary-foreground"
                 >
                   polo.manaus.flores@unicv.edu.br
@@ -211,12 +234,15 @@ const Footer = () => {
                   <Linkedin className="h-5 w-5" />
                 </a>
                 <button
-                  onClick={() => {if (typeof window.fbq !== 'undefined') {
-                       fbq('track', 'Contact');}
-                     handleWhatsApp();}}
-                    className="bg-accent p-2 rounded-lg hover:bg-accent-light transition-colors text-accent-foreground"
+                  onClick={() => {
+                    if (typeof window.fbq !== "undefined") {
+                      fbq("track", "Contact");
+                    }
+                    handleWhatsApp();
+                  }}
+                  className="bg-accent p-2 rounded-lg hover:bg-accent-light transition-colors text-accent-foreground"
                 >
-                 <MessageCircle className="h-5 w-5" />
+                  <MessageCircle className="h-5 w-5" />
                 </button>
               </div>
             </div>
@@ -231,13 +257,6 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="text-sm text-secondary-foreground/60">
             © 2025 UniCV Polo Manaus Flores. Todos os direitos reservados.
-          </div>
-          <div className="flex items-center space-x-6 text-sm text-secondary-foreground/60">
-            <span>Credenciada pelo MEC</span>
-            <span>•</span>
-            <span>Nota 5 no MEC</span>
-            <span>•</span>
-            <span>Diplomas Reconhecidos</span>
           </div>
         </div>
       </div>
