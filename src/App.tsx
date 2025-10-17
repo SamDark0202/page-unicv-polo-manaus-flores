@@ -18,6 +18,8 @@ import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
 import PostPage from "./pages/Blog/[slug]";
 import ParceriaEducacional from "./pages/ParceriaEducacional";
+import Controle from "@/pages/Controle";
+
 
 const queryClient = new QueryClient();
 
@@ -38,6 +40,7 @@ const App = () => {
 const AppRoutes = () => {
   const location = useLocation();
   const showWhatsApp = location.pathname !== "/form-parceria-mt";
+  
 
   return (
     <>
@@ -52,6 +55,7 @@ const AppRoutes = () => {
         <Route path="/Blog" element={<Blog />} />
         <Route path="/Blog/:slug" element={<PostPage />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/controle" element={<Controle />} />
       </Routes>
     </>
   );
