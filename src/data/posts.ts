@@ -314,7 +314,7 @@ posts.push({
   title: 'Licenciatura EAD: Ganhos Ocultos que Ninguém te Conta',
   date: '2025-10-17',
   author: 'UniCV Polo Manaus Flores',
-  imageUrl: '/src/assets/Imgblog/licenciatura-ead-desvendando-os-ganhos-ocultos-que-ninguem-te-conta-e-transformando-sua-carreira.png',
+  imageUrl: 'https://raw.githubusercontent.com/SamDark0202/page-unicv-polo-manaus-flores/refs/heads/main/src/assets/Imgblog/licenciatura-ead-desvendando-os-ganhos-ocultos-que-ninguem-te-conta-e-transformando-sua-carreira.png',
   excerpt: 'Este artigo aprofunda as vantagens da Licenciatura EAD, indo além da flexibilidade e economia. Revelaremos como a metodologia a distância cultiva habilidades metacognitivas essenciais, otimiza o capital humano para o mercado de trabalho contemporâneo e oferece um percurso educacional profundamente adaptativo. Descubra como a EAD prepara educadores não apenas para o ensino, mas para a liderança e inovação pedagógica, entregando valor que transcende a sala de aula tradicional e posiciona o profissional em uma vantagem competitiva única.',
   content: `
     <meta name="description" content="Descubra os benefícios inovadores da Licenciatura EAD: desenvolva autogestão, otimize tempo e prepare-se para ser um educador líder.">
