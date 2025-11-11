@@ -11,28 +11,29 @@ const Licenciatura = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const cursos = [
-    { nome: "Andragogia", duracao: "3 anos", descricao: "Educação de jovens e adultos" },
-    { nome: "Artes", duracao: "3 anos", descricao: "Ensino de artes visuais e plásticas" },
-    { nome: "Artes Visuais", duracao: "4 anos", descricao: "Formação artística e visual" },
-    { nome: "Ciências Biológicas", duracao: "3 anos", descricao: "Ensino de biologia e ciências" },
+    { nome: "Ciências Biológicas", duracao: "4 anos", descricao: "Formação em biologia e ciências" },
+    { nome: "Andragogia", duracao: "4 anos", descricao: "Educação de jovens e adultos" },
+    { nome: "Artes", duracao: "4 anos", descricao: "Ensino de artes e práticas artísticas" },
+    { nome: "Artes Visuais", duracao: "4 anos", descricao: "Formação em artes visuais" },
     { nome: "Ciências da Religião", duracao: "4 anos", descricao: "Estudos religiosos e filosóficos" },
-    { nome: "Ciências Sociais", duracao: "3 anos", descricao: "Sociologia e ciências humanas" },
-    { nome: "Computação e Informática", duracao: "3 anos", descricao: "Ensino de tecnologia" },
-    { nome: "Educação Especial", duracao: "4 anos", descricao: "Educação inclusiva e especial" },
-    { nome: "Educação Física", duracao: "4 anos", descricao: "Ensino de educação física" },
-    { nome: "Filosofia", duracao: "4 anos", descricao: "Pensamento filosófico e crítico" },
-    { nome: "Física", duracao: "3 anos", descricao: "Ensino de física e ciências exatas" },
+    { nome: "Ciências Sociais", duracao: "4 anos", descricao: "Sociologia e ciências humanas" },
+    { nome: "Computação e Informática", duracao: "4 anos", descricao: "Ensino de tecnologia e informática" },
+    { nome: "Educação Especial", duracao: "4 anos", descricao: "Formação para educação inclusiva" },
+    { nome: "Educação Física", duracao: "4 anos", descricao: "Formação para ensino de educação física" },
+    { nome: "Filosofia", duracao: "4 anos", descricao: "Formação em pensamento filosófico" },
+    { nome: "Física", duracao: "4 anos", descricao: "Ensino de física e ciências exatas" },
     { nome: "Geografia", duracao: "4 anos", descricao: "Geografia humana e física" },
-    { nome: "História", duracao: "4 anos", descricao: "História do Brasil e mundial" },
-    { nome: "Letras - Língua Portuguesa e Libras", duracao: "4 anos", descricao: "Português e língua de sinais" },
-    { nome: "Letras - Português e Espanhol", duracao: "4 anos", descricao: "Línguas portuguesa e espanhola" },
-    { nome: "Letras - Português e Francês", duracao: "4 anos", descricao: "Línguas portuguesa e francesa" },
-    { nome: "Letras - Português e Inglês", duracao: "4 anos", descricao: "Línguas portuguesa e inglesa" },
+    { nome: "História", duracao: "4 anos", descricao: "Formação em história regional e mundial" },
+    { nome: "Letras - Língua Portuguesa e Libras", duracao: "4 anos", descricao: "Português e Língua Brasileira de Sinais" },
+    { nome: "Letras - Português e Espanhol", duracao: "4 anos", descricao: "Formação em português e espanhol" },
+    { nome: "Letras - Português e Francês", duracao: "4 anos", descricao: "Formação em português e francês" },
+    { nome: "Letras - Português e Inglês", duracao: "4 anos", descricao: "Formação em português e inglês" },
+    { nome: "Letras - Português e Italiano", duracao: "4 anos", descricao: "Formação em português e italiano" },
     { nome: "Matemática", duracao: "4 anos", descricao: "Ensino de matemática" },
-    { nome: "Pedagogia", duracao: "4 anos", descricao: "Educação infantil e anos iniciais" },
-    { nome: "Psicopedagogia", duracao: "3 anos", descricao: "Dificuldades de aprendizagem" },
-    { nome: "Química", duracao: "3 anos", descricao: "Ensino de química e laboratório" },
-    { nome: "Sociologia", duracao: "4 anos", descricao: "Sociedade e relações sociais" }
+    { nome: "Pedagogia", duracao: "4 anos", descricao: "Formação para atuar na educação infantil e anos iniciais" },
+    { nome: "Psicopedagogia", duracao: "4 anos", descricao: "Atuação em dificuldades de aprendizagem" },
+    { nome: "Química", duracao: "4 anos", descricao: "Ensino de química e práticas laboratoriais" },
+    { nome: "Sociologia", duracao: "4 anos", descricao: "Estudo das relações e estruturas sociais" }
   ];
 
   const cursosFiltrados = cursos.filter((curso) =>
@@ -66,16 +67,16 @@ const Licenciatura = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-4xl mx-auto">
             <Badge variant="secondary" className="mb-4 bg-accent text-accent-foreground">
-              Modalidade EAD
+              Modalidade SEMI PRESENCIAIL
             </Badge>
             <h1 className="text-4xl lg:text-6xl font-bold mb-6">Graduação Licenciatura</h1>
             <p className="text-xl lg:text-2xl text-blue-100 mb-8">
               Forme-se professor e transforme vidas através da educação.{" "}
-              <strong>22 cursos disponíveis</strong> com duração de 3 a 4 anos.
+              <strong>24 cursos disponíveis</strong> com duração de 3 a 4 anos.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="text-center">
-                <div className="text-3xl font-bold mb-2">22</div>
+                <div className="text-3xl font-bold mb-2">24</div>
                 <div className="text-sm opacity-90">Cursos Disponíveis</div>
               </div>
               <div className="text-center">
@@ -143,7 +144,7 @@ const Licenciatura = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">Cursos de Licenciatura Disponíveis</h2>
             <p className="text-xl text-muted-foreground mb-6">
-              Escolha entre nossos 22 cursos de licenciatura reconhecidos pelo MEC
+              Escolha entre nossos 24 cursos de licenciatura reconhecidos pelo MEC
             </p>
 
             <div className="flex justify-center mb-8">

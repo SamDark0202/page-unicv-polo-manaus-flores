@@ -10,36 +10,36 @@ import { GraduationCap, Clock, Star, CheckCircle, Search } from "lucide-react";
 const Bacharelado = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const cursos = [
-    { nome: "Administração", duracao: "4 anos", descricao: "Formação em gestão empresarial e organizacional" },
-    { nome: "Administração Pública", duracao: "3 anos", descricao: "Gestão de organizações públicas" },
-    { nome: "Arquivologia", duracao: "3 anos", descricao: "Organização e preservação de documentos" },
-    { nome: "Biblioteconomia", duracao: "3 anos", descricao: "Gestão de informação e conhecimento" },
-    { nome: "Ciências Contábeis", duracao: "4 anos", descricao: "Contabilidade e finanças empresariais" },
-    { nome: "Ciências Econômicas", duracao: "4 anos", descricao: "Análise econômica e mercados financeiros" },
-    { nome: "Ciências Imobiliárias", duracao: "3 anos", descricao: "Gestão do mercado imobiliário" },
-    { nome: "Ciências Políticas", duracao: "3 anos", descricao: "Política e relações institucionais" },
-    { nome: "Engenharia Ambiental", duracao: "4 anos", descricao: "Sustentabilidade e meio ambiente" },
-    { nome: "Engenharia de Aplicação", duracao: "4 anos", descricao: "Desenvolvimento de aplicações tecnológicas" },
-    { nome: "Engenharia de Computação", duracao: "4 anos", descricao: "Hardware e software computacional" },
-    { nome: "Engenharia de Dados", duracao: "4 anos", descricao: "Análise e gestão de grandes volumes de dados" },
-    { nome: "Engenharia de Design Digital", duracao: "4 anos", descricao: "Design e tecnologia digital" },
-    { nome: "Engenharia DevOps", duracao: "3 anos", descricao: "Desenvolvimento e operações de sistemas" },
-    { nome: "Nutrição", duracao: "4 anos", descricao: "Ciências da alimentação e nutrição" },
-    { nome: "Psicanálise", duracao: "4 anos", descricao: "Teoria e prática psicanalítica" },
-    { nome: "Psicopedagogia", duracao: "4 anos", descricao: "Processos de aprendizagem" },
-    { nome: "Publicidade e Propaganda", duracao: "3 anos", descricao: "Comunicação e marketing" },
-    { nome: "Relações Internacionais", duracao: "3 anos", descricao: "Diplomacia e comércio internacional" },
-    { nome: "Serviço Social", duracao: "4 anos", descricao: "Assistência e desenvolvimento social" },
-    { nome: "Teologia", duracao: "4 anos", descricao: "Estudos religiosos e pastorais" },
-    { nome: "Educação Física", duracao: "4 anos", descricao: "Atividade física e esporte" },
-    { nome: "Engenharia de Manutenção e Diagnóstico Industrial", duracao: "4 anos", descricao: "Manutenção de sistemas industriais" },
-    { nome: "Engenharia de Produção", duracao: "5 anos", descricao: "Otimização de processos produtivos" },
-    { nome: "Engenharia de Segurança Cibernética", duracao: "3 anos", descricao: "Proteção de sistemas digitais" },
-    { nome: "Engenharia de Sistemas", duracao: "4 anos", descricao: "Desenvolvimento de sistemas complexos" },
-    { nome: "Engenharia de Software", duracao: "4 anos", descricao: "Desenvolvimento de software empresarial" },
-    { nome: "Museologia", duracao: "3 anos", descricao: "Preservação e gestão de patrimônio cultural" }
-  ];
+ const cursos = [
+  { nome: "Administração", duracao: "3 anos", descricao: "Gestão de empresas, pessoas e processos organizacionais." },
+  { nome: "Administração Pública", duracao: "3 anos", descricao: "Gestão de políticas públicas e instituições governamentais." },
+  { nome: "Arquivologia", duracao: "3 anos", descricao: "Organização, preservação e gestão de documentos e arquivos." },
+  { nome: "Biblioteconomia", duracao: "3 anos", descricao: "Gestão da informação, acervos e bibliotecas." },
+  { nome: "Ciências Contábeis", duracao: "3 anos", descricao: "Contabilidade, finanças e controle patrimonial." },
+  { nome: "Ciências Econômicas", duracao: "3 anos", descricao: "Análise econômica e políticas de mercado." },
+  { nome: "Ciências Imobiliárias", duracao: "3 anos", descricao: "Gestão e comercialização de imóveis e investimentos imobiliários." },
+  { nome: "Ciência Política", duracao: "3 anos", descricao: "Estudo de governos, partidos e relações políticas." },
+  { nome: "Educação Física", duracao: "4 anos", descricao: "Atividade física e esporte - Modalidade Semipresencial" },
+  { nome: "Museologia", duracao: "3 anos", descricao: "Gestão e preservação do patrimônio histórico e cultural." },
+  { nome: "Publicidade e Propaganda", duracao: "3 anos", descricao: "Criação, planejamento e gestão de campanhas publicitárias." },
+  { nome: "Relações Internacionais", duracao: "3 anos", descricao: "Comércio exterior, diplomacia e relações globais." },
+  { nome: "Teologia", duracao: "3 anos", descricao: "Estudos teológicos, religiosos e filosóficos." },
+  { nome: "Geografia", duracao: "3 anos", descricao: "Estudo do espaço geográfico, meio ambiente e sociedade." },
+  { nome: "Estatística", duracao: "3 anos", descricao: "Coleta, análise e interpretação de dados e indicadores." },
+  { nome: "Sociologia", duracao: "3 anos", descricao: "Análise das relações sociais e estruturas da sociedade." },
+  { nome: "Ciências Sociais", duracao: "3 anos", descricao: "Compreensão crítica da sociedade, cultura e política." },
+  { nome: "Química", duracao: "3 anos", descricao: "Estudo das substâncias, reações e aplicações químicas." },
+  { nome: "Ciências Biológicas", duracao: "3 anos", descricao: "Estudo da vida, ecossistemas e biotecnologia." },
+  { nome: "Física", duracao: "3 anos", descricao: "Fenômenos naturais, leis da física e aplicações tecnológicas." },
+  { nome: "Letras", duracao: "3 anos", descricao: "Estudo da linguagem, literatura e comunicação escrita." },
+  { nome: "Psicanálise", duracao: "4 anos", descricao: "Estudo da mente humana e das práticas psicanalíticas." },
+  { nome: "Engenharia de Dados", duracao: "4 anos", descricao: "Gestão, modelagem e análise de grandes volumes de dados." },
+  { nome: "Engenharia de Design Digital", duracao: "4 anos", descricao: "Criação de interfaces, produtos e experiências digitais." },
+  { nome: "Engenharia de Software", duracao: "4 anos", descricao: "Desenvolvimento e manutenção de sistemas e aplicativos." },
+  { nome: "Engenharia de Segurança Cibernética", duracao: "3 anos", descricao: "Proteção de sistemas, redes e dados digitais." },
+  { nome: "Engenharia DevOps", duracao: "3 anos", descricao: "Integração entre desenvolvimento e operações de software." }
+];
+
 
   const beneficios = [
     "Formação ampla e generalista",
