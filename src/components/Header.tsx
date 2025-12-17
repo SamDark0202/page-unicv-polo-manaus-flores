@@ -3,6 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Phone, Mail, MapPin, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import logoImage from "@/assets/NOVA LOGO UNICV 12-04.png";
+import { isChristmas } from "@/lib/isChristmas";
+
+// Nota: colocar um arquivo `public/gorro-natal.png` com fundo transparente
+// permitirá que o gorro seja renderizado sobre a logo quando `isChristmas` for true.
 
 // Declare fbq on the Window interface for TypeScript
 declare global {
@@ -29,13 +33,18 @@ const Header = () => {
   return (
     <header className="bg-background border-b sticky top-0 z-50">
       <div className="container py-4 px-4 flex items-center justify-between">
-        {/* Logo sem fundo */}
+        {/* Logo com detalhe natalino (gorrito) */}
         <Link to="/" className="flex items-center space-x-3">
-          <img
-            src={logoImage}
-            alt="UniCV Polo Manaus Flores"
-            className="h-10 w-auto"
-          />
+          <div className="relative">
+            <img src={logoImage} alt="UniCV Polo Manaus Flores" className="h-10 w-auto" />
+            {isChristmas && (
+              <img
+                src="/gorro-natal.png"
+                alt="Gorro de Natal"
+                className="absolute -top-2 -right-2 w-8 sm:w-10 pointer-events-none"
+              />
+            )}
+          </div>
         </Link>
 
         {/* Desktop Navigation */}

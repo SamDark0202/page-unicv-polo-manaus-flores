@@ -90,7 +90,7 @@ const Diferenciais = () => {
               <video
                 src="https://res.cloudinary.com/dtfcavqgi/video/upload/v1759688368/Gradua%C3%A7%C3%A3o_EAD_Youtube_ogmveh.mp4"
                 loop
-                autoPlay
+                autoPlay={false}
                 muted={false}
                 controls
                 controlsList="nodownload"

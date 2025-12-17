@@ -9,7 +9,8 @@ import {
   useLocation,
 } from "react-router-dom";
 
-import { RadioTopBar } from "./components/RadioTopBar";
+import TopbarFixed from "./components/TopbarFixed";
+import { isChristmas } from "@/lib/isChristmas";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 
 import Index from "./pages/Index";
@@ -24,6 +25,11 @@ import Controle from "@/pages/Controle";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+/* =========================
+  CONTROLE NATALINO (ON/OFF)
+========================= */
+// Agora centralizado em src/lib/isChristmas.ts
 
 /* =========================
    ROTAS
@@ -63,11 +69,10 @@ const App = () => {
         <Sonner />
 
         <BrowserRouter>
-          {/* Rádio UniCV — TOPO GLOBAL */}
-          <RadioTopBar />
+          <TopbarFixed isChristmas={isChristmas} />
 
-          {/* Espaço para não sobrepor conteúdo */}
-          <div className="pt-[61px] min-h-screen">
+          {/* CONTEÚDO (offset da rádio + faixa) */}
+          <div className="pt-[90px] min-h-screen">
             <AppRoutes />
           </div>
         </BrowserRouter>
