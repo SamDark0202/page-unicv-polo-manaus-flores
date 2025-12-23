@@ -183,7 +183,10 @@ const Licenciatura = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Star className="h-4 w-4 text-warning fill-current" />
-                      <span className="text-sm text-muted-foreground">Licenciatura Plena</span>
+                      <div className="flex flex-col items-start">
+                        <span className="text-sm text-muted-foreground">MODALIDADE</span>
+                        <span className="text-sm font-medium">SEMIPRESENCIAL</span>
+                      </div>
                     </div>
                     <Button
                       size="sm"

@@ -208,7 +208,10 @@ const Tecnologo = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Star className="h-4 w-4 text-warning fill-current" />
-                      <span className="text-sm text-muted-foreground">Entrada rápida no mercado</span>
+                      <div className="flex flex-col items-start">
+                        <span className="text-sm text-muted-foreground">Entrada rápida no mercado</span>
+                        <span className="text-sm font-medium">MODALIDADE EAD</span>
+                      </div>
                     </div>
                     <Button
                       size="sm"

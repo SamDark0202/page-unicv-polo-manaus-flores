@@ -44,8 +44,8 @@ const Hero = () => {
                 </span>
               </h1>
               <p className="text-xl lg:text-2xl text-blue-100 leading-relaxed">
-                Graduação e Pós-graduação EAD com até<strong> 70% de desconto</strong> + 
-                Matrícula por apenas <strong>R$ 99,00</strong>
+                Graduação e Pós-graduação EAD e SEMIPRESENCIAL com até<strong> 70% de desconto</strong> + 
+                Matrícula por <strong>R$ 99,00</strong>
               </p>
             </div>
 
