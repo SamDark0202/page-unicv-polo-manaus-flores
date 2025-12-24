@@ -10,11 +10,13 @@ public_folder: "/img/uploads"
 collections:
   - name: "blog"
     label: "Postagens do Blog"
-    folder: "posts" # Pasta onde os arquivos .md serão criados
+    folder: "src/content/posts" # O CMS vai criar os arquivos aqui
+    extension: "json" # Para facilitar a leitura no React (App.tsx)
     create: true
-    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
     fields:
+      - { label: "ID", name: "id", widget: "number" }
       - { label: "Título", name: "title", widget: "string" }
-      - { label: "Data de Publicação", name: "date", widget: "datetime" }
-      - { label: "Capa do Post", name: "thumbnail", widget: "image" }
-      - { label: "Conteúdo", name: "body", widget: "markdown" }
+      - { label: "Resumo", name: "excerpt", widget: "text" }
+      - { label: "Conteúdo", name: "content", widget: "markdown" }
+      - { label: "Imagem", name: "image", widget: "image" }
+      - { label: "Data", name: "date", widget: "datetime" }
