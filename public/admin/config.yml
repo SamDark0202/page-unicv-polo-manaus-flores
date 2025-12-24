@@ -4,19 +4,19 @@ backend:
   branch: main
   base_url: https://decap-cms-oauth-vercel.vercel.app # Um servidor de autenticação pronto para uso
 
-media_folder: "img/uploads" # Onde as imagens dos posts serão salvas
-public_folder: "/img/uploads"
+media_folder: "public/img/uploads" # Onde as imagens serão salvas no repo
+public_folder: "/img/uploads"      # Como o site vai exibir a imagem
 
 collections:
   - name: "blog"
     label: "Postagens do Blog"
-    folder: "src/content/posts" # O CMS vai criar os arquivos aqui
-    extension: "json" # Para facilitar a leitura no React (App.tsx)
+    folder: "public/posts"         # O CMS salva aqui dentro de public/posts
+    extension: "json"              # Recomendo JSON para facilitar pro React
     create: true
+    slug: "{{slug}}"
     fields:
-      - { label: "ID", name: "id", widget: "number" }
       - { label: "Título", name: "title", widget: "string" }
       - { label: "Resumo", name: "excerpt", widget: "text" }
       - { label: "Conteúdo", name: "content", widget: "markdown" }
-      - { label: "Imagem", name: "image", widget: "image" }
+      - { label: "Imagem de Capa", name: "image", widget: "image" }
       - { label: "Data", name: "date", widget: "datetime" }
