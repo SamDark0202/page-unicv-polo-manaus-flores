@@ -1,0 +1,20 @@
+backend:
+  name: github
+  repo: SamDark0202/page-unicv-polo-manaus-flores
+  branch: main
+  base_url: https://decap-cms-oauth-vercel.vercel.app # Um servidor de autenticação pronto para uso
+
+media_folder: "img/uploads" # Onde as imagens dos posts serão salvas
+public_folder: "/img/uploads"
+
+collections:
+  - name: "blog"
+    label: "Postagens do Blog"
+    folder: "posts" # Pasta onde os arquivos .md serão criados
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "Título", name: "title", widget: "string" }
+      - { label: "Data de Publicação", name: "date", widget: "datetime" }
+      - { label: "Capa do Post", name: "thumbnail", widget: "image" }
+      - { label: "Conteúdo", name: "body", widget: "markdown" }
