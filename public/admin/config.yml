@@ -2,21 +2,21 @@ backend:
   name: github
   repo: SamDark0202/page-unicv-polo-manaus-flores
   branch: main
-  base_url: https://decap-cms-oauth-vercel.vercel.app # Um servidor de autenticação pronto para uso
+  base_url: https://decap-cms-oauth-vercel.vercel.app
 
-media_folder: "public/img/uploads" # Onde as imagens serão salvas no repo
-public_folder: "/img/uploads"      # Como o site vai exibir a imagem
+media_folder: "public/img/uploads"
+public_folder: "/img/uploads"
 
 collections:
   - name: "blog"
     label: "Postagens do Blog"
-    folder: "public/posts"         # O CMS salva aqui dentro de public/posts
-    extension: "json"              # Recomendo JSON para facilitar pro React
+    folder: "public/posts"
+    extension: "json"
     create: true
     slug: "{{slug}}"
     fields:
       - { label: "Título", name: "title", widget: "string" }
       - { label: "Resumo", name: "excerpt", widget: "text" }
-      - { label: "Conteúdo", name: "content", widget: "markdown" }
-      - { label: "Imagem de Capa", name: "image", widget: "image" }
+      - { label: "Conteúdo", name: "body", widget: "markdown" }
+      - { label: "Imagem", name: "image", widget: "image" }
       - { label: "Data", name: "date", widget: "datetime" }
