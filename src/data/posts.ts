@@ -403,3 +403,90 @@ posts.push({
   
   
 });
+posts.push({
+  slug: 'extensao-universitaria-unicv',
+  title: 'Extensão Universitária UniCV: O Que É, Como Funciona e Por Que Ela é Essencial na Formação Acadêmica',
+  date: '2026-01-22',
+  author: 'UniCV Polo Manaus Flores',
+  imageUrl: 'https://unicv.edu.br/wp-content/uploads/2024/06/Banner-site-extensao.jpeg',
+  excerpt: 'Entenda o que é a Extensão Universitária da UniCV, como ela funciona na prática, por que é obrigatória e como contribui diretamente para a formação profissional e cidadã do estudante.',
+  content: `
+    <strong style="font-size: 26px;">Extensão Universitária UniCV: Formação Acadêmica Conectada à Sociedade</strong>
+
+    <p>A <strong>Extensão Universitária</strong> é um dos pilares do ensino superior brasileiro, ao lado do ensino e da pesquisa. Na UniCV, ela representa muito mais do que uma exigência curricular — é um instrumento de transformação social, profissional e cidadã.</p>
+
+    <p>Por meio da extensão, o estudante aplica o conhecimento acadêmico em situações reais, aproximando-se das demandas da sociedade e desenvolvendo competências essenciais para o mercado de trabalho.</p>
+    <br>
+
+    <strong style="font-size: 22px; display: block; text-align: left;">O Que é Extensão Universitária?</strong>
+    <p>A Extensão Universitária consiste em um conjunto de atividades acadêmicas que promovem a <strong>integração entre a instituição de ensino e a comunidade</strong>. Essas ações permitem que o conhecimento produzido na universidade gere impacto social, cultural, econômico e ambiental.</p>
+
+    <p>Na UniCV, a extensão é estruturada para que o aluno seja protagonista do seu aprendizado, atuando como agente ativo na solução de problemas reais.</p>
+    <br>
+
+    <strong style="font-size: 22px; display: block; text-align: left;">Objetivos da Extensão Universitária na UniCV</strong>
+    <ul>
+      <li>Fortalecer a formação acadêmica e cidadã do estudante;</li>
+      <li>Promover o desenvolvimento social e comunitário;</li>
+      <li>Integrar teoria e prática de forma consistente;</li>
+      <li>Estimular a ética, a responsabilidade social e o pensamento crítico.</li>
+    </ul>
+    <br>
+
+    <strong style="font-size: 22px; display: block; text-align: left;">Como Funciona a Extensão Universitária na Prática?</strong>
+    <p>As atividades de extensão da UniCV são desenvolvidas por meio de projetos, cursos, oficinas e ações que envolvem diretamente a comunidade. Elas fazem parte da carga horária obrigatória dos cursos de graduação, conforme diretrizes do MEC.</p>
+
+    <p>Essas ações são planejadas, acompanhadas e avaliadas, garantindo que o estudante realmente desenvolva habilidades práticas e profissionais ao longo do curso.</p>
+    <br>
+
+    <strong style="font-size: 22px; display: block; text-align: left;">Como Acessar a Extensão Universitária na Plataforma UniCV?</strong>
+    <p>Para facilitar a experiência do aluno, a UniCV disponibiliza um ambiente específico dentro do portal acadêmico para acesso às atividades de extensão.</p>
+
+    <p>Assista ao vídeo abaixo e veja o passo a passo de como acessar a Extensão Universitária na plataforma:</p>
+
+    <div style="margin: 24px 0; display: flex; justify-content: center;">
+      <iframe width="560" height="315" src="https://www.youtube.com/embed/6QvEa7gg-aE?si=Ly49VzeWz_uLE3t_" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    </div>
+    <br>
+
+    <strong style="font-size: 22px; display: block; text-align: left;">Por Que a Extensão Universitária é Obrigatória?</strong>
+    <p>A obrigatoriedade da extensão universitária está prevista em normativas nacionais que garantem uma formação mais completa, conectada à realidade social e profissional.</p>
+    <br>
+
+    <strong style="font-size: 22px; display: block; text-align: left;">Benefícios da Extensão Universitária para o Estudante</strong>
+    <ul>
+      <li>Aplicação prática do conhecimento acadêmico;</li>
+      <li>Desenvolvimento de habilidades profissionais e comportamentais;</li>
+      <li>Valorização do currículo no mercado de trabalho;</li>
+      <li>Ampliação do networking acadêmico e social;</li>
+      <li>Formação cidadã e ética.</li>
+    </ul>
+    <br>
+
+    <strong style="font-size: 22px; display: block; text-align: left;">Documentos Oficiais e Links Úteis</strong>
+
+    <p style="margin-top: 16px;">
+      <a href="https://unicv.edu.br/wp-content/uploads/2024/06/TEXTO_Politica-de-Extensao-UniCV_2023.docx.pdf" target="_blank" rel="noopener" style="color: #ce9e0d;">
+        Clique aqui e acesse a Política de Extensão da UniCV
+      </a>
+    </p>
+
+    <p style="margin-top: 12px;">
+      <a href="https://unicv.edu.br/wp-content/uploads/2024/06/Resolucao-N.007_2018.pdf" target="_blank" rel="noopener" style="color: #ce9e0d;">
+        Clique aqui e acesse a Resolução nº 07/2018
+      </a>
+    </p>
+
+    <p style="margin-top: 12px;">
+      <a href="https://unicv.edu.br/wp-content/uploads/2024/06/RESOLUCAO-CONSEPE-No-021-2022-REVOGA-13-19-REGULAMENTA-ATIVIDADES-DE-EXTENSAO-NA-GRADUACAO.pdf" target="_blank" rel="noopener" style="color: #ce9e0d;">
+        Clique aqui e acesse a Resolução CONSEPE nº 021/2022
+      </a>
+    </p>
+    <br>
+
+    <strong style="font-size: 22px; display: block; text-align: left;">Conclusão</strong>
+    <p>A Extensão Universitária da UniCV fortalece a formação acadêmica ao conectar o estudante com a realidade social e profissional. Mais do que cumprir uma exigência legal, ela prepara o aluno para atuar de forma ética, crítica e transformadora.</p>
+
+    <p>Participar da extensão é investir em uma formação sólida, alinhada ao mercado e comprometida com o desenvolvimento da sociedade.</p>
+  `
+});
