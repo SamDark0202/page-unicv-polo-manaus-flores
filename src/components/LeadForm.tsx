@@ -27,11 +27,65 @@ const LeadForm = ({
     phone: "",
     email: "",
   });
+  const [errors, setErrors] = useState({
+    email: "",
+    phone: "",
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
+  // Validação de email
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Validação de telefone brasileiro (DDD + 9 + 8 dígitos)
+  const validatePhone = (phone: string): boolean => {
+    // Remove caracteres não numéricos
+    const phoneNumbers = phone.replace(/\D/g, '');
+    // Verifica se tem 11 dígitos (DDD + 9 + 8 dígitos)
+    return phoneNumbers.length === 11 && phoneNumbers[2] === '9';
+  };
+
+  // Formata o telefone enquanto digita
+  const formatPhone = (value: string): string => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 7) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+    return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Reset errors
+    setErrors({ email: "", phone: "" });
+    
+    // Validações
+    let hasError = false;
+    const newErrors = { email: "", phone: "" };
+
+    if (!validateEmail(formData.email)) {
+      newErrors.email = "Por favor, insira um e-mail válido";
+      hasError = true;
+    }
+
+    if (!validatePhone(formData.phone)) {
+      newErrors.phone = "Telefone deve ter DDD + 9 + 8 dígitos (Ex: (92) 99999-9999)";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      toast({
+        title: "Erro de validação",
+        description: "Por favor, corrija os campos destacados",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Envia os dados para o webhook
@@ -61,12 +115,13 @@ const LeadForm = ({
 
     // Reset form
     setFormData({ name: "", phone: "", email: "" });
+    setErrors({ email: "", phone: "" });
     setIsSubmitting(false);
   };
 
   const handleWhatsApp = () => {
        if (typeof window.fbq !== 'undefined') {
-        fbq('track', 'Contact');
+        window.fbq('track', 'Contact');
        }
     const message = `Olá! Vi o site da UniCV Polo Manaus Flores e gostaria de saber mais sobre como gartir uma bolsa de desconto. Meu nome é ${formData.name || "[Nome]"}.`;
     const phone = "559220201260"; // WhatsApp number
@@ -92,22 +147,32 @@ const LeadForm = ({
             <div>
               <Input
                 type="tel"
-                placeholder="Seu WhatsApp"
+                placeholder="(00) 90000-0000"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => {
+                  const formatted = formatPhone(e.target.value);
+                  setFormData({ ...formData, phone: formatted });
+                  if (errors.phone) setErrors({ ...errors, phone: "" });
+                }}
                 required
-                className="h-12"
+                className={`h-12 ${errors.phone ? 'border-red-500' : ''}`}
+                maxLength={15}
               />
+              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
             </div>
             <div>
               <Input
                 type="email"
-                placeholder="Seu e-mail"
+                placeholder="seu@email.com"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  if (errors.email) setErrors({ ...errors, email: "" });
+                }}
                 required
-                className="h-12"
+                className={`h-12 ${errors.email ? 'border-red-500' : ''}`}
               />
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
           </div>
           <Button 
@@ -154,12 +219,18 @@ const LeadForm = ({
               <Input
                 id="phone"
                 type="tel"
-                placeholder="(00) 00000-0000"
+                placeholder="(00) 90000-0000"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => {
+                  const formatted = formatPhone(e.target.value);
+                  setFormData({ ...formData, phone: formatted });
+                  if (errors.phone) setErrors({ ...errors, phone: "" });
+                }}
                 required
-                className="h-12"
+                className={`h-12 ${errors.phone ? 'border-red-500' : ''}`}
+                maxLength={15}
               />
+              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
             </div>
             <div>
               <Label htmlFor="email" className="flex items-center gap-2 mb-2">
@@ -171,10 +242,14 @@ const LeadForm = ({
                 type="email"
                 placeholder="seu@email.com"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  if (errors.email) setErrors({ ...errors, email: "" });
+                }}
                 required
-                className="h-12"
+                className={`h-12 ${errors.email ? 'border-red-500' : ''}`}
               />
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
           </div>
           

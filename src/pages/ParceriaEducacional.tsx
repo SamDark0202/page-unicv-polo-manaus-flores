@@ -9,9 +9,56 @@ const ParceriaEducacional = () => {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
+  const [errors, setErrors] = useState({
+    email: '',
+    telefone: '',
+  });
+
+  // Validação de email
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Validação de telefone brasileiro (DDD + 9 + 8 dígitos)
+  const validatePhone = (phone: string): boolean => {
+    const phoneNumbers = phone.replace(/\D/g, '');
+    return phoneNumbers.length === 11 && phoneNumbers[2] === '9';
+  };
+
+  // Formata o telefone enquanto digita
+  const formatPhone = (value: string): string => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 7) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+    return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Reset errors
+    setErrors({ email: '', telefone: '' });
+
+    // Validações
+    let hasError = false;
+    const newErrors = { email: '', telefone: '' };
+
+    if (!validateEmail(email)) {
+      newErrors.email = 'Por favor, insira um e-mail válido';
+      hasError = true;
+    }
+
+    if (!validatePhone(telefone)) {
+      newErrors.telefone = 'Telefone deve ter DDD + 9 + 8 dígitos (Ex: (92) 99999-9999)';
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      alert('Por favor, corrija os campos destacados');
+      return;
+    }
 
     const formData = {
       nome,
@@ -76,22 +123,34 @@ const ParceriaEducacional = () => {
                 <Input
                   type="email"
                   id="email"
-                  placeholder="Digite seu email"
+                  placeholder="seu@email.com"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (errors.email) setErrors({ ...errors, email: '' });
+                  }}
+                  className={errors.email ? 'border-red-500' : ''}
                 />
+                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="phone">Telefone</Label>
                 <Input
                   type="tel"
                   id="phone"
-                  placeholder="Digite seu telefone"
+                  placeholder="(00) 90000-0000"
                   required
                   value={telefone}
-                  onChange={(e) => setTelefone(e.target.value)}
+                  onChange={(e) => {
+                    const formatted = formatPhone(e.target.value);
+                    setTelefone(formatted);
+                    if (errors.telefone) setErrors({ ...errors, telefone: '' });
+                  }}
+                  className={errors.telefone ? 'border-red-500' : ''}
+                  maxLength={15}
                 />
+                {errors.telefone && <p className="text-red-500 text-xs mt-1">{errors.telefone}</p>}
               </div>
               <Button type="submit">Enviar</Button>
             </form>
