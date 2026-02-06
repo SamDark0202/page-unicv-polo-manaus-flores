@@ -1,14 +1,33 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BlogCard from '../components/BlogCard';
-import { posts } from '../data/posts';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import { fetchPosts } from '@/lib/supabaseClient';
+import type { Post } from '@/types/post';
 
 const Blog = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
   const [noResults, setNoResults] = useState(false);
+
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  async function loadPosts() {
+    try {
+      setLoading(true);
+      const data = await fetchPosts();
+      setPosts(data);
+    } catch (err) {
+      console.error("Erro ao carregar posts:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const sortedPosts = useMemo(() => {
     let filtered = [...posts];
@@ -107,7 +126,9 @@ const Blog = () => {
           </section>
 
           <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {noResults ? (
+            {loading ? (
+              <div className="col-span-full text-center text-gray-500">Carregando posts...</div>
+            ) : noResults ? (
               <p className="text-center text-gray-500">Artigo não encontrado</p>
             ) : (
               sortedPosts.map((post) => (

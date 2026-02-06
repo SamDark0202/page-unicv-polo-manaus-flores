@@ -12,6 +12,7 @@ import {
 import TopbarFixed from "./components/TopbarFixed";
 import { isChristmas } from "@/lib/isChristmas";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 import Index from "./pages/Index";
 import Bacharelado from "./pages/Bacharelado";
@@ -36,10 +37,12 @@ const queryClient = new QueryClient();
 ========================= */
 const AppRoutes = () => {
   const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/controle");
   const showWhatsApp = location.pathname !== "/form-parceria-mt";
 
   return (
     <>
+      {!isAdmin && <TopbarFixed isChristmas={isChristmas} />}
       {showWhatsApp && <WhatsAppFloat />}
 
       <Routes>
@@ -64,19 +67,19 @@ const AppRoutes = () => {
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
 
-        <BrowserRouter>
-          <TopbarFixed isChristmas={isChristmas} />
-
-          {/* CONTEÚDO (offset da rádio + faixa) */}
-          <div className="pt-[90px] min-h-screen">
-            <AppRoutes />
-          </div>
-        </BrowserRouter>
-      </TooltipProvider>
+          <BrowserRouter>
+            {/* CONTEÚDO (offset da rádio + faixa) */}
+            <div className="pt-[90px] min-h-screen">
+              <AppRoutes />
+            </div>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

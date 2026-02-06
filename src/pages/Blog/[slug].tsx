@@ -1,20 +1,53 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { posts, Post } from '../../../src/data/posts';
+import type { Post } from '@/types/post';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { fetchPostBySlug } from '@/lib/supabaseClient';
 
 const PostPage = () => {
   const { slug } = useParams();
   const [post, setPost] = useState<Post | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const foundPost = posts.find((post) => post.slug === slug);
-    setPost(foundPost);
+    if (!slug) return;
+    async function loadPost() {
+      try {
+        setLoading(true);
+        const data = await fetchPostBySlug(slug);
+        setPost(data || undefined);
+      } catch (err) {
+        console.error("Erro ao carregar post:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadPost();
   }, [slug]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto max-w-3xl px-4 py-8 text-center">
+          <div className="text-gray-600">Carregando...</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   if (!post) {
-    return <div>Post não encontrado</div>;
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto max-w-3xl px-4 py-8 text-center">
+          <div className="text-gray-600">Post não encontrado</div>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   return (

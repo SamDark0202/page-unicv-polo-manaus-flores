@@ -9,7 +9,7 @@ export default function PostList({
   onEdit: (index: number) => void;
   onCreate: () => void;
 }) {
-  const { posts, removePost, duplicatePost } = useAdminPosts();
+  const { posts, removePost, duplicatePost, loading, error } = useAdminPosts();
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -21,6 +21,23 @@ export default function PostList({
       (p.author?.toLowerCase() ?? "").includes(q)
     );
   }, [query, posts]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-gray-600">Carregando posts...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+        <div className="font-semibold text-red-800">Erro ao carregar posts</div>
+        <div className="text-sm text-red-600 mt-1">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -81,7 +98,9 @@ export default function PostList({
                 </button>
                 <button
                   className="px-3 py-1.5 rounded-2xl border"
-                  onClick={() => duplicatePost(realIndex)}
+                  onClick={async () => {
+                    await duplicatePost(realIndex);
+                  }}
                   title="Duplicar post"
                 >
                   Duplicar
@@ -89,10 +108,10 @@ export default function PostList({
                 <button
                   className="px-3 py-1.5 rounded-2xl border text-red-600"
                   onClick={() => {
-                    const ok = confirm(`Excluir localmente o post "${post.title}"?`);
+                    const ok = confirm(`Excluir "${post.title}" do Supabase?`);
                     if (ok) removePost(realIndex);
                   }}
-                  title="Excluir (local)"
+                  title="Excluir do Supabase"
                 >
                   Excluir
                 </button>
@@ -103,7 +122,7 @@ export default function PostList({
       </div>
 
       <div className="text-xs text-gray-500">
-        * As ações afetam apenas a cópia local no painel. No Passo 5 você irá exportar o novo <code>posts.ts</code> e substituir no repositório.
+        Total: {posts.length} post{posts.length !== 1 ? "s" : ""}
       </div>
     </div>
   );

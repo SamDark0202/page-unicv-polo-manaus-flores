@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+import { uploadCoverImage } from "@/lib/supabaseClient";
 
 type Props = {
   slug: string;
   value: string; // imageUrl atual (caminho)
   onChange: (newUrl: string) => void;
-  folderPrefix?: string; // default: "/src/assets/Imgblog/"
   maxWidth?: number;     // default: 1600
 };
 
@@ -12,19 +12,17 @@ export default function ImagePicker({
   slug,
   value,
   onChange,
-  folderPrefix = "/src/assets/Imgblog/",
   maxWidth = 1600,
 }: Props) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [filename, setFilename] = useState<string>("");
   const [status, setStatus] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const safeSlug = (slug || "").trim();
-    if (!value && safeSlug) {
-      setFilename(`${safeSlug}.png`);
-    } else if (value) {
+    if (value) {
       // tenta extrair nome do caminho
       const parts = value.split("/");
       setFilename(parts[parts.length - 1] || `${safeSlug}.png`);
@@ -40,65 +38,62 @@ export default function ImagePicker({
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setStatus("Lendo imagem…");
-
-    try {
-      const pngBlob = await toPngResized(file, maxWidth);
-      // cria URL de preview
-      const url = URL.createObjectURL(pngBlob);
-      setPreviewUrl(url);
-
-      // Sugere caminho final para o projeto
-      const safeSlug = (slug || "imagem").trim();
-      const suggestedName = `${safeSlug}.png`;
-      setFilename(suggestedName);
-
-      // Atualiza o imageUrl no PostEditor
-      const finalPath = `${folderPrefix}${suggestedName}`;
-      onChange(finalPath);
-
-      setStatus("Imagem pronta para download. Clique em 'Baixar PNG otimizado'.");
-    } catch (err: any) {
-      console.error(err);
-      setStatus("Falha ao processar a imagem. Tente outra ou reduza a resolução.");
-    }
-  }
-
-  function downloadOptimized() {
-    if (!previewUrl) {
-      alert("Selecione uma imagem primeiro.");
+    if (!slug.trim()) {
+      setStatus("Informe o slug antes de enviar a imagem.");
       return;
     }
-    const a = document.createElement("a");
-    a.href = previewUrl;
-    a.download = filename || "imagem.png";
-    a.click();
+    setStatus("Processando imagem...");
+
+    try {
+      setUploading(true);
+      const pngBlob = await toPngResized(file, maxWidth);
+      const pngFile = new File([pngBlob], `${slug}.png`, { type: "image/png" });
+
+      const url = await uploadCoverImage(pngFile, slug);
+      setPreviewUrl(url);
+      setFilename(url.split("/").pop() || "imagem.png");
+      onChange(url);
+      setStatus("Imagem enviada com sucesso.");
+    } catch (err: any) {
+      console.error(err);
+      setStatus("Falha ao enviar a imagem. Tente outra ou reduza a resolução.");
+    } finally {
+      setUploading(false);
+    }
   }
 
-  function copyPath() {
-    const path = `${folderPrefix}${filename || "imagem.png"}`;
-    navigator.clipboard.writeText(path);
-    setStatus("Caminho copiado para a área de transferência.");
+  function clearImage() {
+    setPreviewUrl("");
+    setFilename("imagem.png");
+    onChange("");
+    setStatus("Imagem removida.");
   }
 
   return (
     <div className="rounded-2xl border p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="font-semibold">Imagem do Post</div>
-        <div className="text-xs text-gray-500">Formato final: PNG • Largura máx: {maxWidth}px</div>
+        <div className="text-xs text-gray-500">PNG otimizado • Largura max: {maxWidth}px</div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
         <div className="w-full md:w-2/3">
           <div className="flex gap-2">
-            <button className="px-3 py-2 rounded-2xl border" onClick={chooseFile} type="button">
-              Selecionar arquivo
+            <button
+              className="px-3 py-2 rounded-2xl border"
+              onClick={chooseFile}
+              type="button"
+              disabled={uploading}
+            >
+              {uploading ? "Enviando..." : "Selecionar e enviar"}
             </button>
-            <button className="px-3 py-2 rounded-2xl border" onClick={downloadOptimized} type="button">
-              Baixar PNG otimizado
-            </button>
-            <button className="px-3 py-2 rounded-2xl border" onClick={copyPath} type="button">
-              Copiar caminho final
+            <button
+              className="px-3 py-2 rounded-2xl border"
+              onClick={clearImage}
+              type="button"
+              disabled={uploading || !value}
+            >
+              Remover imagem
             </button>
           </div>
 
@@ -111,18 +106,22 @@ export default function ImagePicker({
           />
 
           <div className="mt-3 text-sm">
-            <div><span className="text-gray-500">Nome sugerido:</span> <code>{filename || "imagem.png"}</code></div>
-            <div className="text-gray-500">Mover para: <code>src/assets/Imgblog</code></div>
-            <div className="text-gray-500">Caminho salvo no post: <code>{value || `${folderPrefix}${filename || "imagem.png"}`}</code></div>
+            <div className="flex flex-wrap gap-1">
+              <span className="text-gray-500">Arquivo:</span>
+              <code className="break-all">{filename || "imagem.png"}</code>
+            </div>
+            <div className="text-gray-500 break-words">
+              URL salva no post: <code className="break-all">{value || "(vazio)"}</code>
+            </div>
           </div>
 
           {status && <div className="mt-2 text-xs text-gray-600">{status}</div>}
         </div>
 
         <div className="w-full md:w-1/3">
-          {previewUrl ? (
+          {value || previewUrl ? (
             <img
-              src={previewUrl}
+              src={value || previewUrl}
               alt="preview"
               className="w-full aspect-video object-cover rounded-lg border"
               onError={(e:any)=>{ e.currentTarget.style.opacity=0.3; }}

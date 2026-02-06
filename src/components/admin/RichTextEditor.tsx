@@ -1,9 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Props = {
   value: string;                      // HTML atual
   onChange: (html: string) => void;   // retorna HTML
   brandLinkColor?: string;            // default: #ce9e0d
+  onUploadImage?: (file: File) => Promise<string>;
+  onUploadVideo?: (file: File) => Promise<string>;
 };
 
 const BRAND = "#ce9e0d";
@@ -39,8 +41,22 @@ function enforceLinkColor(root: HTMLElement, brandColor: string) {
   });
 }
 
-export default function RichTextEditor({ value, onChange, brandLinkColor = BRAND }: Props) {
+export default function RichTextEditor({
+  value,
+  onChange,
+  brandLinkColor = BRAND,
+  onUploadImage,
+  onUploadVideo,
+}: Props) {
   const editorRef = useRef<HTMLDivElement | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const videoInputRef = useRef<HTMLInputElement | null>(null);
+  const savedRangeRef = useRef<Range | null>(null);
+  const [bubble, setBubble] = useState<{ x: number; y: number; visible: boolean }>({
+    x: 0,
+    y: 0,
+    visible: false,
+  });
 
   useEffect(() => {
     // sincroniza HTML inicial ao montar/trocar post
@@ -57,11 +73,13 @@ export default function RichTextEditor({ value, onChange, brandLinkColor = BRAND
   }
 
   function cmd(command: string, showUI = false, value?: string) {
+    editorRef.current?.focus();
     document.execCommand(command, showUI, value);
     emitChange();
   }
 
   function onCreateLink() {
+    editorRef.current?.focus();
     const url = prompt("Informe a URL do link:");
     if (!url) return;
     document.execCommand("createLink", false, url);
@@ -78,6 +96,7 @@ export default function RichTextEditor({ value, onChange, brandLinkColor = BRAND
   }
 
   function onClearFormat() {
+    editorRef.current?.focus();
     document.execCommand("removeFormat");
     // remove <font> etc que alguns browsers injetam
     if (editorRef.current) {
@@ -86,8 +105,104 @@ export default function RichTextEditor({ value, onChange, brandLinkColor = BRAND
     emitChange();
   }
 
+  function saveSelection() {
+    const sel = window.getSelection?.();
+    if (!sel || sel.rangeCount === 0) return;
+    savedRangeRef.current = sel.getRangeAt(0);
+  }
+
+  function restoreSelection() {
+    const sel = window.getSelection?.();
+    if (!sel || !savedRangeRef.current) return;
+    sel.removeAllRanges();
+    sel.addRange(savedRangeRef.current);
+  }
+
+  function insertHtmlAtCursor(html: string) {
+    editorRef.current?.focus();
+    restoreSelection();
+    document.execCommand("insertHTML", false, html);
+    emitChange();
+  }
+
+  function onInsertYouTube() {
+    const input = prompt("URL ou ID do YouTube:");
+    if (!input) return;
+    const id = extractYouTubeId(input);
+    if (!id) {
+      alert("URL do YouTube invalida.");
+      return;
+    }
+    const html = `
+      <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
+        <iframe
+          src="https://www.youtube.com/embed/${id}"
+          title="YouTube video"
+          style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+        ></iframe>
+      </div>
+    `;
+    insertHtmlAtCursor(html);
+  }
+
+  function updateBubble() {
+    const sel = window.getSelection?.();
+    if (!sel || sel.rangeCount === 0 || !editorRef.current) {
+      setBubble((b) => ({ ...b, visible: false }));
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    if (!editorRef.current.contains(range.commonAncestorContainer)) {
+      setBubble((b) => ({ ...b, visible: false }));
+      return;
+    }
+    const rect = range.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top;
+    setBubble({ x, y, visible: true });
+    saveSelection();
+  }
+
+  async function handleImageFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!onUploadImage) {
+      alert("Upload de imagem nao configurado.");
+      return;
+    }
+    try {
+      const url = await onUploadImage(file);
+      insertHtmlAtCursor(`<img src="${url}" alt="" style="max-width:100%;" />`);
+    } catch (err) {
+      console.error(err);
+      alert("Falha ao enviar imagem.");
+    } finally {
+      if (imageInputRef.current) imageInputRef.current.value = "";
+    }
+  }
+
+  async function handleVideoFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!onUploadVideo) {
+      alert("Upload de video nao configurado.");
+      return;
+    }
+    try {
+      const url = await onUploadVideo(file);
+      insertHtmlAtCursor(`<video controls style="max-width:100%;" src="${url}"></video>`);
+    } catch (err) {
+      console.error(err);
+      alert("Falha ao enviar video.");
+    } finally {
+      if (videoInputRef.current) videoInputRef.current.value = "";
+    }
+  }
+
   return (
-    <div className="border rounded-2xl">
+    <div className="border rounded-2xl relative">
       {/* Toolbar */}
       <div className="flex flex-wrap gap-1 p-2 border-b bg-gray-50">
         <button className="px-2 py-1 rounded border" onClick={() => cmd("bold")}>B</button>
@@ -103,6 +218,14 @@ export default function RichTextEditor({ value, onChange, brandLinkColor = BRAND
         <span className="mx-2 border-l" />
         <button className="px-2 py-1 rounded border" onClick={onCreateLink}>🔗 Link</button>
         <button className="px-2 py-1 rounded border" onClick={onClearFormat}>Limpar</button>
+        <span className="mx-2 border-l" />
+        <button className="px-2 py-1 rounded border" onClick={() => imageInputRef.current?.click()}>
+          + Imagem
+        </button>
+        <button className="px-2 py-1 rounded border" onClick={onInsertYouTube}>YouTube</button>
+        <button className="px-2 py-1 rounded border" onClick={() => videoInputRef.current?.click()}>
+          + Video
+        </button>
       </div>
 
       {/* Área editável */}
@@ -113,7 +236,64 @@ export default function RichTextEditor({ value, onChange, brandLinkColor = BRAND
         className="min-h-[260px] p-3 outline-none"
         onInput={emitChange}
         onBlur={emitChange}
+        onMouseUp={updateBubble}
+        onKeyUp={updateBubble}
       />
+
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleImageFile}
+      />
+      <input
+        ref={videoInputRef}
+        type="file"
+        accept="video/*"
+        className="hidden"
+        onChange={handleVideoFile}
+      />
+
+      {bubble.visible && (
+        <div
+          className="fixed z-50 bg-white border shadow-sm rounded-xl px-2 py-1 flex gap-1"
+          style={{
+            top: Math.max(8, bubble.y - 10),
+            left: Math.max(8, bubble.x),
+            transform: "translate(-50%, -100%)",
+          }}
+        >
+          <button className="px-2 py-1 rounded border" onClick={() => cmd("bold")}>B</button>
+          <button className="px-2 py-1 rounded border" onClick={() => cmd("italic")}><i>I</i></button>
+          <button className="px-2 py-1 rounded border" onClick={() => cmd("underline")}><u>U</u></button>
+          <button className="px-2 py-1 rounded border" onClick={() => cmd("insertUnorderedList")}>•</button>
+          <button className="px-2 py-1 rounded border" onClick={() => cmd("formatBlock", false, "blockquote")}>“</button>
+          <button className="px-2 py-1 rounded border" onClick={onCreateLink}>🔗</button>
+          <button className="px-2 py-1 rounded border" onClick={() => imageInputRef.current?.click()}>
+            Img
+          </button>
+          <button className="px-2 py-1 rounded border" onClick={onInsertYouTube}>YT</button>
+          <button className="px-2 py-1 rounded border" onClick={() => videoInputRef.current?.click()}>
+            Vid
+          </button>
+        </div>
+      )}
     </div>
   );
+}
+
+function extractYouTubeId(input: string) {
+  try {
+    if (input.includes("youtu.be/")) {
+      return input.split("youtu.be/")[1]?.split("?")[0] || "";
+    }
+    if (input.includes("youtube.com")) {
+      const url = new URL(input);
+      return url.searchParams.get("v") || "";
+    }
+    return input;
+  } catch {
+    return "";
+  }
 }
