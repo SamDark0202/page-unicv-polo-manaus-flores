@@ -1,8 +1,10 @@
 import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { trackWhatsAppClick } from "@/lib/tracker";
 
 const WhatsAppFloat = () => {
   const handleWhatsAppClick = () => {
+    trackWhatsAppClick("float_button");
     if (typeof window.fbq === "function") {
       window.fbq('track', 'Contact');
     }

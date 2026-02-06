@@ -72,6 +72,10 @@ const Header = () => {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => {
+                (async () => {
+                  const { trackWhatsAppClick } = await import("@/lib/tracker");
+                  trackWhatsAppClick("header_cta");
+                })();
                 if (typeof window.fbq === "function") {
                   window.fbq("track", "Contact");
                 }

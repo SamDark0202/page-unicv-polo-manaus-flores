@@ -41,27 +41,18 @@ export default function PostList({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <h1 className="text-2xl font-bold">Posts do Blog</h1>
-        <div className="flex items-center gap-2">
-          <input
-            placeholder="Buscar por título, slug ou autor..."
-            className="border rounded-2xl px-4 py-2 w-72"
-            value={query}
-            onChange={(e)=>setQuery(e.target.value)}
-          />
-          <button
-            className="px-4 py-2 rounded-2xl bg-[#11493C] text-white hover:opacity-90"
-            onClick={onCreate}
-          >
-            + Novo Post
-          </button>
-        </div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-end gap-3">
+        <input
+          placeholder="Buscar por título, slug ou autor..."
+          className="w-full md:w-80 rounded-2xl border bg-background px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          value={query}
+          onChange={(e)=>setQuery(e.target.value)}
+        />
       </div>
 
       <div className="grid gap-4">
         {filtered.length === 0 && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             Nenhum post encontrado. Tente ajustar sua busca.
           </div>
         )}
@@ -71,7 +62,7 @@ export default function PostList({
           const realIndex = posts.findIndex(p => p.slug === post.slug);
 
           return (
-            <div key={post.slug} className="border rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div key={post.slug} className="rounded-2xl border bg-card p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 transition-colors">
               <div className="flex items-start gap-4">
                 <img
                   src={post.imageUrl}
@@ -80,24 +71,24 @@ export default function PostList({
                   onError={(e: any) => { e.currentTarget.style.opacity = 0.3; }}
                 />
                 <div>
-                  <div className="font-semibold">{post.title}</div>
-                  <div className="text-xs text-gray-600">
+                  <div className="font-semibold text-foreground">{post.title}</div>
+                  <div className="text-xs text-muted-foreground">
                     slug: <span className="font-mono">{post.slug}</span> • {post.date} • {post.author}
                   </div>
-                  <div className="text-sm text-gray-700 line-clamp-2 mt-1">{post.excerpt}</div>
+                  <div className="text-sm text-muted-foreground/80 line-clamp-2 mt-1">{post.excerpt}</div>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
-                  className="px-3 py-1.5 rounded-2xl border"
+                  className="px-3 py-1.5 rounded-2xl border bg-background text-foreground hover:bg-muted/60 text-sm transition-colors"
                   onClick={() => onEdit(realIndex)}
                   title="Editar post"
                 >
                   Editar
                 </button>
                 <button
-                  className="px-3 py-1.5 rounded-2xl border"
+                  className="px-3 py-1.5 rounded-2xl border bg-background text-foreground hover:bg-muted/60 text-sm transition-colors"
                   onClick={async () => {
                     await duplicatePost(realIndex);
                   }}
@@ -106,7 +97,7 @@ export default function PostList({
                   Duplicar
                 </button>
                 <button
-                  className="px-3 py-1.5 rounded-2xl border text-red-600"
+                  className="px-3 py-1.5 rounded-2xl border border-red-200 bg-red-50/80 text-red-700 hover:bg-red-100 dark:border-red-500/40 dark:bg-red-500/20 dark:text-red-50 dark:hover:bg-red-500/30 text-sm transition-colors"
                   onClick={() => {
                     const ok = confirm(`Excluir "${post.title}" do Supabase?`);
                     if (ok) removePost(realIndex);
@@ -121,7 +112,7 @@ export default function PostList({
         })}
       </div>
 
-      <div className="text-xs text-gray-500">
+      <div className="text-xs text-muted-foreground">
         Total: {posts.length} post{posts.length !== 1 ? "s" : ""}
       </div>
     </div>

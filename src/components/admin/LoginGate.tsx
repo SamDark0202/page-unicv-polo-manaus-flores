@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginGate({ children }: { children: React.ReactNode }) {
-  const { user, loading, signIn, signOut } = useAuth();
+  const { user, loading, signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -22,14 +22,6 @@ export default function LoginGate({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function handleLogout() {
-    try {
-      await signOut();
-    } catch (err: any) {
-      console.error("Erro ao sair:", err);
-    }
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen grid place-items-center bg-gray-50">
@@ -39,22 +31,7 @@ export default function LoginGate({ children }: { children: React.ReactNode }) {
   }
 
   if (user) {
-    return (
-      <div>
-        <div className="bg-white border-b px-4 py-2 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
-            Logado como: <strong>{user.email}</strong>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="px-3 py-1.5 rounded-2xl border text-sm hover:bg-gray-50"
-          >
-            Sair
-          </button>
-        </div>
-        {children}
-      </div>
-    );
+    return <>{children}</>;
   }
 
   return (

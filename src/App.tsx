@@ -15,6 +15,7 @@ import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 import Index from "./pages/Index";
+import PageTracker from "@/components/PageTracker";
 import Bacharelado from "./pages/Bacharelado";
 import Licenciatura from "./pages/Licenciatura";
 import Tecnologo from "./pages/Tecnologo";
@@ -38,10 +39,11 @@ const queryClient = new QueryClient();
 const AppRoutes = () => {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith("/controle");
-  const showWhatsApp = location.pathname !== "/form-parceria-mt";
+  const showWhatsApp = location.pathname !== "/form-parceria-mt" && !isAdmin;
 
   return (
     <>
+      <PageTracker />
       {!isAdmin && <TopbarFixed isChristmas={isChristmas} />}
       {showWhatsApp && <WhatsAppFloat />}
 
@@ -64,6 +66,16 @@ const AppRoutes = () => {
 /* =========================
    APP (LAYOUT GLOBAL)
 ========================= */
+const AppContent = () => {
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/controle");
+  return (
+    <div className={isAdmin ? "min-h-screen" : "pt-[90px] min-h-screen"}>
+      <AppRoutes />
+    </div>
+  );
+};
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -73,10 +85,7 @@ const App = () => {
           <Sonner />
 
           <BrowserRouter>
-            {/* CONTEÚDO (offset da rádio + faixa) */}
-            <div className="pt-[90px] min-h-screen">
-              <AppRoutes />
-            </div>
+            <AppContent />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

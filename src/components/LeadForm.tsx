@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Phone, Mail, User, MessageCircle } from "lucide-react";
+import { trackFormSubmit, trackWhatsAppClick } from "@/lib/tracker";
 // Declare fbq on the Window interface for TypeScript
 declare global {
   interface Window {
@@ -113,6 +114,8 @@ const LeadForm = ({
       description: "Em breve nossa equipe entrará em contato com você.",
     });
 
+    trackFormSubmit("lead_form", { variant });
+
     // Reset form
     setFormData({ name: "", phone: "", email: "" });
     setErrors({ email: "", phone: "" });
@@ -120,6 +123,7 @@ const LeadForm = ({
   };
 
   const handleWhatsApp = () => {
+    trackWhatsAppClick("lead_form");
        if (typeof window.fbq !== 'undefined') {
         window.fbq('track', 'Contact');
        }

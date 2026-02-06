@@ -1,88 +1,47 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadForm from "@/components/LeadForm";
+import CourseDetailDialog from "@/components/CourseDetailDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Clock, Star, Zap, CheckCircle, Trophy, Target, TrendingUp, Search } from "lucide-react";
+import { useCoursesQuery } from "@/hooks/useCourses";
+import type { Course } from "@/types/course";
+import { Briefcase, Clock, Star, Zap, CheckCircle, Trophy, Search } from "lucide-react";
+import { trackCardClick } from "@/lib/tracker";
 
 const Tecnologo = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const { data: courses = [], isLoading, error } = useCoursesQuery({ modality: "tecnologo", activeOnly: true });
+  const fetchError = error instanceof Error ? error.message : null;
 
-  const cursos = [
-    { nome: "Análise e Desenvolvimento de Sistemas", duracao: "2 anos", descricao: "Programação e desenvolvimento de software" },
-    { nome: "Big Data e Inteligência Analítica", duracao: "2 anos", descricao: "Análise de grandes volumes de dados" },
-    { nome: "Cidades Inteligentes e Sustentáveis", duracao: "1,5 anos", descricao: "Tecnologia urbana e sustentabilidade" },
-    { nome: "Coaching e Desenvolvimento Humano", duracao: "1,5 anos", descricao: "Desenvolvimento pessoal e profissional" },
-    { nome: "Comércio Exterior", duracao: "1,5 anos", descricao: "Negócios internacionais" },
-    { nome: "Desenvolvimento Comunitário", duracao: "1,5 anos", descricao: "Projetos sociais e comunitários" },
-    { nome: "Design de Animação", duracao: "1,5 anos", descricao: "Criação de animações digitais" },
-    { nome: "Design de Interiores", duracao: "1,5 anos", descricao: "Concepção e decoração de ambientes" },
-    { nome: "Design de Produto", duracao: "1,5 anos", descricao: "Criação e desenvolvimento de produtos" },
-    { nome: "Design Gráfico", duracao: "1,5 anos", descricao: "Comunicação visual e branding" },
-    { nome: "Despachante Documentalista", duracao: "2,5 anos", descricao: "Documentação, registros e serviços cartoriais" },
-    { nome: "Embelezamento e Imagem Pessoal", duracao: "1,5 anos", descricao: "Estética e cuidados pessoais" },
-    { nome: "Empreendedorismo Educacional", duracao: "1,5 anos", descricao: "Inovação e gestão em educação" },
-    { nome: "Gerência em Saúde", duracao: "1,5 anos", descricao: "Gestão de serviços e unidades de saúde" },
-    { nome: "Gestão Comercial", duracao: "1,5 anos", descricao: "Vendas, trade e estratégias comerciais" },
-    { nome: "Gestão da Produção Industrial", duracao: "2,5 anos", descricao: "Processos e eficiência produtiva" },
-    { nome: "Gestão da Qualidade", duracao: "1,5 anos", descricao: "Controle e melhoria contínua" },
-    { nome: "Gestão da Tecnologia da Informação", duracao: "2 anos", descricao: "Governança e gestão de TI" },
-    { nome: "Gestão de Clínicas e Consultórios", duracao: "1,5 anos", descricao: "Administração de serviços de saúde" },
-    { nome: "Gestão de Cooperativas", duracao: "1,5 anos", descricao: "Administração cooperativista" },
-    { nome: "Gestão de Investimentos", duracao: "1,5 anos", descricao: "Finanças e mercado de capitais" },
-    { nome: "Gestão de Lojas e Pontos de Vendas", duracao: "1,5 anos", descricao: "Operação e gestão no varejo" },
-    { nome: "Gestão de Recursos Humanos", duracao: "1,5 anos", descricao: "Recrutamento, desenvolvimento e relações de trabalho" },
-    { nome: "Gestão de Registros e Informações em Saúde", duracao: "1,5 anos", descricao: "Prontuários e sistemas de informação em saúde" },
-    { nome: "Gestão de Segurança Privada", duracao: "1,5 anos", descricao: "Operação e gestão em segurança" },
-    { nome: "Gestão de Varejo", duracao: "1,5 anos", descricao: "Estratégias e operação varejista" },
-    { nome: "Gestão do Agronegócio", duracao: "2,5 anos", descricao: "Negócios agropecuários e gestão rural" },
-    { nome: "Gestão do Esporte", duracao: "1,5 anos", descricao: "Administração e eventos esportivos" },
-    { nome: "Gestão em Farmácia", duracao: "1,5 anos", descricao: "Administração de estabelecimentos farmacêuticos" },
-    { nome: "Gestão Financeira", duracao: "1,5 anos", descricao: "Finanças corporativas e planejamento" },
-    { nome: "Gestão Pública", duracao: "2 anos", descricao: "Administração e políticas públicas" },
-    { nome: "Internet das Coisas", duracao: "2 anos", descricao: "IoT, sensores e dispositivos conectados" },
-    { nome: "Investigação Forense e Perícia Jurídica", duracao: "2,5 anos", descricao: "Perícias e técnicas de investigação" },
-    { nome: "Jogos Digitais", duracao: "2 anos", descricao: "Desenvolvimento de games" },
-    { nome: "Logística", duracao: "1,5 anos", descricao: "Cadeia de suprimentos e operações" },
-    { nome: "Marketing", duracao: "1,5 anos", descricao: "Estratégias de mercado e marca" },
-    { nome: "Marketing Digital", duracao: "1,5 anos", descricao: "Publicidade e performance online" },
-    { nome: "Mediação, Conciliação e Arbitragem", duracao: "1,5 anos", descricao: "Resolução alternativa de conflitos" },
-    { nome: "Mídias Sociais e Digitais", duracao: "1,5 anos", descricao: "Gestão de conteúdo e comunidades online" },
-    { nome: "Ministério Pastoral", duracao: "1,5 anos", descricao: "Formação pastoral e liderança religiosa" },
-    { nome: "Negócios Imobiliários", duracao: "1,5 anos", descricao: "Mercado imobiliário e intermediação" },
-    { nome: "Negócios Sustentáveis e ESG", duracao: "1,5 anos", descricao: "Sustentabilidade e responsabilidade corporativa" },
-    { nome: "Processos Gerenciais", duracao: "1,5 anos", descricao: "Gestão administrativa e operacional" },
-    { nome: "Produção de Conteúdos Digitais", duracao: "1,5 anos", descricao: "Criação e edição de conteúdo online" },
-    { nome: "Recrutamento, Seleção e Desenvolvimento de Pessoas", duracao: "1,5 anos", descricao: "Gestão de talentos e desenvolvimento humano" },
-    { nome: "Redes de Computadores", duracao: "2 anos", descricao: "Infraestrutura e conectividade de redes" },
-    { nome: "Secretariado", duracao: "1,5 anos", descricao: "Assistência executiva e administração" },
-    { nome: "Segurança da Informação", duracao: "2 anos", descricao: "Proteção de dados e cibersegurança" },
-    { nome: "Segurança no Trabalho", duracao: "2,5 anos", descricao: "Saúde e segurança ocupacional" },
-    { nome: "Segurança no Trânsito", duracao: "1,5 anos", descricao: "Educação e gestão de segurança viária" },
-    { nome: "Segurança Pública", duracao: "2 anos", descricao: "Políticas e operações de segurança pública" },
-    { nome: "Serviços Jurídicos", duracao: "1,5 anos", descricao: "Atuação em escritórios e departamentos jurídicos" },
-    { nome: "Serviços Jurídicos e Notariais", duracao: "1,5 anos", descricao: "Atuação em cartórios e serviços notariais" },
-    { nome: "Serviços Penais", duracao: "1,5 anos", descricao: "Administração do sistema penitenciário" },
-    { nome: "Sistemas para Internet", duracao: "2 anos", descricao: "Desenvolvimento web e aplicações online" },
-    { nome: "Tradutor e Intérprete - Português-Francês", duracao: "1,5 anos", descricao: "Tradução e interpretação de idiomas" },
-    { nome: "Transformação Digital", duracao: "2 anos", descricao: "Transformação e inovação empresarial" },
-    { nome: "Inteligência Artificial", duracao: "2 anos", descricao: "Modelos, machine learning e aplicações" },
-    { nome: "Banco de Dados", duracao: "2 anos", descricao: "Modelagem e administração de bases de dados" },
-    { nome: "Processos Químicos", duracao: "1,5 anos", descricao: "Operação e controle de processos químicos" },
-    { nome: "Serviços Previdenciários", duracao: "1,5 anos", descricao: "Atendimento e gestão previdenciária" },
-    { nome: "Perícia Judicial e Extrajudicial", duracao: "1,5 anos", descricao: "Atuação pericial em diversas áreas" },
-    { nome: "Gestão da Atividade Policial", duracao: "1,5 anos", descricao: "Administração e operacionalização policial" },
-    { nome: "Criminologia", duracao: "1,5 anos", descricao: "Estudo do crime e políticas de prevenção" },
-    { nome: "Gastronomia", duracao: "1,5 anos", descricao: "Cozinha profissional e gestão culinária" },
-    { nome: "Turismo", duracao: "1,5 anos", descricao: "Gestão e operação no setor de turismo" },
-    { nome: "Produção Audiovisual", duracao: "1,5 anos", descricao: "Criação e produção de conteúdo audiovisual" }
-  ];
+  const cursosFiltrados = useMemo(() => {
+    const termo = searchTerm.trim().toLowerCase();
+    if (!termo) return courses;
+    return courses.filter(
+      (curso) =>
+        curso.name.toLowerCase().includes(termo) ||
+        curso.preview.toLowerCase().includes(termo)
+    );
+  }, [courses, searchTerm]);
 
-  const cursosFiltrados = cursos.filter((curso) =>
-    curso.nome.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const totalCursos = courses.length;
+
+  function handleOpenDetails(course: Course) {
+    trackCardClick(course.name, { modality: "tecnologo" });
+    setSelectedCourse(course);
+    setIsDetailsOpen(true);
+  }
+
+  function handleCloseDetails(openState: boolean) {
+    setIsDetailsOpen(openState);
+    if (!openState) {
+      setSelectedCourse(null);
+    }
+  }
 
   const beneficios = [
     "Entrada rápida no mercado",
@@ -115,13 +74,17 @@ const Tecnologo = () => {
             </Badge>
             <h1 className="text-4xl lg:text-6xl font-bold mb-6">Graduação Tecnólogo</h1>
             <p className="text-xl lg:text-2xl text-blue-100 mb-8">
-              Entre rapidamente no mercado de trabalho com formação específica e prática. <strong>75+ cursos disponíveis</strong> com duração de 1,5 a 2,5 anos.
+              Entre rapidamente no mercado de trabalho com formação específica e prática.{" "}
+              <strong>
+                {isLoading ? "Cursos disponíveis" : `${totalCursos} cursos disponíveis`}
+              </strong>{" "}
+              com duração de 1,5 a 2,5 anos.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-2">75+</div>
-                <div className="text-sm opacity-90">Cursos Disponíveis</div>
-              </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold mb-2">{isLoading ? "--" : totalCursos}</div>
+                  <div className="text-sm opacity-90">Cursos Disponíveis</div>
+                </div>
               <div className="text-center">
                 <div className="text-3xl font-bold mb-2">1,5-2,5</div>
                 <div className="text-sm opacity-90">Anos de Duração</div>
@@ -189,22 +152,30 @@ const Tecnologo = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {cursosFiltrados.map((curso, index) => (
-              <Card key={index} className="hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
+            {isLoading && (
+              <div className="col-span-full text-center text-muted-foreground">Carregando cursos...</div>
+            )}
+
+            {!isLoading && fetchError && (
+              <div className="col-span-full text-center text-red-600">Erro ao carregar cursos.</div>
+            )}
+
+            {!isLoading && !fetchError && cursosFiltrados.map((curso) => (
+              <Card key={curso.id} className="hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-lg mb-2">{curso.nome}</CardTitle>
+                      <CardTitle className="text-lg mb-2">{curso.name}</CardTitle>
                       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                         <Clock className="h-4 w-4" />
-                        <span>{curso.duracao}</span>
+                        <span>{curso.duration}</span>
                       </div>
                     </div>
                     <Briefcase className="h-6 w-6 text-warning" />
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <CardDescription className="mb-4">{curso.descricao}</CardDescription>
+                  <CardDescription className="mb-4">{curso.preview}</CardDescription>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Star className="h-4 w-4 text-warning fill-current" />
@@ -216,14 +187,10 @@ const Tecnologo = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        const message = `Olá! Tenho interesse no curso de ${curso.nome} (Tecnólogo) e gostaria de saber mais sobre como garatir uma bolsa de desconto!`;
-                        const whatsappUrl = `https://wa.me/559220201260?text=${encodeURIComponent(message)}`;
-                        window.open(whatsappUrl, "_blank");
-                      }}
                       className="text-xs"
+                      onClick={() => handleOpenDetails(curso)}
                     >
-                      Quero saber mais
+                      Ver detalhes
                     </Button>
                   </div>
                 </CardContent>
@@ -232,10 +199,10 @@ const Tecnologo = () => {
           </div>
 
           <div className="text-center">
-            {cursosFiltrados.length === 0 && (
+            {!isLoading && !fetchError && cursosFiltrados.length === 0 && (
               <p className="text-muted-foreground">Nenhum curso encontrado. Tente outro termo de busca.</p>
             )}
-            {cursosFiltrados.length < cursos.length && (
+            {!isLoading && searchTerm && (
               <Button variant="link" size="sm" onClick={() => setSearchTerm("")}>
                 Ver todos os cursos
               </Button>
@@ -317,6 +284,12 @@ const Tecnologo = () => {
       </section>
 
       <Footer />
+
+      <CourseDetailDialog
+        course={selectedCourse}
+        open={isDetailsOpen}
+        onOpenChange={handleCloseDetails}
+      />
     </div>
   );
 };

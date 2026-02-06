@@ -1,44 +1,47 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadForm from "@/components/LeadForm";
-import { useState } from "react";
+import CourseDetailDialog from "@/components/CourseDetailDialog";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, Clock, Star, Users, CheckCircle, BookOpen, Search } from "lucide-react";
+import { useCoursesQuery } from "@/hooks/useCourses";
+import type { Course } from "@/types/course";
+import { trackCardClick } from "@/lib/tracker";
 
 const Licenciatura = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const { data: courses = [], isLoading, error } = useCoursesQuery({ modality: "licenciatura", activeOnly: true });
+  const fetchError = error instanceof Error ? error.message : null;
 
-  const cursos = [
-    { nome: "Ciências Biológicas", duracao: "4 anos", descricao: "Formação em biologia e ciências" },
-    { nome: "Andragogia", duracao: "4 anos", descricao: "Educação de jovens e adultos" },
-    { nome: "Artes", duracao: "4 anos", descricao: "Ensino de artes e práticas artísticas" },
-    { nome: "Artes Visuais", duracao: "4 anos", descricao: "Formação em artes visuais" },
-    { nome: "Ciências da Religião", duracao: "4 anos", descricao: "Estudos religiosos e filosóficos" },
-    { nome: "Ciências Sociais", duracao: "4 anos", descricao: "Sociologia e ciências humanas" },
-    { nome: "Computação e Informática", duracao: "4 anos", descricao: "Ensino de tecnologia e informática" },
-    { nome: "Educação Especial", duracao: "4 anos", descricao: "Formação para educação inclusiva" },
-    { nome: "Educação Física", duracao: "4 anos", descricao: "Formação para ensino de educação física" },
-    { nome: "Filosofia", duracao: "4 anos", descricao: "Formação em pensamento filosófico" },
-    { nome: "Física", duracao: "4 anos", descricao: "Ensino de física e ciências exatas" },
-    { nome: "Geografia", duracao: "4 anos", descricao: "Geografia humana e física" },
-    { nome: "História", duracao: "4 anos", descricao: "Formação em história regional e mundial" },
-    { nome: "Letras - Língua Portuguesa e Libras", duracao: "4 anos", descricao: "Português e Língua Brasileira de Sinais" },
-    { nome: "Letras - Português e Espanhol", duracao: "4 anos", descricao: "Formação em português e espanhol" },
-    { nome: "Letras - Português e Francês", duracao: "4 anos", descricao: "Formação em português e francês" },
-    { nome: "Letras - Português e Inglês", duracao: "4 anos", descricao: "Formação em português e inglês" },
-    { nome: "Letras - Português e Italiano", duracao: "4 anos", descricao: "Formação em português e italiano" },
-    { nome: "Matemática", duracao: "4 anos", descricao: "Ensino de matemática" },
-    { nome: "Pedagogia", duracao: "4 anos", descricao: "Formação para atuar na educação infantil e anos iniciais" },
-    { nome: "Psicopedagogia", duracao: "4 anos", descricao: "Atuação em dificuldades de aprendizagem" },
-    { nome: "Química", duracao: "4 anos", descricao: "Ensino de química e práticas laboratoriais" },
-    { nome: "Sociologia", duracao: "4 anos", descricao: "Estudo das relações e estruturas sociais" }
-  ];
+  const cursosFiltrados = useMemo(() => {
+    const termo = searchTerm.trim().toLowerCase();
+    if (!termo) return courses;
+    return courses.filter(
+      (curso) =>
+        curso.name.toLowerCase().includes(termo) ||
+        curso.preview.toLowerCase().includes(termo)
+    );
+  }, [courses, searchTerm]);
 
-  const cursosFiltrados = cursos.filter((curso) =>
-    curso.nome.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const totalCursos = courses.length;
+
+  function handleOpenDetails(course: Course) {
+    trackCardClick(course.name, { modality: "licenciatura" });
+    setSelectedCourse(course);
+    setIsDetailsOpen(true);
+  }
+
+  function handleCloseDetails(openState: boolean) {
+    setIsDetailsOpen(openState);
+    if (!openState) {
+      setSelectedCourse(null);
+    }
+  }
 
   const beneficios = [
     "Carreira na educação",
@@ -72,13 +75,16 @@ const Licenciatura = () => {
             <h1 className="text-4xl lg:text-6xl font-bold mb-6">Graduação Licenciatura</h1>
             <p className="text-xl lg:text-2xl text-blue-100 mb-8">
               Forme-se professor e transforme vidas através da educação.{" "}
-              <strong>24 cursos disponíveis</strong> com duração de 3 a 4 anos.
+              <strong>
+                {isLoading ? "Cursos disponíveis" : `${totalCursos} cursos disponíveis`}
+              </strong>{" "}
+              com duração de 3 a 4 anos.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-2">24</div>
-                <div className="text-sm opacity-90">Cursos Disponíveis</div>
-              </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold mb-2">{isLoading ? "--" : totalCursos}</div>
+                  <div className="text-sm opacity-90">Cursos Disponíveis</div>
+                </div>
               <div className="text-center">
                 <div className="text-3xl font-bold mb-2">3-4</div>
                 <div className="text-sm opacity-90">Anos de Duração</div>
@@ -162,15 +168,23 @@ const Licenciatura = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {cursosFiltrados.map((curso, index) => (
-              <Card key={index} className="hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
+            {isLoading && (
+              <div className="col-span-full text-center text-muted-foreground">Carregando cursos...</div>
+            )}
+
+            {!isLoading && fetchError && (
+              <div className="col-span-full text-center text-red-600">Erro ao carregar cursos.</div>
+            )}
+
+            {!isLoading && !fetchError && cursosFiltrados.map((curso) => (
+              <Card key={curso.id} className="hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-lg mb-2">{curso.nome}</CardTitle>
+                      <CardTitle className="text-lg mb-2">{curso.name}</CardTitle>
                       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                         <Clock className="h-4 w-4" />
-                        <span>{curso.duracao}</span>
+                        <span>{curso.duration}</span>
                       </div>
                     </div>
                     <Users className="h-6 w-6 text-accent" />
@@ -178,7 +192,7 @@ const Licenciatura = () => {
                 </CardHeader>
                 <CardContent className="pt-0">
                   <CardDescription className="mb-4">
-                    {curso.descricao}
+                    {curso.preview}
                   </CardDescription>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
@@ -191,21 +205,17 @@ const Licenciatura = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        const message = `Olá! Tenho interesse no curso de ${curso.nome} (Licenciatura) e gostaria de saber mais sobre como garatir uma bolsa de desconto!`;
-                        const whatsappUrl = `https://wa.me/559220201260?text=${encodeURIComponent(message)}`;
-                        window.open(whatsappUrl, '_blank');
-                      }}
                       className="text-xs"
+                      onClick={() => handleOpenDetails(curso)}
                     >
-                      Quero saber mais
+                      Ver detalhes
                     </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-          {cursosFiltrados.length === 0 && (
+          {!isLoading && !fetchError && cursosFiltrados.length === 0 && (
             <p className="text-center text-muted-foreground py-4">Não possuímos o curso no momento.</p>
           )}
 
@@ -259,6 +269,12 @@ const Licenciatura = () => {
       </section>
 
       <Footer />
+
+      <CourseDetailDialog
+        course={selectedCourse}
+        open={isDetailsOpen}
+        onOpenChange={handleCloseDetails}
+      />
     </div>
   );
 };

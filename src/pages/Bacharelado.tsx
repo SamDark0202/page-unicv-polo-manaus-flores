@@ -1,45 +1,22 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadForm from "@/components/LeadForm";
-import { useState } from "react";
+import CourseDetailDialog from "@/components/CourseDetailDialog";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useCoursesQuery } from "@/hooks/useCourses";
+import type { Course } from "@/types/course";
 import { GraduationCap, Clock, Star, CheckCircle, Search } from "lucide-react";
+import { trackCardClick } from "@/lib/tracker";
 
 const Bacharelado = () => {
   const [searchTerm, setSearchTerm] = useState("");
-
- const cursos = [
-  { nome: "Administração", duracao: "3 anos", descricao: "Gestão de empresas, pessoas e processos organizacionais." },
-  { nome: "Administração Pública", duracao: "3 anos", descricao: "Gestão de políticas públicas e instituições governamentais." },
-  { nome: "Arquivologia", duracao: "3 anos", descricao: "Organização, preservação e gestão de documentos e arquivos." },
-  { nome: "Biblioteconomia", duracao: "3 anos", descricao: "Gestão da informação, acervos e bibliotecas." },
-  { nome: "Ciências Contábeis", duracao: "3 anos", descricao: "Contabilidade, finanças e controle patrimonial." },
-  { nome: "Ciências Econômicas", duracao: "3 anos", descricao: "Análise econômica e políticas de mercado." },
-  { nome: "Ciências Imobiliárias", duracao: "3 anos", descricao: "Gestão e comercialização de imóveis e investimentos imobiliários." },
-  { nome: "Ciência Política", duracao: "3 anos", descricao: "Estudo de governos, partidos e relações políticas." },
-  { nome: "Educação Física", duracao: "4 anos", descricao: "Atividade física e esporte - Modalidade Semipresencial" },
-  { nome: "Museologia", duracao: "3 anos", descricao: "Gestão e preservação do patrimônio histórico e cultural." },
-  { nome: "Publicidade e Propaganda", duracao: "3 anos", descricao: "Criação, planejamento e gestão de campanhas publicitárias." },
-  { nome: "Relações Internacionais", duracao: "3 anos", descricao: "Comércio exterior, diplomacia e relações globais." },
-  { nome: "Teologia", duracao: "3 anos", descricao: "Estudos teológicos, religiosos e filosóficos." },
-  { nome: "Geografia", duracao: "3 anos", descricao: "Estudo do espaço geográfico, meio ambiente e sociedade." },
-  { nome: "Estatística", duracao: "3 anos", descricao: "Coleta, análise e interpretação de dados e indicadores." },
-  { nome: "Sociologia", duracao: "3 anos", descricao: "Análise das relações sociais e estruturas da sociedade." },
-  { nome: "Ciências Sociais", duracao: "3 anos", descricao: "Compreensão crítica da sociedade, cultura e política." },
-  { nome: "Química", duracao: "3 anos", descricao: "Estudo das substâncias, reações e aplicações químicas." },
-  { nome: "Ciências Biológicas", duracao: "3 anos", descricao: "Estudo da vida, ecossistemas e biotecnologia." },
-  { nome: "Física", duracao: "3 anos", descricao: "Fenômenos naturais, leis da física e aplicações tecnológicas." },
-  { nome: "Letras", duracao: "3 anos", descricao: "Estudo da linguagem, literatura e comunicação escrita." },
-  { nome: "Psicanálise", duracao: "4 anos", descricao: "Estudo da mente humana e das práticas psicanalíticas." },
-  { nome: "Engenharia de Dados", duracao: "4 anos", descricao: "Gestão, modelagem e análise de grandes volumes de dados." },
-  { nome: "Engenharia de Design Digital", duracao: "4 anos", descricao: "Criação de interfaces, produtos e experiências digitais." },
-  { nome: "Engenharia de Software", duracao: "4 anos", descricao: "Desenvolvimento e manutenção de sistemas e aplicativos." },
-  { nome: "Engenharia de Segurança Cibernética", duracao: "3 anos", descricao: "Proteção de sistemas, redes e dados digitais." },
-  { nome: "Engenharia DevOps", duracao: "3 anos", descricao: "Integração entre desenvolvimento e operações de software." }
-];
-
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const { data: courses = [], isLoading, error } = useCoursesQuery({ modality: "bacharelado", activeOnly: true });
+  const fetchError = error instanceof Error ? error.message : null;
 
   const beneficios = [
     "Formação ampla e generalista",
@@ -50,9 +27,29 @@ const Bacharelado = () => {
     "Diploma com validade nacional"
   ];
 
-  const cursosFiltrados = cursos.filter(curso =>
-    curso.nome.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const cursosFiltrados = useMemo(() => {
+    const termo = searchTerm.trim().toLowerCase();
+    if (!termo) return courses;
+    return courses.filter((curso) =>
+      curso.name.toLowerCase().includes(termo) ||
+      curso.preview.toLowerCase().includes(termo)
+    );
+  }, [courses, searchTerm]);
+
+  const totalCursos = courses.length;
+
+  function handleOpenDetails(course: Course) {
+    trackCardClick(course.name, { modality: "bacharelado" });
+    setSelectedCourse(course);
+    setIsDetailsOpen(true);
+  }
+
+  function handleCloseDetails(openState: boolean) {
+    setIsDetailsOpen(openState);
+    if (!openState) {
+      setSelectedCourse(null);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -67,13 +64,16 @@ const Bacharelado = () => {
             <h1 className="text-4xl lg:text-6xl font-bold mb-6">Graduação Bacharelado</h1>
             <p className="text-xl lg:text-2xl text-blue-100 mb-8">
               Formação completa e ampla para sua carreira profissional.{" "}
-              <strong>28 cursos disponíveis</strong> com duração de 3 a 5 anos.
+              <strong>
+                {isLoading ? "Cursos disponíveis" : `${totalCursos} cursos disponíveis`}
+              </strong>{" "}
+              com duração de 3 a 5 anos.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-2">28</div>
-                <div className="text-sm opacity-90">Cursos Disponíveis</div>
-              </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold mb-2">{isLoading ? "--" : totalCursos}</div>
+                  <div className="text-sm opacity-90">Cursos Disponíveis</div>
+                </div>
               <div className="text-center">
                 <div className="text-3xl font-bold mb-2">3-5</div>
                 <div className="text-sm opacity-90">Anos de Duração</div>
@@ -137,15 +137,25 @@ const Bacharelado = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {cursosFiltrados.map((curso, index) => (
-              <Card key={index} className="hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
+            {isLoading && (
+              <div className="col-span-full text-center text-muted-foreground">Carregando cursos...</div>
+            )}
+
+            {!isLoading && fetchError && (
+              <div className="col-span-full text-center text-red-600">
+                Erro ao carregar cursos. Tente novamente mais tarde.
+              </div>
+            )}
+
+            {!isLoading && !fetchError && cursosFiltrados.map((curso) => (
+              <Card key={curso.id} className="hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-lg mb-2">{curso.nome}</CardTitle>
+                      <CardTitle className="text-lg mb-2">{curso.name}</CardTitle>
                       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                         <Clock className="h-4 w-4" />
-                        <span>{curso.duracao}</span>
+                        <span>{curso.duration}</span>
                       </div>
                     </div>
                     <GraduationCap className="h-6 w-6 text-primary" />
@@ -153,7 +163,7 @@ const Bacharelado = () => {
                 </CardHeader>
                 <CardContent className="pt-0">
                   <CardDescription className="mb-4">
-                    {curso.descricao}
+                    {curso.preview}
                   </CardDescription>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
@@ -163,17 +173,13 @@ const Bacharelado = () => {
                         <span className="text-sm font-medium">MODALIDADE EAD</span>
                       </div>
                     </div>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
-                      onClick={() => {
-                        const message = `Olá! Tenho interesse no curso de ${curso.nome} (Bacharelado) e gostaria de saber mais sobre como garatir uma bolsa de desconto!`;
-                        const whatsappUrl = `https://wa.me/559220201260?text=${encodeURIComponent(message)}`;
-                        window.open(whatsappUrl, '_blank');
-                      }}
                       className="text-xs"
+                      onClick={() => handleOpenDetails(curso)}
                     >
-                      Quero saber mais
+                      Ver detalhes
                     </Button>
                   </div>
                 </CardContent>
@@ -181,7 +187,7 @@ const Bacharelado = () => {
             ))}
           </div>
 
-          {cursosFiltrados.length === 0 && (
+          {!isLoading && !fetchError && cursosFiltrados.length === 0 && (
             <p className="text-center text-muted-foreground">Não possuímos o curso no momento.</p>
           )}
         </div>
@@ -206,6 +212,12 @@ const Bacharelado = () => {
       </section>
 
       <Footer />
+
+      <CourseDetailDialog
+        course={selectedCourse}
+        open={isDetailsOpen}
+        onOpenChange={handleCloseDetails}
+      />
     </div>
   );
 };

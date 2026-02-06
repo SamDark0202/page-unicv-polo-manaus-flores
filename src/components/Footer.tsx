@@ -40,6 +40,7 @@ const Footer = () => {
   ];
 
   const handleWhatsApp = () => {
+    import("@/lib/tracker").then(({ trackWhatsAppClick }) => trackWhatsAppClick("footer"));
     const message = "Olá! Gostaria de saber mais sobre os cursos da UniCV e as condições especiais.";
     const phone = "559220201260";
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
