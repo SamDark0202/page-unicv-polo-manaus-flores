@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { Line, LineChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import {
   Users,
   Eye,
@@ -13,15 +15,84 @@ import {
   BarChart3,
   RefreshCcw,
 } from "lucide-react";
-import { useAnalytics, type DateRange } from "@/hooks/useAnalytics";
+import {
+  useAnalytics,
+  type AnalyticsFilter,
+  type DateRange,
+} from "@/hooks/useAnalytics";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
 
-const ranges: Array<{ value: DateRange; label: string }> = [
+type RangeTabValue = DateRange | "custom";
+type MetricView = "all" | "views" | "whatsapp" | "forms";
+type MetricSeries = Exclude<MetricView, "all">;
+type CustomRange = { start: string; end: string };
+
+const rangeTabs: Array<{ value: RangeTabValue; label: string }> = [
   { value: "today", label: "Hoje" },
   { value: "7d", label: "7 dias" },
   { value: "30d", label: "30 dias" },
   { value: "all", label: "Tudo" },
+  { value: "custom", label: "Personalizado" },
 ];
+
+const metricTabs: Array<{ value: MetricView; label: string }> = [
+  { value: "all", label: "Todos" },
+  { value: "views", label: "Visualizações" },
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "forms", label: "Formulários" },
+];
+
+const metricSeriesOrder: MetricSeries[] = ["views", "whatsapp", "forms"];
+
+const chartConfig = {
+  views: {
+    label: "Visualizações",
+    color: "#6366f1",
+  },
+  whatsapp: {
+    label: "WhatsApp",
+    color: "#22c55e",
+  },
+  forms: {
+    label: "Formulários",
+    color: "#f97316",
+  },
+} satisfies ChartConfig;
+
+const shortDateFormatter = new Intl.DateTimeFormat("pt-BR", {
+  day: "2-digit",
+  month: "short",
+});
+
+function formatDateLabel(input: string) {
+  const parsed = new Date(input);
+  if (Number.isNaN(parsed.getTime())) {
+    return input;
+  }
+  return shortDateFormatter.format(parsed);
+}
+
+function toInputDate(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function defaultCustomRange(): CustomRange {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - 6);
+  return {
+    start: toInputDate(start),
+    end: toInputDate(end),
+  };
+}
 
 function formatDuration(ms: number): string {
   if (ms <= 0) return "—";
@@ -33,8 +104,26 @@ function formatDuration(ms: number): string {
 }
 
 export default function AnalyticsDashboard() {
-  const [range, setRange] = useState<DateRange>("7d");
-  const { data, isLoading, error, refetch } = useAnalytics(range);
+  const [filter, setFilter] = useState<AnalyticsFilter>({ mode: "preset", range: "7d" });
+  const [customDraft, setCustomDraft] = useState<CustomRange>(() => defaultCustomRange());
+  const [metricView, setMetricView] = useState<MetricView>("all");
+  const [rangeTab, setRangeTab] = useState<RangeTabValue>("7d");
+  const { data, isLoading, error, refetch } = useAnalytics(filter);
+
+  const isCustomActive = rangeTab === "custom";
+  const isCustomValid = Boolean(
+    customDraft.start &&
+    customDraft.end &&
+    customDraft.start <= customDraft.end
+  );
+
+  const chartData = data?.dailyMetrics ?? [];
+  const activeSeries: MetricSeries[] =
+    metricView === "all" ? metricSeriesOrder : [metricView as MetricSeries];
+  const hasChartPoints =
+    chartData.length > 0 &&
+    activeSeries.some((seriesKey) => chartData.some((point) => point[seriesKey] > 0));
+  const topPagesTotal = data?.topPages?.reduce((sum, page) => sum + page.views, 0) ?? 0;
 
   const kpiCards = [
     {
@@ -82,28 +171,88 @@ export default function AnalyticsDashboard() {
     },
   ];
 
-  const maxDaily = Math.max(...(data?.dailyViews?.map((d) => d.views) ?? [1]), 1);
+  function handleRangeTabChange(value: RangeTabValue) {
+    setRangeTab(value);
+    if (value === "custom") {
+      return;
+    }
+    if (filter.mode !== "preset" || filter.range !== value) {
+      setFilter({ mode: "preset", range: value });
+    }
+  }
+
+  function handleApplyCustomRange() {
+    if (!isCustomValid) return;
+    setRangeTab("custom");
+    setFilter({ mode: "custom", ...customDraft });
+  }
 
   return (
     <div className="space-y-6">
-      {/* Controles */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <Tabs value={range} onValueChange={(v) => setRange(v as DateRange)}>
-          <TabsList>
-            {ranges.map((r) => (
-              <TabsTrigger key={r.value} value={r.value} className="px-4">
-                {r.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
-          <RefreshCcw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
-          Atualizar
-        </Button>
+      <div className="space-y-3">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <Tabs value={rangeTab} onValueChange={(v) => handleRangeTabChange(v as RangeTabValue)}>
+            <TabsList className="flex flex-wrap gap-1">
+              {rangeTabs.map((r) => (
+                <TabsTrigger key={r.value} value={r.value} className="px-4">
+                  {r.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
+            <RefreshCcw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
+            Atualizar
+          </Button>
+        </div>
+
+        {isCustomActive && (
+          <div className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/70 p-4 shadow-inner sm:flex-row sm:items-end">
+            <div className="flex flex-1 flex-col gap-1">
+              <label className="text-xs font-semibold text-muted-foreground" htmlFor="analytics-start-date">
+                Data inicial
+              </label>
+              <Input
+                id="analytics-start-date"
+                type="date"
+                value={customDraft.start}
+                max={customDraft.end || undefined}
+                onChange={(event) =>
+                  setCustomDraft((prev) => ({ ...prev, start: event.target.value }))
+                }
+              />
+            </div>
+            <div className="flex flex-1 flex-col gap-1">
+              <label className="text-xs font-semibold text-muted-foreground" htmlFor="analytics-end-date">
+                Data final
+              </label>
+              <Input
+                id="analytics-end-date"
+                type="date"
+                value={customDraft.end}
+                min={customDraft.start || undefined}
+                onChange={(event) =>
+                  setCustomDraft((prev) => ({ ...prev, end: event.target.value }))
+                }
+              />
+            </div>
+            <Button
+              type="button"
+              onClick={handleApplyCustomRange}
+              disabled={!isCustomValid || isLoading}
+              className="shrink-0"
+            >
+              Aplicar período
+            </Button>
+          </div>
+        )}
+        {!isCustomValid && isCustomActive && (
+          <p className="text-xs font-medium text-red-500">
+            A data inicial precisa ser menor ou igual à final para aplicar o filtro.
+          </p>
+        )}
       </div>
 
-      {/* Erro */}
       {error && (
         <div className="rounded-2xl border border-red-300 bg-red-50 p-4 text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300">
           <p className="font-semibold">Erro ao carregar métricas</p>
@@ -111,7 +260,6 @@ export default function AnalyticsDashboard() {
         </div>
       )}
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {kpiCards.map((kpi) => {
           const Icon = kpi.icon;
@@ -133,49 +281,57 @@ export default function AnalyticsDashboard() {
         })}
       </div>
 
-      {/* Gráfico diário + Tabelas */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Mini gráfico de barras */}
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-0">
             <CardTitle className="flex items-center gap-2 text-base">
               <BarChart3 className="h-5 w-5 text-muted-foreground" />
-              Visualizações por dia
+              Evolução diária
             </CardTitle>
+            <Tabs value={metricView} onValueChange={(value) => setMetricView(value as MetricView)}>
+              <TabsList className="grid grid-cols-2 gap-1 sm:grid-cols-4">
+                {metricTabs.map((tab) => (
+                  <TabsTrigger key={tab.value} value={tab.value} className="text-xs">
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             {isLoading ? (
-              <div className="flex h-48 items-center justify-center text-muted-foreground">Carregando…</div>
-            ) : !data?.dailyViews?.length ? (
-              <div className="flex h-48 items-center justify-center text-muted-foreground">Sem dados no período</div>
-            ) : (
-              <div className="flex h-48 items-end gap-1">
-                {data.dailyViews.map((d) => {
-                  const pct = (d.views / maxDaily) * 100;
-                  return (
-                    <div
-                      key={d.date}
-                      className="group relative flex flex-1 flex-col items-center"
-                    >
-                      <div className="absolute -top-6 rounded bg-foreground/90 px-1.5 py-0.5 text-[10px] text-background opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none">
-                        {d.views}
-                      </div>
-                      <div
-                        className="w-full rounded-t bg-primary/80 transition-all hover:bg-primary"
-                        style={{ height: `${Math.max(pct, 2)}%` }}
-                      />
-                      <span className="mt-1 max-w-full truncate text-[9px] text-muted-foreground">
-                        {d.date.slice(5)}
-                      </span>
-                    </div>
-                  );
-                })}
+              <div className="flex h-72 items-center justify-center text-muted-foreground">Carregando…</div>
+            ) : !chartData.length || !hasChartPoints ? (
+              <div className="flex h-72 flex-col items-center justify-center gap-2 text-center text-muted-foreground">
+                <p>Sem dados no período selecionado.</p>
+                <p className="text-xs">Ajuste o filtro ou aguarde novos eventos.</p>
               </div>
+            ) : (
+              <ChartContainer config={chartConfig} className="aspect-auto h-72 w-full">
+                <LineChart data={chartData} margin={{ left: 12, right: 12, bottom: 4 }}>
+                  <CartesianGrid strokeDasharray="4 4" className="stroke-border/60" />
+                  <XAxis dataKey="date" tickFormatter={formatDateLabel} fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis allowDecimals={false} width={46} tickLine={false} axisLine={false} fontSize={12} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  {activeSeries.map((series) => (
+                    <Line
+                      key={series}
+                      type="monotone"
+                      dataKey={series}
+                      stroke={`var(--color-${series})`}
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4 }}
+                      isAnimationActive={false}
+                    />
+                  ))}
+                </LineChart>
+              </ChartContainer>
             )}
           </CardContent>
         </Card>
 
-        {/* Top páginas */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -189,10 +345,10 @@ export default function AnalyticsDashboard() {
             ) : !data?.topPages?.length ? (
               <div className="flex h-48 items-center justify-center text-muted-foreground">Sem dados no período</div>
             ) : (
-              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+              <div className="space-y-3">
                 {data.topPages.map((p, i) => {
-                  const maxViews = data.topPages[0]?.views ?? 1;
-                  const pct = (p.views / maxViews) * 100;
+                  const pctTotal = topPagesTotal > 0 ? (p.views / topPagesTotal) * 100 : 0;
+                  const barWidth = Math.max(pctTotal, 3);
                   return (
                     <div key={p.path} className="flex items-center gap-3">
                       <span className="w-5 shrink-0 text-xs font-medium text-muted-foreground text-right">
@@ -205,11 +361,19 @@ export default function AnalyticsDashboard() {
                             {p.views.toLocaleString("pt-BR")}
                           </span>
                         </div>
-                        <div className="mt-1 h-1.5 rounded-full bg-muted">
+                        <div className="mt-1 flex items-center gap-2">
+                          <div className="h-1.5 flex-1 rounded-full bg-muted">
+                            <div
+                              className="h-1.5 rounded-full bg-primary/70"
+                              style={{ width: `${barWidth}%` }}
+                            />
+                          </div>
                           <div
-                            className="h-1.5 rounded-full bg-primary/70"
-                            style={{ width: `${pct}%` }}
-                          />
+                            className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground"
+                            aria-label={`Participação de ${pctTotal.toFixed(1)}%`}
+                          >
+                            {pctTotal.toFixed(1)}%
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -220,7 +384,6 @@ export default function AnalyticsDashboard() {
           </CardContent>
         </Card>
 
-        {/* Top cards clicados */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">

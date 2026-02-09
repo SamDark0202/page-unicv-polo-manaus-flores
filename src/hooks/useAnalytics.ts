@@ -7,6 +7,17 @@ import { supabase } from "@/lib/supabaseClient";
 
 export type DateRange = "today" | "7d" | "30d" | "all";
 
+export type AnalyticsFilter =
+  | { mode: "preset"; range: DateRange }
+  | { mode: "custom"; start: string; end: string };
+
+export type DailyMetricsPoint = {
+  date: string;
+  views: number;
+  whatsapp: number;
+  forms: number;
+};
+
 export interface KpiSummary {
   totalVisitors: number;
   totalPageViews: number;
@@ -16,7 +27,7 @@ export interface KpiSummary {
   avgSessionMs: number;
   topPages: Array<{ path: string; views: number }>;
   topCards: Array<{ name: string; clicks: number }>;
-  dailyViews: Array<{ date: string; views: number }>;
+  dailyMetrics: DailyMetricsPoint[];
 }
 
 // ---------------------------------------------------------------------------
@@ -49,13 +60,42 @@ function dateFilter(range: DateRange): string | null {
 // Fetch principal
 // ---------------------------------------------------------------------------
 
-async function fetchKpis(range: DateRange): Promise<KpiSummary> {
-  const since = dateFilter(range);
+function getQueryBounds(filter: AnalyticsFilter): { gte?: string; lte?: string } {
+  if (filter.mode === "preset") {
+    const since = dateFilter(filter.range);
+    return since ? { gte: since } : {};
+  }
+
+  const startDate = new Date(filter.start);
+  const endDate = new Date(filter.end);
+
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    throw new Error("Período personalizado inválido");
+  }
+
+  if (startDate > endDate) {
+    throw new Error("Data inicial não pode ser maior que a final");
+  }
+
+  startDate.setHours(0, 0, 0, 0);
+  endDate.setHours(23, 59, 59, 999);
+
+  return {
+    gte: startDate.toISOString(),
+    lte: endDate.toISOString(),
+  };
+}
+
+async function fetchKpis(filter: AnalyticsFilter): Promise<KpiSummary> {
+  const { gte, lte } = getQueryBounds(filter);
 
   // Busca todos os eventos do período de uma vez
   let query = supabase.from("site_events").select("*");
-  if (since) {
-    query = query.gte("created_at", since);
+  if (gte) {
+    query = query.gte("created_at", gte);
+  }
+  if (lte) {
+    query = query.lte("created_at", lte);
   }
 
   const { data: events, error } = await query.order("created_at", { ascending: true });
@@ -101,15 +141,35 @@ async function fetchKpis(range: DateRange): Promise<KpiSummary> {
     .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 10);
 
-  // Views por dia (para gráfico)
-  const dailyMap: Record<string, number> = {};
-  for (const pv of pageViews) {
-    const day = pv.created_at?.slice(0, 10) ?? "unknown";
-    dailyMap[day] = (dailyMap[day] ?? 0) + 1;
+  // Métricas diárias combinadas
+  const dailyMap: Record<string, DailyMetricsPoint> = {};
+
+  function ensureDay(day: string) {
+    if (!dailyMap[day]) {
+      dailyMap[day] = { date: day, views: 0, whatsapp: 0, forms: 0 };
+    }
+    return dailyMap[day];
   }
-  const dailyViews = Object.entries(dailyMap)
-    .map(([date, views]) => ({ date, views }))
-    .sort((a, b) => a.date.localeCompare(b.date));
+
+  for (const event of rows) {
+    const day = event.created_at?.slice(0, 10) ?? "unknown";
+    const bucket = ensureDay(day);
+    switch (event.event_type) {
+      case "page_view":
+        bucket.views += 1;
+        break;
+      case "whatsapp_click":
+        bucket.whatsapp += 1;
+        break;
+      case "form_submit":
+        bucket.forms += 1;
+        break;
+      default:
+        break;
+    }
+  }
+
+  const dailyMetrics = Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));
 
   return {
     totalVisitors: visitors.size,
@@ -120,7 +180,7 @@ async function fetchKpis(range: DateRange): Promise<KpiSummary> {
     avgSessionMs,
     topPages,
     topCards,
-    dailyViews,
+    dailyMetrics,
   };
 }
 
@@ -128,10 +188,15 @@ async function fetchKpis(range: DateRange): Promise<KpiSummary> {
 // Hook export
 // ---------------------------------------------------------------------------
 
-export function useAnalytics(range: DateRange) {
+export function useAnalytics(filter: AnalyticsFilter) {
+  const queryKey =
+    filter.mode === "preset"
+      ? ["analytics", "preset", filter.range]
+      : ["analytics", "custom", filter.start, filter.end];
+
   return useQuery({
-    queryKey: ["analytics", range],
-    queryFn: () => fetchKpis(range),
+    queryKey,
+    queryFn: () => fetchKpis(filter),
     refetchInterval: 60_000, // atualiza a cada 60s
     staleTime: 30_000,
   });
