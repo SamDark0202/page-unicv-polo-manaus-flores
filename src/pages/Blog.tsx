@@ -11,6 +11,7 @@ const Blog = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
   const [noResults, setNoResults] = useState(false);
 
   useEffect(() => {
@@ -46,6 +47,11 @@ const Blog = () => {
       filtered = filtered.filter(post => post.date.startsWith(filterDate));
     }
 
+    // Filter by category
+    if (filterCategory) {
+      filtered = filtered.filter(post => post.category === filterCategory);
+    }
+
     // Sort by date (most recent first)
     filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -54,9 +60,15 @@ const Blog = () => {
     }
 
     return filtered;
-  }, [posts, searchTerm, filterDate]);
+  }, [posts, searchTerm, filterDate, filterCategory]);
 
-  // Get unique years for date filter
+  // Get unique categories for filter
+  const categories = useMemo(() => {
+    const allCategories = posts
+      .map(post => post.category)
+      .filter(Boolean) as string[];
+    return [...new Set(allCategories)];
+  }, [posts]);
   const years = useMemo(() => {
     const allYears = posts.map(post => post.date.split('-')[0]);
     return [...new Set(allYears)]; // Remove duplicates
@@ -96,16 +108,26 @@ const Blog = () => {
           </section>
 
           {/* Search and Filter */}
-          <section className="mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <section className="mb-8 flex flex-col md:flex-row items-center justify-between gap-4 flex-wrap">
             <input
               type="text"
               placeholder="Pesquisar por assunto..."
-              className="w-full md:w-1/2 px-4 py-2 border rounded"
+              className="w-full md:flex-1 px-4 py-2 border rounded dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <select
-              className="w-full md:w-auto px-4 py-2 border rounded"
+              className="w-full md:w-auto px-4 py-2 border rounded dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+            >
+              <option value="">Todas as categorias</option>
+              {categories.map(category => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+            <select
+              className="w-full md:w-auto px-4 py-2 border rounded dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
             >

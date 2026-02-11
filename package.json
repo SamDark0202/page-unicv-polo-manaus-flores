@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "migrate:posts": "tsx scripts/migratePostsToSupabase.ts",
-    "migrate:courses": "tsx scripts/migrateCoursesToSupabase.ts"
+    "migrate:courses": "tsx scripts/migrateCoursesToSupabase.ts",
+    "sitemap": "tsx scripts/generateSitemap.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

@@ -73,9 +73,26 @@ const PostPage = () => {
 
         {/* Conteúdo */}
         <div
-          className="text-gray-800 leading-relaxed text-justify"
+          className="text-gray-800 dark:text-gray-100 leading-relaxed text-left mb-8"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
+
+        {/* Tags no final */}
+        {post.tags && post.tags.length > 0 && (
+          <div className="border-t pt-6 mt-8 text-left">
+            <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-3">Tags:</p>
+            <div className="flex flex-wrap gap-2">
+              {post.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-block bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <Footer />

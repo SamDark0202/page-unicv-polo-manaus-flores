@@ -8,33 +8,30 @@ interface BlogCardProps {
 
 const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
       <div className="relative">
         <img 
           src={post.imageUrl} 
           alt={post.title}
           className="w-full h-48 object-cover rounded-t-lg"
         />
-        {post.tags && (
-          <div className="absolute top-2 right-2 flex gap-2">
-            {post.tags.map((tag) => (
-              <span 
-                key={tag}
-                className="bg-primary/80 text-white text-xs px-2 py-1 rounded-full"
-              >
-                {tag}
-              </span>
-            ))}
+        {post.category && (
+          <div className="absolute top-2 right-2">
+            <span 
+              className="bg-primary/80 text-white text-xs px-3 py-1 rounded-full"
+            >
+              {post.category}
+            </span>
           </div>
         )}
       </div>
       
       <div className="p-6 flex flex-col flex-grow">
-        <h2 className="text-xl font-semibold mb-2 line-clamp-2">
+        <h2 className="text-xl font-semibold mb-2 line-clamp-2 dark:text-gray-100">
           {post.title}
         </h2>
         
-        <p className="text-gray-600 text-sm mb-4">
+        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
           {new Date(post.date).toLocaleDateString('pt-BR', {
             day: '2-digit',
             month: 'long',
@@ -42,13 +39,13 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
           })}
         </p>
         
-        <p className="text-gray-700 mb-4 line-clamp-3">
+        <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
           {post.excerpt}
         </p>
         
         <Link 
           to={`/Blog/${post.slug}`}
-          className="mt-auto inline-flex items-center text-primary hover:text-primary/80"
+          className="mt-auto inline-flex items-center text-primary hover:text-primary/80 dark:text-blue-400 dark:hover:text-blue-300"
         >
           Ler mais
           <svg 

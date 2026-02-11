@@ -1,12 +1,57 @@
+# Robots.txt - UniCV Polo Manaus Flores
+# Educação a Distância - Graduação e Pós-Graduação
+
+# Google Bot - Permitir tudo
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 0
 
+# Bing Bot
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
+# Yahoo Bot
+User-agent: Slurp
+Allow: /
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+
+# Yandex
+User-agent: YandexBot
+Allow: /
+Crawl-delay: 2
+
+# Twitterbot para cards
 User-agent: Twitterbot
 Allow: /
 
+# Facebook para compartilhamentos
 User-agent: facebookexternalhit
 Allow: /
+
+# LinkedIn
+User-agent: LinkedInBot
+Allow: /
+
+# WhatsApp
+User-agent: WhatsApp
+Allow: /
+
+# Instagram
+User-agent: Instagram
+Allow: /
+
+# Todos os outros bots
+User-agent: *
+Allow: /
+Disallow: /controle
+Disallow: /admin
+Crawl-delay: 5
+
+# Sitemap Location
+Sitemap: https://www.unicvpoloam.com.br/sitemap.xml
+
 

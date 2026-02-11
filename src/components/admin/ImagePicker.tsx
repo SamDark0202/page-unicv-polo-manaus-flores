@@ -70,17 +70,17 @@ export default function ImagePicker({
   }
 
   return (
-    <div className="rounded-2xl border p-4">
+    <div className="rounded-2xl border p-4 dark:border-gray-600 dark:bg-gray-900">
       <div className="flex items-center justify-between mb-3">
-        <div className="font-semibold">Imagem do Post</div>
-        <div className="text-xs text-gray-500">PNG otimizado • Largura max: {maxWidth}px</div>
+        <div className="font-semibold dark:text-gray-100">Imagem do Post</div>
+        <div className="text-xs text-gray-500 dark:text-gray-400">PNG otimizado • Largura max: {maxWidth}px</div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
         <div className="w-full md:w-2/3">
           <div className="flex gap-2">
             <button
-              className="px-3 py-2 rounded-2xl border"
+              className="px-3 py-2 rounded-2xl border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100"
               onClick={chooseFile}
               type="button"
               disabled={uploading}
@@ -88,7 +88,7 @@ export default function ImagePicker({
               {uploading ? "Enviando..." : "Selecionar e enviar"}
             </button>
             <button
-              className="px-3 py-2 rounded-2xl border"
+              className="px-3 py-2 rounded-2xl border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100 disabled:opacity-50"
               onClick={clearImage}
               type="button"
               disabled={uploading || !value}
@@ -105,17 +105,17 @@ export default function ImagePicker({
             onChange={handleFile}
           />
 
-          <div className="mt-3 text-sm">
+          <div className="mt-3 text-sm dark:text-gray-300">
             <div className="flex flex-wrap gap-1">
-              <span className="text-gray-500">Arquivo:</span>
-              <code className="break-all">{filename || "imagem.png"}</code>
+              <span className="text-gray-500 dark:text-gray-400">Arquivo:</span>
+              <code className="break-all dark:bg-gray-800 px-1 rounded">{filename || "imagem.png"}</code>
             </div>
-            <div className="text-gray-500 break-words">
-              URL salva no post: <code className="break-all">{value || "(vazio)"}</code>
+            <div className="text-gray-500 dark:text-gray-400 break-words">
+              URL salva no post: <code className="break-all dark:bg-gray-800 px-1 rounded">{value || "(vazio)"}</code>
             </div>
           </div>
 
-          {status && <div className="mt-2 text-xs text-gray-600">{status}</div>}
+          {status && <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">{status}</div>}
         </div>
 
         <div className="w-full md:w-1/3">
@@ -123,11 +123,11 @@ export default function ImagePicker({
             <img
               src={value || previewUrl}
               alt="preview"
-              className="w-full aspect-video object-cover rounded-lg border"
+              className="w-full aspect-video object-cover rounded-lg border dark:border-gray-600"
               onError={(e:any)=>{ e.currentTarget.style.opacity=0.3; }}
             />
           ) : (
-            <div className="grid place-items-center w-full aspect-video border rounded-lg text-sm text-gray-500">
+            <div className="grid place-items-center w-full aspect-video border rounded-lg text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400 dark:bg-gray-800">
               Sem preview
             </div>
           )}

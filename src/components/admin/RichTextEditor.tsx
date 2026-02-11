@@ -10,6 +10,43 @@ type Props = {
 
 const BRAND = "#ce9e0d";
 
+/** Ícones de alinhamento SVG profissionais */
+const AlignLeftIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <line x1="2" y1="3" x2="14" y2="3"/>
+    <line x1="2" y1="6" x2="10" y2="6"/>
+    <line x1="2" y1="9" x2="14" y2="9"/>
+    <line x1="2" y1="12" x2="10" y2="12"/>
+  </svg>
+);
+
+const AlignCenterIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <line x1="1" y1="3" x2="15" y2="3"/>
+    <line x1="3" y1="6" x2="13" y2="6"/>
+    <line x1="1" y1="9" x2="15" y2="9"/>
+    <line x1="3" y1="12" x2="13" y2="12"/>
+  </svg>
+);
+
+const AlignRightIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <line x1="2" y1="3" x2="14" y2="3"/>
+    <line x1="6" y1="6" x2="14" y2="6"/>
+    <line x1="2" y1="9" x2="14" y2="9"/>
+    <line x1="6" y1="12" x2="14" y2="12"/>
+  </svg>
+);
+
+const AlignJustifyIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <line x1="2" y1="3" x2="14" y2="3"/>
+    <line x1="2" y1="6" x2="14" y2="6"/>
+    <line x1="2" y1="9" x2="14" y2="9"/>
+    <line x1="2" y1="12" x2="14" y2="12"/>
+  </svg>
+);
+
 /** Insere HTML ao redor da seleção atual (fallback simples e prático) */
 function wrapSelectionWith(htmlBefore: string, htmlAfter: string) {
   const sel = window.getSelection?.();
@@ -90,8 +127,29 @@ export default function RichTextEditor({
     wrapSelectionWith(`<strong style="font-size:26px;">`, `</strong>`);
     emitChange();
   }
+  
   function onSubtitle22() {
     wrapSelectionWith(`<strong style="font-size:22px;">`, `</strong>`);
+    emitChange();
+  }
+
+  function onAlignLeft() {
+    document.execCommand("justifyLeft");
+    emitChange();
+  }
+
+  function onAlignCenter() {
+    document.execCommand("justifyCenter");
+    emitChange();
+  }
+
+  function onAlignRight() {
+    document.execCommand("justifyRight");
+    emitChange();
+  }
+
+  function onAlignJustify() {
+    document.execCommand("justifyFull");
     emitChange();
   }
 
@@ -202,28 +260,33 @@ export default function RichTextEditor({
   }
 
   return (
-    <div className="border rounded-2xl relative">
+    <div className="border rounded-2xl relative dark:border-gray-600 dark:bg-gray-950">
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-1 p-2 border-b bg-gray-50">
-        <button className="px-2 py-1 rounded border" onClick={() => cmd("bold")}>B</button>
-        <button className="px-2 py-1 rounded border" onClick={() => cmd("italic")}><i>I</i></button>
-        <button className="px-2 py-1 rounded border" onClick={() => cmd("underline")}><u>U</u></button>
-        <span className="mx-2 border-l" />
-        <button className="px-2 py-1 rounded border" onClick={onTitle26}>Título 26px</button>
-        <button className="px-2 py-1 rounded border" onClick={onSubtitle22}>Subtítulo 22px</button>
-        <span className="mx-2 border-l" />
-        <button className="px-2 py-1 rounded border" onClick={() => cmd("insertUnorderedList")}>• Lista</button>
-        <button className="px-2 py-1 rounded border" onClick={() => cmd("insertOrderedList")}>1. Lista</button>
-        <button className="px-2 py-1 rounded border" onClick={() => cmd("formatBlock", false, "blockquote")}>“ Citação</button>
-        <span className="mx-2 border-l" />
-        <button className="px-2 py-1 rounded border" onClick={onCreateLink}>🔗 Link</button>
-        <button className="px-2 py-1 rounded border" onClick={onClearFormat}>Limpar</button>
-        <span className="mx-2 border-l" />
-        <button className="px-2 py-1 rounded border" onClick={() => imageInputRef.current?.click()}>
+      <div className="flex flex-wrap gap-1 p-2 border-b bg-gray-50 dark:bg-gray-900 dark:border-gray-700">
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={() => cmd("bold")}>B</button>
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={() => cmd("italic")}><i>I</i></button>
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={() => cmd("underline")}><u>U</u></button>
+        <span className="mx-2 border-l dark:border-gray-600" />
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={onTitle26}>Título 26px</button>
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={onSubtitle22}>Subtítulo 22px</button>
+        <span className="mx-2 border-l dark:border-gray-600" />
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={() => cmd("insertUnorderedList")}>• Lista</button>
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={() => cmd("insertOrderedList")}>1. Lista</button>
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={() => cmd("formatBlock", false, "blockquote")}>" Citação</button>
+        <span className="mx-2 border-l dark:border-gray-600" />
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100 flex items-center justify-center w-8" onClick={onAlignLeft} title="Alinhar à esquerda"><AlignLeftIcon /></button>
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100 flex items-center justify-center w-8" onClick={onAlignCenter} title="Alinhar ao centro"><AlignCenterIcon /></button>
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100 flex items-center justify-center w-8" onClick={onAlignRight} title="Alinhar à direita"><AlignRightIcon /></button>
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100 flex items-center justify-center w-8" onClick={onAlignJustify} title="Justificar"><AlignJustifyIcon /></button>
+        <span className="mx-2 border-l dark:border-gray-600" />
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={onCreateLink}>🔗 Link</button>
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={onClearFormat}>Limpar</button>
+        <span className="mx-2 border-l dark:border-gray-600" />
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={() => imageInputRef.current?.click()}>
           + Imagem
         </button>
-        <button className="px-2 py-1 rounded border" onClick={onInsertYouTube}>YouTube</button>
-        <button className="px-2 py-1 rounded border" onClick={() => videoInputRef.current?.click()}>
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={onInsertYouTube}>YouTube</button>
+        <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={() => videoInputRef.current?.click()}>
           + Video
         </button>
       </div>
@@ -233,7 +296,7 @@ export default function RichTextEditor({
         ref={editorRef}
         contentEditable
         suppressContentEditableWarning
-        className="min-h-[260px] p-3 outline-none"
+        className="min-h-[260px] p-3 outline-none dark:bg-gray-800 dark:text-gray-100"
         onInput={emitChange}
         onBlur={emitChange}
         onMouseUp={updateBubble}
@@ -257,24 +320,27 @@ export default function RichTextEditor({
 
       {bubble.visible && (
         <div
-          className="fixed z-50 bg-white border shadow-sm rounded-xl px-2 py-1 flex gap-1"
+          className="fixed z-50 bg-white dark:bg-gray-800 border dark:border-gray-600 shadow-sm rounded-xl px-2 py-1 flex gap-1"
           style={{
             top: Math.max(8, bubble.y - 10),
             left: Math.max(8, bubble.x),
             transform: "translate(-50%, -100%)",
           }}
         >
-          <button className="px-2 py-1 rounded border" onClick={() => cmd("bold")}>B</button>
-          <button className="px-2 py-1 rounded border" onClick={() => cmd("italic")}><i>I</i></button>
-          <button className="px-2 py-1 rounded border" onClick={() => cmd("underline")}><u>U</u></button>
-          <button className="px-2 py-1 rounded border" onClick={() => cmd("insertUnorderedList")}>•</button>
-          <button className="px-2 py-1 rounded border" onClick={() => cmd("formatBlock", false, "blockquote")}>“</button>
-          <button className="px-2 py-1 rounded border" onClick={onCreateLink}>🔗</button>
-          <button className="px-2 py-1 rounded border" onClick={() => imageInputRef.current?.click()}>
+          <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100" onClick={() => cmd("bold")}>B</button>
+          <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100" onClick={() => cmd("italic")}><i>I</i></button>
+          <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100" onClick={() => cmd("underline")}><u>U</u></button>
+          <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100" onClick={() => cmd("insertUnorderedList")}>•</button>
+          <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100" onClick={() => cmd("formatBlock", false, "blockquote")}>"</button>
+          <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 flex items-center justify-center w-6" onClick={onAlignLeft} title="Alinha esquerda"><AlignLeftIcon /></button>
+          <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 flex items-center justify-center w-6" onClick={onAlignCenter} title="Alinha centro"><AlignCenterIcon /></button>
+          <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 flex items-center justify-center w-6" onClick={onAlignRight} title="Alinha direita"><AlignRightIcon /></button>
+          <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100" onClick={onCreateLink}>🔗</button>
+          <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100" onClick={() => imageInputRef.current?.click()}>
             Img
           </button>
-          <button className="px-2 py-1 rounded border" onClick={onInsertYouTube}>YT</button>
-          <button className="px-2 py-1 rounded border" onClick={() => videoInputRef.current?.click()}>
+          <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100" onClick={onInsertYouTube}>YT</button>
+          <button className="px-2 py-1 rounded border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100" onClick={() => videoInputRef.current?.click()}>
             Vid
           </button>
         </div>

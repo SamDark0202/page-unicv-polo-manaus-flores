@@ -147,15 +147,15 @@ export default function PostEditor({ index, onBack }: Props) {
   const warnings = issues.filter(i => i.level === "warn");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 dark:text-gray-100">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{index !== null ? "Editar Post" : "Novo Post"}</h1>
+        <h1 className="text-2xl font-bold dark:text-gray-100">{index !== null ? "Editar Post" : "Novo Post"}</h1>
         <div className="flex gap-2">
-          <button className="px-4 py-2 rounded-2xl border" onClick={onBack} disabled={saving}>
+          <button className="px-4 py-2 rounded-2xl border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={onBack} disabled={saving}>
             Voltar
           </button>
           <button
-            className={`px-4 py-2 rounded-2xl ${hardErrorsCount || saving ? "bg-gray-300 text-gray-600" : "bg-[#11493C] text-white"}`}
+            className={`px-4 py-2 rounded-2xl ${hardErrorsCount || saving ? "bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-500" : "bg-[#11493C] text-white dark:bg-[#1a6e55] hover:dark:bg-[#2a8e75]"}`}
             onClick={handleSave}
             disabled={hardErrorsCount > 0 || saving}
             title={hardErrorsCount ? "Corrija os erros antes de salvar" : "Salvar no Supabase"}
@@ -167,11 +167,11 @@ export default function PostEditor({ index, onBack }: Props) {
 
       {/* Painel de auditoria */}
       {(issues.length > 0) && (
-        <div className="rounded-xl border p-4">
-          <div className="font-semibold mb-2">Auditoria do post</div>
+        <div className="rounded-xl border p-4 dark:border-gray-600 dark:bg-gray-900">
+          <div className="font-semibold mb-2 dark:text-gray-100">Auditoria do post</div>
           <ul className="list-disc ml-5 space-y-1 text-sm">
             {issues.map((i, idx) => (
-              <li key={idx} className={i.level === "error" ? "text-red-700" : "text-amber-700"}>
+              <li key={idx} className={i.level === "error" ? "text-red-700 dark:text-red-400" : "text-amber-700 dark:text-amber-400"}>
                 <strong>{i.level === "error" ? "Erro:" : "Aviso:"}</strong> {i.message}
               </li>
             ))}
@@ -180,7 +180,7 @@ export default function PostEditor({ index, onBack }: Props) {
           {/* Ação rápida para links */}
           {warnings.some(w => /links.*cor/i.test(w.message)) && (
             <div className="mt-3">
-              <button className="px-3 py-1.5 rounded-2xl border" onClick={handleFixLinks}>
+              <button className="px-3 py-1.5 rounded-2xl border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={handleFixLinks}>
                 Ajustar cor dos links (#ce9e0d)
               </button>
             </div>
@@ -207,64 +207,64 @@ export default function PostEditor({ index, onBack }: Props) {
             />
 
             <div className="flex gap-2 mt-3">
-              <button className="px-4 py-2 rounded-2xl border" onClick={() => setShowPreview(v => !v)}>
+              <button className="px-4 py-2 rounded-2xl border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={() => setShowPreview(v => !v)}>
                 {showPreview ? "Ocultar Preview" : "Pre-visualizar"}
               </button>
-              <button className="px-4 py-2 rounded-2xl border" onClick={handleFixLinks}>
+              <button className="px-4 py-2 rounded-2xl border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={handleFixLinks}>
                 Ajustar cor dos links
               </button>
             </div>
 
             {showPreview && (
-              <div className="mt-4 border rounded-2xl p-4">
-                <div className="text-sm text-gray-500 mb-2">Preview (renderizado):</div>
-                <div dangerouslySetInnerHTML={{ __html: draft.content }} />
+              <div className="mt-4 border rounded-2xl p-4 dark:border-gray-600 dark:bg-gray-800">
+                <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">Preview (renderizado):</div>
+                <div className="dark:text-gray-100" dangerouslySetInnerHTML={{ __html: draft.content }} />
               </div>
             )}
           </div>
         </section>
 
         <aside className="space-y-4">
-          <section className="rounded-2xl border p-4 space-y-3">
-            <div className="font-semibold">Informacoes</div>
+          <section className="rounded-2xl border p-4 space-y-3 dark:border-gray-600 dark:bg-gray-900">
+            <div className="font-semibold dark:text-gray-100">Informacoes</div>
             <div>
-              <label className="block text-sm mb-1">Titulo</label>
+              <label className="block text-sm mb-1 dark:text-gray-100">Titulo</label>
               <input
-                className="w-full border rounded-2xl px-3 py-2"
+                className="w-full border rounded-2xl px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 value={draft.title}
                 onChange={(e) => handleTitleChange(e.target.value)}
               />
-              <div className="text-xs text-gray-500 mt-1">Ideal ≤ 60–65 caracteres.</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Ideal ≤ 60–65 caracteres.</div>
             </div>
             <div>
-              <label className="block text-sm mb-1">Slug</label>
+              <label className="block text-sm mb-1 dark:text-gray-100">Slug</label>
               <input
-                className="w-full border rounded-2xl px-3 py-2 font-mono"
+                className="w-full border rounded-2xl px-3 py-2 font-mono dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 value={draft.slug}
                 onChange={(e) => handleSlugChange(e.target.value)}
               />
-              <div className="text-xs text-gray-500 mt-1">Sera usado na URL.</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Sera usado na URL.</div>
             </div>
             <div>
-              <label className="block text-sm mb-1">Data (YYYY-MM-DD)</label>
+              <label className="block text-sm mb-1 dark:text-gray-100">Data (YYYY-MM-DD)</label>
               <input
-                className="w-full border rounded-2xl px-3 py-2"
+                className="w-full border rounded-2xl px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 value={draft.date}
                 onChange={(e) => setDraft(d => ({ ...d, date: e.target.value }))}
               />
             </div>
             <div>
-              <label className="block text-sm mb-1">Autor</label>
+              <label className="block text-sm mb-1 dark:text-gray-100">Autor</label>
               <input
-                className="w-full border rounded-2xl px-3 py-2"
+                className="w-full border rounded-2xl px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 value={draft.author}
                 onChange={(e) => setDraft(d => ({ ...d, author: e.target.value }))}
               />
             </div>
             <div>
-              <label className="block text-sm mb-1">Resumo (excerpt)</label>
+              <label className="block text-sm mb-1 dark:text-gray-100">Resumo (excerpt)</label>
               <textarea
-                className="w-full border rounded-2xl px-3 py-2 h-20"
+                className="w-full border rounded-2xl px-3 py-2 h-20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 value={draft.excerpt}
                 onChange={(e) => setDraft(d => ({ ...d, excerpt: e.target.value }))}
               />
@@ -280,51 +280,51 @@ export default function PostEditor({ index, onBack }: Props) {
             />
           </section>
 
-          <section className="rounded-2xl border p-4 space-y-3">
-            <div className="font-semibold">SEO</div>
+          <section className="rounded-2xl border p-4 space-y-3 dark:border-gray-600 dark:bg-gray-900">
+            <div className="font-semibold dark:text-gray-100">SEO</div>
             <div>
-              <label className="block text-sm mb-1">Meta Description</label>
+              <label className="block text-sm mb-1 dark:text-gray-100">Meta Description</label>
               <textarea
-                className="w-full border rounded-2xl px-3 py-2 h-20"
+                className="w-full border rounded-2xl px-3 py-2 h-20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 value={draft.metaDescription}
                 onChange={(e) => setDraft(d => ({ ...d, metaDescription: e.target.value }))}
               />
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Ideal ~155 caracteres.
               </div>
             </div>
             <div>
-              <label className="block text-sm mb-1">Canonical URL (opcional)</label>
+              <label className="block text-sm mb-1 dark:text-gray-100">Canonical URL (opcional)</label>
               <input
-                className="w-full border rounded-2xl px-3 py-2"
+                className="w-full border rounded-2xl px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 value={draft.canonicalUrl}
                 onChange={(e) => setDraft(d => ({ ...d, canonicalUrl: e.target.value }))}
               />
             </div>
 
             <div>
-              <label className="block text-sm mb-1">Categoria (opcional)</label>
+              <label className="block text-sm mb-1 dark:text-gray-100">Categoria (opcional)</label>
               <input
-                className="w-full border rounded-2xl px-3 py-2"
+                className="w-full border rounded-2xl px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 value={draft.category}
                 onChange={(e) => setDraft(d => ({ ...d, category: e.target.value }))}
               />
             </div>
             <div>
-              <label className="block text-sm mb-1">Tags</label>
+              <label className="block text-sm mb-1 dark:text-gray-100">Tags</label>
               <div className="flex gap-2">
                 <input
-                  className="flex-1 border rounded-2xl px-3 py-2"
+                  className="flex-1 border rounded-2xl px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                   placeholder="adicione uma tag e pressione +"
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                 />
-                <button className="px-3 py-2 rounded-2xl border" onClick={addTag} type="button">+</button>
+                <button className="px-3 py-2 rounded-2xl border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100" onClick={addTag} type="button">+</button>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
                 {(draft.tags || []).map(t => (
-                  <span key={t} className="px-2 py-1 rounded-full bg-gray-100 border text-sm">
-                    {t} <button className="ml-1 text-red-600" onClick={() => removeTag(t)} title="remover">×</button>
+                  <span key={t} className="px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 border dark:border-gray-600 text-sm dark:text-gray-100">
+                    {t} <button className="ml-1 text-red-600 dark:text-red-400" onClick={() => removeTag(t)} title="remover">×</button>
                   </span>
                 ))}
               </div>
