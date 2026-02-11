@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Users,
   Eye,
@@ -14,11 +15,14 @@ import {
   TrendingUp,
   BarChart3,
   RefreshCcw,
+  Link,
+  X,
 } from "lucide-react";
 import {
   useAnalytics,
   type AnalyticsFilter,
   type DateRange,
+  type DynamicFilters,
 } from "@/hooks/useAnalytics";
 import {
   ChartContainer,
@@ -108,7 +112,19 @@ export default function AnalyticsDashboard() {
   const [customDraft, setCustomDraft] = useState<CustomRange>(() => defaultCustomRange());
   const [metricView, setMetricView] = useState<MetricView>("all");
   const [rangeTab, setRangeTab] = useState<RangeTabValue>("7d");
-  const { data, isLoading, error, refetch } = useAnalytics(filter);
+  
+  // Filtros dinâmicos acumulativos
+  const [selectedPages, setSelectedPages] = useState<Set<string>>(new Set());
+  const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
+  const [selectedReferrers, setSelectedReferrers] = useState<Set<string>>(new Set());
+
+  const dynamicFilters: DynamicFilters = {
+    pages: selectedPages.size > 0 ? selectedPages : undefined,
+    cards: selectedCards.size > 0 ? selectedCards : undefined,
+    referrers: selectedReferrers.size > 0 ? selectedReferrers : undefined,
+  };
+
+  const { data, isLoading, error, refetch } = useAnalytics(filter, dynamicFilters);
 
   const isCustomActive = rangeTab === "custom";
   const isCustomValid = Boolean(
@@ -171,6 +187,48 @@ export default function AnalyticsDashboard() {
     },
   ];
 
+  function togglePageFilter(page: string) {
+    setSelectedPages((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(page)) {
+        newSet.delete(page);
+      } else {
+        newSet.add(page);
+      }
+      return newSet;
+    });
+  }
+
+  function toggleCardFilter(card: string) {
+    setSelectedCards((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(card)) {
+        newSet.delete(card);
+      } else {
+        newSet.add(card);
+      }
+      return newSet;
+    });
+  }
+
+  function toggleReferrerFilter(referrer: string) {
+    setSelectedReferrers((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(referrer)) {
+        newSet.delete(referrer);
+      } else {
+        newSet.add(referrer);
+      }
+      return newSet;
+    });
+  }
+
+  function clearAllFilters() {
+    setSelectedPages(new Set());
+    setSelectedCards(new Set());
+    setSelectedReferrers(new Set());
+  }
+
   function handleRangeTabChange(value: RangeTabValue) {
     setRangeTab(value);
     if (value === "custom") {
@@ -189,6 +247,57 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Filtros Ativos */}
+      {(selectedPages.size > 0 || selectedCards.size > 0 || selectedReferrers.size > 0) && (
+        <div className="rounded-2xl border border-blue-300 bg-blue-50 p-4 dark:border-blue-500/40 dark:bg-blue-500/10">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-wrap gap-2">
+              {Array.from(selectedPages).map((page) => (
+                <Badge
+                  key={`page-${page}`}
+                  variant="secondary"
+                  className="cursor-pointer hover:bg-secondary/80"
+                  onClick={() => togglePageFilter(page)}
+                >
+                  📄 {page}
+                  <X className="ml-1 h-3 w-3" />
+                </Badge>
+              ))}
+              {Array.from(selectedCards).map((card) => (
+                <Badge
+                  key={`card-${card}`}
+                  variant="secondary"
+                  className="cursor-pointer hover:bg-secondary/80"
+                  onClick={() => toggleCardFilter(card)}
+                >
+                  🎯 {card}
+                  <X className="ml-1 h-3 w-3" />
+                </Badge>
+              ))}
+              {Array.from(selectedReferrers).map((referrer) => (
+                <Badge
+                  key={`referrer-${referrer}`}
+                  variant="secondary"
+                  className="cursor-pointer hover:bg-secondary/80"
+                  onClick={() => toggleReferrerFilter(referrer)}
+                >
+                  🔗 {referrer.length > 30 ? `${referrer.substring(0, 30)}…` : referrer}
+                  <X className="ml-1 h-3 w-3" />
+                </Badge>
+              ))}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllFilters}
+              className="shrink-0 text-blue-600 hover:text-blue-700 dark:text-blue-400"
+            >
+              Limpar tudo
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-3">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Tabs value={rangeTab} onValueChange={(v) => handleRangeTabChange(v as RangeTabValue)}>
@@ -349,8 +458,18 @@ export default function AnalyticsDashboard() {
                 {data.topPages.map((p, i) => {
                   const pctTotal = topPagesTotal > 0 ? (p.views / topPagesTotal) * 100 : 0;
                   const barWidth = Math.max(pctTotal, 3);
+                  const isSelected = selectedPages.has(p.path);
                   return (
-                    <div key={p.path} className="flex items-center gap-3">
+                    <div
+                      key={p.path}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg p-2 cursor-pointer transition-colors",
+                        isSelected
+                          ? "bg-blue-100 dark:bg-blue-500/20"
+                          : "hover:bg-muted/50"
+                      )}
+                      onClick={() => togglePageFilter(p.path)}
+                    >
                       <span className="w-5 shrink-0 text-xs font-medium text-muted-foreground text-right">
                         {i + 1}.
                       </span>
@@ -364,7 +483,10 @@ export default function AnalyticsDashboard() {
                         <div className="mt-1 flex items-center gap-2">
                           <div className="h-1.5 flex-1 rounded-full bg-muted">
                             <div
-                              className="h-1.5 rounded-full bg-primary/70"
+                              className={cn(
+                                "h-1.5 rounded-full",
+                                isSelected ? "bg-blue-500" : "bg-primary/70"
+                              )}
                               style={{ width: `${barWidth}%` }}
                             />
                           </div>
@@ -398,17 +520,87 @@ export default function AnalyticsDashboard() {
               <div className="flex h-32 items-center justify-center text-muted-foreground">Sem cliques no período</div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {data.topCards.map((c) => (
-                  <div
-                    key={c.name}
-                    className="flex items-center justify-between gap-3 rounded-xl border bg-muted/40 px-4 py-3 dark:bg-muted/10"
-                  >
-                    <span className="truncate text-sm font-medium text-foreground">{c.name}</span>
-                    <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                      {c.clicks}
-                    </span>
-                  </div>
-                ))}
+                {data.topCards.map((c) => {
+                  const isSelected = selectedCards.has(c.name);
+                  return (
+                    <div
+                      key={c.name}
+                      className={cn(
+                        "flex flex-col gap-2 rounded-xl border px-4 py-3 cursor-pointer transition-colors",
+                        isSelected
+                          ? "border-blue-500 bg-blue-50 dark:bg-blue-500/20"
+                          : "border-border bg-muted/40 hover:border-blue-300 dark:bg-muted/10 dark:hover:border-blue-500/50"
+                      )}
+                      onClick={() => toggleCardFilter(c.name)}
+                    >
+                      <span className="truncate text-sm font-medium text-foreground">{c.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs font-semibold",
+                          isSelected
+                            ? "bg-blue-200 text-blue-700 dark:bg-blue-500/40 dark:text-blue-200"
+                            : "bg-primary/10 text-primary"
+                        )}>
+                          <MousePointerClick className="h-3.5 w-3.5" />
+                          {c.clicks}
+                        </span>
+                        <span className="flex-1 flex items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs font-semibold bg-green-50 text-green-700 dark:bg-green-500/20 dark:text-green-300">
+                          <MessageCircle className="h-3.5 w-3.5" />
+                          {c.whatsappClicks}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Link className="h-5 w-5 text-muted-foreground" />
+              Origem dos visitantes (Referrers)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex h-32 items-center justify-center text-muted-foreground">Carregando…</div>
+            ) : !data?.topReferrers?.length ? (
+              <div className="flex h-32 items-center justify-center text-muted-foreground">Sem dados no período</div>
+            ) : (
+              <div className="space-y-3">
+                {data.topReferrers.map((r, i) => {
+                  const referrerDisplay = r.referrer.length > 60 ? `${r.referrer.substring(0, 60)}…` : r.referrer;
+                  const isSelected = selectedReferrers.has(r.referrer);
+                  return (
+                    <div
+                      key={r.referrer}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg p-2 cursor-pointer transition-colors",
+                        isSelected
+                          ? "bg-blue-100 dark:bg-blue-500/20"
+                          : "hover:bg-muted/50"
+                      )}
+                      onClick={() => toggleReferrerFilter(r.referrer)}
+                    >
+                      <span className="w-5 shrink-0 text-xs font-medium text-muted-foreground text-right">
+                        {i + 1}.
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="truncate text-sm font-medium text-foreground" title={r.referrer}>
+                            {referrerDisplay}
+                          </span>
+                          <span className="shrink-0 text-xs text-muted-foreground">
+                            {r.count.toLocaleString("pt-BR")}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </CardContent>

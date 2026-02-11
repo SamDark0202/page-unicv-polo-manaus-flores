@@ -11,6 +11,12 @@ export type AnalyticsFilter =
   | { mode: "preset"; range: DateRange }
   | { mode: "custom"; start: string; end: string };
 
+export type DynamicFilters = {
+  pages?: Set<string>;
+  cards?: Set<string>;
+  referrers?: Set<string>;
+};
+
 export type DailyMetricsPoint = {
   date: string;
   views: number;
@@ -26,7 +32,8 @@ export interface KpiSummary {
   totalWhatsAppClicks: number;
   avgSessionMs: number;
   topPages: Array<{ path: string; views: number }>;
-  topCards: Array<{ name: string; clicks: number }>;
+  topCards: Array<{ name: string; clicks: number; whatsappClicks: number }>;
+  topReferrers: Array<{ referrer: string; count: number }>;
   dailyMetrics: DailyMetricsPoint[];
 }
 
@@ -86,7 +93,7 @@ function getQueryBounds(filter: AnalyticsFilter): { gte?: string; lte?: string }
   };
 }
 
-async function fetchKpis(filter: AnalyticsFilter): Promise<KpiSummary> {
+async function fetchKpis(filter: AnalyticsFilter, dynamicFilters?: DynamicFilters): Promise<KpiSummary> {
   const { gte, lte } = getQueryBounds(filter);
 
   // Busca todos os eventos do período de uma vez
@@ -100,7 +107,48 @@ async function fetchKpis(filter: AnalyticsFilter): Promise<KpiSummary> {
 
   const { data: events, error } = await query.order("created_at", { ascending: true });
   if (error) throw error;
-  const rows = events ?? [];
+  let rows = events ?? [];
+
+  // Filtra eventos da página de Controle e de testes locais
+  rows = rows.filter((r) => {
+    // Exclude /controle page
+    if (r.page_path && r.page_path.toLowerCase().includes("/controle")) {
+      return false;
+    }
+    // Exclude localhost:8080 referrer
+    if (r.referrer && r.referrer.includes("localhost:8080")) {
+      return false;
+    }
+    return true;
+  });
+
+  // Aplica filtros dinâmicos acumulativos
+  if (dynamicFilters) {
+    rows = rows.filter((r) => {
+      // Filtro de páginas
+      if (dynamicFilters.pages && dynamicFilters.pages.size > 0) {
+        const isPageMatch = r.page_path && dynamicFilters.pages.has(r.page_path);
+        if (!isPageMatch) return false;
+      }
+
+      // Filtro de referrers
+      if (dynamicFilters.referrers && dynamicFilters.referrers.size > 0) {
+        const ref = r.referrer ? String(r.referrer) : "Direto (sem referrer)";
+        const isReferrerMatch = dynamicFilters.referrers.has(ref);
+        if (!isReferrerMatch) return false;
+      }
+
+      // Filtro de cards (apenas para card_click events)
+      if (dynamicFilters.cards && dynamicFilters.cards.size > 0) {
+        if (r.event_type !== "card_click") return false;
+        const cardName = String((r.metadata as Record<string, unknown>)?.card_name ?? "Sem nome");
+        const isCardMatch = dynamicFilters.cards.has(cardName);
+        if (!isCardMatch) return false;
+      }
+
+      return true;
+    });
+  }
 
   // Visitantes únicos
   const visitors = new Set(rows.map((r) => r.visitor_id));
@@ -130,15 +178,47 @@ async function fetchKpis(filter: AnalyticsFilter): Promise<KpiSummary> {
     .sort((a, b) => b.views - a.views)
     .slice(0, 10);
 
-  // Top cards clicados
-  const cardCounts: Record<string, number> = {};
+  // Top cards clicados com contagem de WhatsApp direto do card
+  const cardCounts: Record<string, { clicks: number; whatsappClicks: number }> = {};
+  
+  // Contar cliques nos cards
   for (const cc of cardClicks) {
     const name = String((cc.metadata as Record<string, unknown>)?.card_name ?? "Sem nome");
-    cardCounts[name] = (cardCounts[name] ?? 0) + 1;
+    if (!cardCounts[name]) {
+      cardCounts[name] = { clicks: 0, whatsappClicks: 0 };
+    }
+    cardCounts[name].clicks += 1;
   }
+
+  // Contar WhatsApp clicks que vieram do course_dialog (com course no metadata)
+  for (const wa of whatsappClicks) {
+    const source = String((wa.metadata as Record<string, unknown>)?.source ?? "");
+    const course = String((wa.metadata as Record<string, unknown>)?.course ?? "");
+    
+    // Só contabiliza como WhatsApp do card se veio do course_dialog e tem o nome do curso
+    if (source === "course_dialog" && course) {
+      if (!cardCounts[course]) {
+        cardCounts[course] = { clicks: 0, whatsappClicks: 0 };
+      }
+      cardCounts[course].whatsappClicks += 1;
+    }
+  }
+
+  // Montar topCards
   const topCards = Object.entries(cardCounts)
-    .map(([name, clicks]) => ({ name, clicks }))
+    .map(([name, { clicks, whatsappClicks }]) => ({ name, clicks, whatsappClicks }))
     .sort((a, b) => b.clicks - a.clicks)
+    .slice(0, 10);
+
+  // Top referrers (origem dos visitantes)
+  const referrerCounts: Record<string, number> = {};
+  for (const event of rows) {
+    const ref = event.referrer ? String(event.referrer) : "Direto (sem referrer)";
+    referrerCounts[ref] = (referrerCounts[ref] ?? 0) + 1;
+  }
+  const topReferrers = Object.entries(referrerCounts)
+    .map(([referrer, count]) => ({ referrer, count }))
+    .sort((a, b) => b.count - a.count)
     .slice(0, 10);
 
   // Métricas diárias combinadas
@@ -180,6 +260,7 @@ async function fetchKpis(filter: AnalyticsFilter): Promise<KpiSummary> {
     avgSessionMs,
     topPages,
     topCards,
+    topReferrers,
     dailyMetrics,
   };
 }
@@ -188,15 +269,20 @@ async function fetchKpis(filter: AnalyticsFilter): Promise<KpiSummary> {
 // Hook export
 // ---------------------------------------------------------------------------
 
-export function useAnalytics(filter: AnalyticsFilter) {
+export function useAnalytics(filter: AnalyticsFilter, dynamicFilters?: DynamicFilters) {
+  // Converter Sets para arrays para usar na queryKey (Sets não são serializáveis)
+  const pagesArray = dynamicFilters?.pages ? Array.from(dynamicFilters.pages).sort() : [];
+  const cardsArray = dynamicFilters?.cards ? Array.from(dynamicFilters.cards).sort() : [];
+  const referrersArray = dynamicFilters?.referrers ? Array.from(dynamicFilters.referrers).sort() : [];
+
   const queryKey =
     filter.mode === "preset"
-      ? ["analytics", "preset", filter.range]
-      : ["analytics", "custom", filter.start, filter.end];
+      ? ["analytics", "preset", filter.range, pagesArray, cardsArray, referrersArray]
+      : ["analytics", "custom", filter.start, filter.end, pagesArray, cardsArray, referrersArray];
 
   return useQuery({
     queryKey,
-    queryFn: () => fetchKpis(filter),
+    queryFn: () => fetchKpis(filter, dynamicFilters),
     refetchInterval: 60_000, // atualiza a cada 60s
     staleTime: 30_000,
   });

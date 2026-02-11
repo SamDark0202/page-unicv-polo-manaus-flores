@@ -64,7 +64,14 @@ async function sendEvent(payload: TrackEventPayload) {
 
 /** Pageview — chamado automaticamente pelo PageTracker */
 export function trackPageView(path?: string) {
-  sendEvent({ event_type: "page_view", page_path: path ?? window.location.pathname });
+  const pagePath = path ?? window.location.pathname;
+  
+  // Não rastreia a página de Controle
+  if (pagePath.toLowerCase().includes("/controle")) {
+    return;
+  }
+  
+  sendEvent({ event_type: "page_view", page_path: pagePath });
 }
 
 /** Clique em card de curso / blog etc. */
