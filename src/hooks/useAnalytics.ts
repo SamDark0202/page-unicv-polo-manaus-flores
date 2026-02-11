@@ -138,12 +138,24 @@ async function fetchKpis(filter: AnalyticsFilter, dynamicFilters?: DynamicFilter
         if (!isReferrerMatch) return false;
       }
 
-      // Filtro de cards (apenas para card_click events)
+      // Filtro de cards (card_click events + whatsapp_click do course_dialog daquele card)
       if (dynamicFilters.cards && dynamicFilters.cards.size > 0) {
-        if (r.event_type !== "card_click") return false;
-        const cardName = String((r.metadata as Record<string, unknown>)?.card_name ?? "Sem nome");
-        const isCardMatch = dynamicFilters.cards.has(cardName);
-        if (!isCardMatch) return false;
+        if (r.event_type === "card_click") {
+          // Card click: deve ter o card_name no metadata
+          const cardName = String((r.metadata as Record<string, unknown>)?.card_name ?? "Sem nome");
+          const isCardMatch = dynamicFilters.cards.has(cardName);
+          if (!isCardMatch) return false;
+        } else if (r.event_type === "whatsapp_click") {
+          // WhatsApp click: deve vir do course_dialog com o course name matching
+          const source = String((r.metadata as Record<string, unknown>)?.source ?? "");
+          const course = String((r.metadata as Record<string, unknown>)?.course ?? "");
+          if (source !== "course_dialog" || !dynamicFilters.cards.has(course)) {
+            return false;
+          }
+        } else {
+          // Outros eventos não passam pelo filtro de card
+          return false;
+        }
       }
 
       return true;

@@ -2,6 +2,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { trackWhatsAppClick } from "@/lib/tracker";
 import type { Course, CourseModality } from "@/types/course";
 import { Clock3, GraduationCap } from "lucide-react";
 
@@ -114,19 +115,19 @@ export default function CourseDetailDialog({ course, open, onOpenChange }: Props
             </section>
 
             <DialogFooter className="mt-6">
-              <Button asChild className="w-full md:w-auto">
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => {
-                    import("@/lib/tracker").then(({ trackWhatsAppClick }) =>
-                      trackWhatsAppClick("course_dialog", { course: course?.name })
-                    );
-                  }}
-                >
-                  Falar com um consultor
-                </a>
+              <Button
+                className="w-full md:w-auto"
+                onClick={() => {
+                  trackWhatsAppClick("course_dialog", { course: course?.name });
+                  const whatsappLink = course
+                    ? `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+                        `Olá! Tenho interesse no curso ${course.name} (${MODALITY_LABEL[course.modality]}). Pode me enviar mais detalhes?`
+                      )}`
+                    : "#";
+                  window.open(whatsappLink, "_blank");
+                }}
+              >
+                Falar com um consultor
               </Button>
             </DialogFooter>
           </>
