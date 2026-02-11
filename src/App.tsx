@@ -8,30 +8,37 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
+import { lazy, Suspense } from "react";
 
 import TopbarFixed from "./components/TopbarFixed";
 import { isChristmas } from "@/lib/isChristmas";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { AuthProvider } from "@/contexts/AuthContext";
-
-import Index from "./pages/Index";
 import PageTracker from "@/components/PageTracker";
-import Bacharelado from "./pages/Bacharelado";
-import Licenciatura from "./pages/Licenciatura";
-import Tecnologo from "./pages/Tecnologo";
-import PosGraduacao from "./pages/PosGraduacao";
-import Blog from "./pages/Blog";
-import PostPage from "./pages/Blog/[slug]";
-import ParceriaEducacional from "./pages/ParceriaEducacional";
-import Controle from "@/pages/Controle";
-import NotFound from "./pages/NotFound";
+
+// ✅ LAZY LOAD - Páginas carregadas sob demanda
+const Index = lazy(() => import("./pages/Index"));
+const Bacharelado = lazy(() => import("./pages/Bacharelado"));
+const Licenciatura = lazy(() => import("./pages/Licenciatura"));
+const Tecnologo = lazy(() => import("./pages/Tecnologo"));
+const PosGraduacao = lazy(() => import("./pages/PosGraduacao"));
+const Blog = lazy(() => import("./pages/Blog"));
+const PostPage = lazy(() => import("./pages/Blog/[slug]"));
+const ParceriaEducacional = lazy(() => import("./pages/ParceriaEducacional"));
+const Controle = lazy(() => import("@/pages/Controle"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// ✅ Loading skeleton while pages load
+const PageLoadingSkeleton = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-pulse text-center">
+      <div className="h-12 w-48 bg-gray-200 rounded mx-auto mb-4"></div>
+      <div className="h-4 w-64 bg-gray-200 rounded mx-auto"></div>
+    </div>
+  </div>
+);
 
 const queryClient = new QueryClient();
-
-/* =========================
-  CONTROLE NATALINO (ON/OFF)
-========================= */
-// Agora centralizado em src/lib/isChristmas.ts
 
 /* =========================
    ROTAS
@@ -47,18 +54,20 @@ const AppRoutes = () => {
       {!isAdmin && <TopbarFixed isChristmas={isChristmas} />}
       {showWhatsApp && <WhatsAppFloat />}
 
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/bacharelado" element={<Bacharelado />} />
-        <Route path="/licenciatura" element={<Licenciatura />} />
-        <Route path="/tecnologo" element={<Tecnologo />} />
-        <Route path="/pos-graduacao" element={<PosGraduacao />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:slug" element={<PostPage />} />
-        <Route path="/form-parceria-mt" element={<ParceriaEducacional />} />
-        <Route path="/controle" element={<Controle />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Suspense fallback={<PageLoadingSkeleton />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/bacharelado" element={<Bacharelado />} />
+          <Route path="/licenciatura" element={<Licenciatura />} />
+          <Route path="/tecnologo" element={<Tecnologo />} />
+          <Route path="/pos-graduacao" element={<PosGraduacao />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<PostPage />} />
+          <Route path="/form-parceria-mt" element={<ParceriaEducacional />} />
+          <Route path="/controle" element={<Controle />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </>
   );
 };

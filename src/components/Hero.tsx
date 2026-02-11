@@ -2,22 +2,28 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import LeadForm from "./LeadForm";
-import heroImage from "@/assets/hero-education.jpg";
 import { GraduationCap, Star, Users, Award } from "lucide-react";
 import { Link } from "react-router-dom";
+
+const heroVideoUrl = "https://res.cloudinary.com/dtfcavqgi/video/upload/v1759686310/CONHE%C3%87A_O_UNICV_bahbov.mp4";
+const heroVideoWebM = "https://res.cloudinary.com/dtfcavqgi/video/upload/a_auto,f_webm/v1759686310/CONHE%C3%87A_O_UNICV_bahbov.webm";
 
 const Hero = () => {
   return (
     <section className="relative bg-gradient-hero text-white overflow-hidden">
-      {/* Background Video */}
+      {/* ✅ Video Background */}
       <div className="absolute inset-0 overflow-hidden opacity-20">
         <video
-          src="https://res.cloudinary.com/dtfcavqgi/video/upload/v1759686310/CONHE%C3%87A_O_UNICV_bahbov.mp4"
           loop
           autoPlay
           muted
+          playsInline
+          preload="metadata"
           className="min-w-full min-h-full absolute object-cover"
-        />
+        >
+          <source src={heroVideoWebM} type="video/webm" />
+          <source src={heroVideoUrl} type="video/mp4" />
+        </video>
       </div>
       
       {/* Content */}
