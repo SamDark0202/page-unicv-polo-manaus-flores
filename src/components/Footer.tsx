@@ -259,6 +259,20 @@ const Footer = () => {
           <div className="text-sm text-secondary-foreground/60">
             © 2025 UniCV Polo Manaus Flores. Todos os direitos reservados.
           </div>
+          <div className="flex items-center gap-4 text-sm">
+            <Link
+              to="/termos-de-servico"
+              className="text-secondary-foreground/70 hover:text-secondary-foreground transition-colors"
+            >
+              Termos de Servico
+            </Link>
+            <Link
+              to="/politica-de-privacidade"
+              className="text-secondary-foreground/70 hover:text-secondary-foreground transition-colors"
+            >
+              Politica de Privacidade
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

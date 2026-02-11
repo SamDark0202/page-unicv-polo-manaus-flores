@@ -26,6 +26,8 @@ const Blog = lazy(() => import("./pages/Blog"));
 const PostPage = lazy(() => import("./pages/Blog/[slug]"));
 const ParceriaEducacional = lazy(() => import("./pages/ParceriaEducacional"));
 const Controle = lazy(() => import("@/pages/Controle"));
+const TermosDeServico = lazy(() => import("./pages/TermosDeServico"));
+const PoliticaDePrivacidade = lazy(() => import("./pages/PoliticaDePrivacidade"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // ✅ Loading skeleton while pages load
@@ -65,6 +67,8 @@ const AppRoutes = () => {
           <Route path="/blog/:slug" element={<PostPage />} />
           <Route path="/form-parceria-mt" element={<ParceriaEducacional />} />
           <Route path="/controle" element={<Controle />} />
+          <Route path="/termos-de-servico" element={<TermosDeServico />} />
+          <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
