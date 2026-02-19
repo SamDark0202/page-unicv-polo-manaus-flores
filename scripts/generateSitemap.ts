@@ -62,12 +62,12 @@ async function generateSitemap() {
 
   // Buscar posts publicados do blog
   console.log("📰 Buscando posts do blog...");
-  let posts: Array<{ slug: string; updated_at: string }> | null = null;
+  let posts: Array<{ slug: string; updated_at: string; title: string }> | null = null;
   
   if (supabase) {
     const { data, error } = await supabase
       .from("posts")
-      .select("slug, updated_at")
+      .select("slug, updated_at, title")
       .eq("status", "published")
       .order("updated_at", { ascending: false });
 
@@ -95,6 +95,7 @@ async function generateSitemap() {
   // Iniciar XML
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   
   <!-- ==================== PÁGINAS PRINCIPAIS ==================== -->
@@ -206,17 +207,53 @@ async function generateSitemap() {
   if (posts && posts.length > 0) {
     xml += `  <!-- ==================== POSTS DO BLOG (${posts.length} POSTS) ==================== -->\n\n`;
     
+    // Google News aceita artigos de até 30 dias
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    let newsArticlesCount = 0;
+    
     for (const post of posts) {
       const lastmod = post.updated_at ? post.updated_at.split("T")[0] : today;
+      const postDate = new Date(lastmod);
+      const isRecent = postDate >= thirtyDaysAgo;
       
       xml += `  <url>
     <loc>${baseUrl}/blog/${post.slug}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.7</priority>`;
+      
+      // Adicionar tags do Google News para posts recentes (últimos 30 dias)
+      if (isRecent) {
+        newsArticlesCount++;
+        // Escapar caracteres especiais XML no título
+        const escapedTitle = (post.title || post.slug.replace(/-/g, ' '))
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&apos;');
+        
+        xml += `
+    <news:news>
+      <news:publication>
+        <news:name>UniCV Polo Manaus Flores</news:name>
+        <news:language>pt</news:language>
+      </news:publication>
+      <news:publication_date>${lastmod}</news:publication_date>
+      <news:title>${escapedTitle}</news:title>
+    </news:news>`;
+      }
+      
+      xml += `
   </url>
 
 `;
+    }
+    
+    if (newsArticlesCount > 0) {
+      console.log(`📰 ${newsArticlesCount} posts marcados com tags Google News (últimos 30 dias)\n`);
     }
   }
 
