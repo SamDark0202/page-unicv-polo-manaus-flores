@@ -25,7 +25,7 @@ const Modalidades = () => {
       duracao: "4 a 5 anos",
       link: "/bacharelado",
       color: "bg-primary",
-      examples: ["Administração", "Engenharias", "Psicanálise", "Nutrição"]
+      examples: ["Administração", "Engenharias", "Teologia", "Ciências Contábeis"]
     },
     {
       icon: BookOpen,
@@ -49,7 +49,7 @@ const Modalidades = () => {
       duracao: "1,5 a 2,5 anos",
       link: "/tecnologo",
       color: "bg-warning",
-      examples: ["Análise de Sistemas", "Marketing Digital", "Logística", "RH"],
+      examples: ["Análise de Sistemas", "Marketing Digital", "Logística", "Recursos Humanos"],
       special: "Técnico → Tecnólogo em 1 ano"
     },
     {
