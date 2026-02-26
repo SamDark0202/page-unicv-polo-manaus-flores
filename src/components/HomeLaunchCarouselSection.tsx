@@ -63,14 +63,14 @@ export default function HomeLaunchCarouselSection() {
   }
 
   return (
-    <section className="py-16 lg:py-24 bg-gradient-subtle">
+    <section className="py-10 lg:py-14 bg-gradient-subtle">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-10">
-          <Badge variant="outline" className="mb-5 px-5 py-2.5 text-base font-bold border-2 shadow-sm bg-background">
-            <Sparkles className="h-5 w-5 mr-2" /> Lançamentos UniCV
+        <div className="text-center mb-8">
+          <Badge variant="outline" className="mb-4 px-4 py-1.5 text-sm font-bold border-2 shadow-sm bg-background">
+            <Sparkles className="h-4 w-4 mr-2" /> Lançamentos UniCV
           </Badge>
-          <h2 className="text-3xl lg:text-5xl font-bold mb-4">Oportunidades que podem acelerar sua carreira</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <h2 className="text-2xl lg:text-4xl font-bold mb-3">Oportunidades que podem acelerar sua carreira</h2>
+          <p className="text-base text-muted-foreground max-w-xl mx-auto">
             Descubra formações recém-chegadas com alto potencial de crescimento profissional e escolha agora o próximo passo da sua evolução.
           </p>
         </div>
@@ -84,7 +84,7 @@ export default function HomeLaunchCarouselSection() {
         >
           <Carousel
             setApi={setApi}
-            className="w-full"
+            className="w-full max-w-6xl mx-auto"
             opts={{ loop: sortedBanners.length > 1, align: "start" }}
           >
             <CarouselContent>
@@ -92,22 +92,22 @@ export default function HomeLaunchCarouselSection() {
                 const linkedCourse = coursesById.get(banner.courseId);
 
                 return (
-                  <CarouselItem key={banner.id} className="basis-full sm:basis-1/2 lg:basis-1/4">
-                    <div className="h-full rounded-2xl border bg-card p-2 shadow-soft hover:shadow-elevated transition-shadow duration-300">
+                  <CarouselItem key={banner.id} className="basis-[88%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                    <div className="h-full max-w-[320px] mx-auto rounded-xl border bg-card p-1.5 shadow-soft hover:shadow-elevated transition-shadow duration-300">
                       <button
                         type="button"
                         onClick={() => handleBannerClick(banner.id, banner.bannerName, banner.courseId)}
                         className="w-full text-left"
                       >
-                        <div className="rounded-xl overflow-hidden border">
+                        <div className="rounded-lg overflow-hidden border">
                           <img
                             src={banner.imageUrl}
                             alt={banner.bannerName}
                             loading="lazy"
-                            className="w-full aspect-[3/4] object-cover"
+                            className="w-full aspect-[4/5] object-cover"
                           />
                         </div>
-                        <div className="pt-3 space-y-1">
+                        <div className="pt-2.5 space-y-1">
                           <p className="text-sm font-semibold line-clamp-2">{banner.bannerName}</p>
                           <p className="text-xs text-muted-foreground line-clamp-2">
                             {linkedCourse?.preview ?? "Pré-visualização do curso"}

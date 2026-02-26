@@ -1,20 +1,14 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PlayCircle, Quote } from "lucide-react";
 
-import depoimento1 from "@/assets/videos/Depoimento unicv 01 - 01.mp4";
-import depoimento1b from "@/assets/videos/Depoimento unicv 01 - 02.mp4";
-import depoimento2 from "@/assets/videos/Depoimento 2.mp4";
-import depoimento3 from "@/assets/videos/Depoimento 3.mp4";
-import depoimento4 from "@/assets/videos/depoimento 4.mp4";
-
 type TestimonialVideo = {
   id: string;
   studentName: string;
   highlight: string;
-  videoSrc: string;
+  youtubeId: string;
 };
 
 const testimonialVideos: TestimonialVideo[] = [
@@ -22,53 +16,39 @@ const testimonialVideos: TestimonialVideo[] = [
     id: "depoimento-1",
     studentName: "Aluna UniCV",
     highlight: "Transformação profissional com apoio real da instituição.",
-    videoSrc: depoimento1,
+    youtubeId: "SqWQJKLTD1k",
   },
   {
     id: "depoimento-1b",
     studentName: "Aluno UniCV",
     highlight: "Mudança de trajetória com formação alinhada ao mercado atual.",
-    videoSrc: depoimento1b,
+    youtubeId: "wS6CsL-HFG0",
   },
   {
     id: "depoimento-2",
     studentName: "Aluna UniCV",
     highlight: "Evolução na carreira com ensino prático e aplicável.",
-    videoSrc: depoimento2,
+    youtubeId: "Rgr85G-JSt4",
   },
   {
     id: "depoimento-3",
     studentName: "Aluna UniCV",
     highlight: "Conquista de novas oportunidades após a formação.",
-    videoSrc: depoimento3,
+    youtubeId: "a7-DWQzSBqU",
   },
   {
     id: "depoimento-4",
     studentName: "Aluna UniCV",
     highlight: "Confiança para avançar e alcançar novos objetivos.",
-    videoSrc: depoimento4,
+    youtubeId: "9kQyvG8tbvE",
   },
 ];
 
 export default function TestimonialsSection() {
   const [activatedVideos, setActivatedVideos] = useState<Record<string, boolean>>({});
-  const videoRefs = useRef(new Map<string, HTMLVideoElement>());
 
   function activateVideo(videoId: string) {
     setActivatedVideos((prev) => ({ ...prev, [videoId]: true }));
-
-    window.requestAnimationFrame(() => {
-      const element = videoRefs.current.get(videoId);
-      if (!element) return;
-
-      element.muted = false;
-      element.volume = 1;
-      element
-        .play()
-        .catch(() => {
-          // fallback silencioso caso o browser bloqueie autoplay
-        });
-    });
   }
 
   return (
@@ -95,37 +75,30 @@ export default function TestimonialsSection() {
                 <CardContent className="p-0">
                   <div className="relative aspect-video bg-black overflow-hidden">
                     {isActive ? (
-                      <video
-                        ref={(node) => {
-                          if (node) {
-                            videoRefs.current.set(item.id, node);
-                          } else {
-                            videoRefs.current.delete(item.id);
-                          }
-                        }}
-                        className="h-full w-full object-contain bg-black"
-                        controls
-                        controlsList="nodownload noplaybackrate"
-                        disablePictureInPicture
-                        preload="metadata"
-                        playsInline
-                        autoPlay
-                        muted={false}
-                        onContextMenu={(event) => event.preventDefault()}
-                      >
-                        <source src={item.videoSrc} type="video/mp4" />
-                        Seu navegador não suporta vídeo.
-                      </video>
+                      <iframe
+                        className="h-full w-full"
+                        src={`https://www.youtube.com/embed/${item.youtubeId}?autoplay=1&rel=0`}
+                        title={`Depoimento de ${item.studentName}`}
+                        loading="lazy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allowFullScreen
+                      />
                     ) : (
                       <button
                         type="button"
                         onClick={() => activateVideo(item.id)}
-                        className="absolute inset-0 w-full h-full bg-gradient-to-b from-black/30 to-black/65 text-white flex flex-col items-center justify-center gap-3 p-4"
+                        className="absolute inset-0 w-full h-full text-white flex flex-col items-center justify-center gap-3 p-4"
                         aria-label={`Reproduzir depoimento de ${item.studentName}`}
+                        style={{
+                          backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url(https://i.ytimg.com/vi/${item.youtubeId}/hqdefault.jpg)`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }}
                       >
                         <PlayCircle className="h-14 w-14" />
                         <p className="text-sm font-semibold">Assistir depoimento</p>
-                        <p className="text-xs text-white/80">Carrega apenas ao clicar</p>
+                        <p className="text-xs text-white/80">Vídeo hospedado no YouTube</p>
                       </button>
                     )}
                   </div>
