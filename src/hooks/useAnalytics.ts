@@ -28,11 +28,13 @@ export interface KpiSummary {
   totalVisitors: number;
   totalPageViews: number;
   totalCardClicks: number;
+  totalPostPlusBannerClicks: number;
   totalFormSubmits: number;
   totalWhatsAppClicks: number;
   avgSessionMs: number;
   topPages: Array<{ path: string; views: number }>;
   topCards: Array<{ name: string; clicks: number; whatsappClicks: number }>;
+  topPostPlusBanners: Array<{ name: string; clicks: number }>;
   topReferrers: Array<{ referrer: string; count: number }>;
   dailyMetrics: DailyMetricsPoint[];
 }
@@ -192,14 +194,22 @@ async function fetchKpis(filter: AnalyticsFilter, dynamicFilters?: DynamicFilter
 
   // Top cards clicados com contagem de WhatsApp direto do card
   const cardCounts: Record<string, { clicks: number; whatsappClicks: number }> = {};
+  const postPlusBannerCounts: Record<string, number> = {};
   
   // Contar cliques nos cards
   for (const cc of cardClicks) {
-    const name = String((cc.metadata as Record<string, unknown>)?.card_name ?? "Sem nome");
+    const metadata = (cc.metadata as Record<string, unknown>) ?? {};
+    const name = String(metadata.card_name ?? "Sem nome");
+    const source = String(metadata.source ?? "");
+
     if (!cardCounts[name]) {
       cardCounts[name] = { clicks: 0, whatsappClicks: 0 };
     }
     cardCounts[name].clicks += 1;
+
+    if (source === "post_plus_banner") {
+      postPlusBannerCounts[name] = (postPlusBannerCounts[name] ?? 0) + 1;
+    }
   }
 
   // Contar WhatsApp clicks que vieram do course_dialog (com course no metadata)
@@ -221,6 +231,13 @@ async function fetchKpis(filter: AnalyticsFilter, dynamicFilters?: DynamicFilter
     .map(([name, { clicks, whatsappClicks }]) => ({ name, clicks, whatsappClicks }))
     .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 10);
+
+  const topPostPlusBanners = Object.entries(postPlusBannerCounts)
+    .map(([name, clicks]) => ({ name, clicks }))
+    .sort((a, b) => b.clicks - a.clicks)
+    .slice(0, 10);
+
+  const totalPostPlusBannerClicks = topPostPlusBanners.reduce((sum, item) => sum + item.clicks, 0);
 
   // Top referrers (origem dos visitantes)
   const referrerCounts: Record<string, number> = {};
@@ -267,11 +284,13 @@ async function fetchKpis(filter: AnalyticsFilter, dynamicFilters?: DynamicFilter
     totalVisitors: visitors.size,
     totalPageViews: pageViews.length,
     totalCardClicks: cardClicks.length,
+    totalPostPlusBannerClicks,
     totalFormSubmits: formSubmits.length,
     totalWhatsAppClicks: whatsappClicks.length,
     avgSessionMs,
     topPages,
     topCards,
+    topPostPlusBanners,
     topReferrers,
     dailyMetrics,
   };

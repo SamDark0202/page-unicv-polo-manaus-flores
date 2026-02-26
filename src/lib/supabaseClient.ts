@@ -151,3 +151,35 @@ export async function uploadInlineMedia(file: File, folder: "content-images" | "
   const { data } = supabase.storage.from("blog-images").getPublicUrl(fileName);
   return data.publicUrl;
 }
+
+export async function uploadPostPlusCarouselImage(file: File): Promise<string> {
+  const ext = getExt(file.name);
+  const stamp = Date.now();
+  const rand = Math.random().toString(36).slice(2, 8);
+  const fileName = `pos-plus-carousel/${stamp}-${rand}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from("blog-images")
+    .upload(fileName, file, { upsert: false });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage.from("blog-images").getPublicUrl(fileName);
+  return data.publicUrl;
+}
+
+export async function uploadHomeLaunchBannerImage(file: File): Promise<string> {
+  const ext = getExt(file.name);
+  const stamp = Date.now();
+  const rand = Math.random().toString(36).slice(2, 8);
+  const fileName = `home-launch-banners/${stamp}-${rand}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from("blog-images")
+    .upload(fileName, file, { upsert: false });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage.from("blog-images").getPublicUrl(fileName);
+  return data.publicUrl;
+}

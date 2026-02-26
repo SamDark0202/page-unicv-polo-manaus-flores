@@ -2,6 +2,8 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Diferenciais from "@/components/Diferenciais";
 import Modalidades from "@/components/Modalidades";
+import HomeLaunchCarouselSection from "@/components/HomeLaunchCarouselSection";
+import TestimonialsSection from "@/components/TestimonialsSection";
 import LeadForm from "@/components/LeadForm";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +17,8 @@ const Index = () => {
       <Hero />
       <Diferenciais />
       <Modalidades />
+      <HomeLaunchCarouselSection />
+      <TestimonialsSection />
       
       {/* Contact Section */}
       <section id="contato" className="py-16 lg:py-24 bg-gradient-subtle">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Line, LineChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Line, LineChart, CartesianGrid, XAxis, YAxis, Bar, BarChart } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -71,6 +71,13 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const postPlusClicksChartConfig = {
+  clicks: {
+    label: "Cliques",
+    color: "#ce9e0d",
+  },
+} satisfies ChartConfig;
+
 const shortDateFormatter = new Intl.DateTimeFormat("pt-BR", {
   day: "2-digit",
   month: "short",
@@ -82,6 +89,11 @@ function formatDateLabel(input: string) {
     return input;
   }
   return shortDateFormatter.format(parsed);
+}
+
+function truncateLabel(input: string, max = 26) {
+  if (input.length <= max) return input;
+  return `${input.slice(0, max)}…`;
 }
 
 function toInputDate(date: Date) {
@@ -140,6 +152,10 @@ export default function AnalyticsDashboard() {
     chartData.length > 0 &&
     activeSeries.some((seriesKey) => chartData.some((point) => point[seriesKey] > 0));
   const topPagesTotal = data?.topPages?.reduce((sum, page) => sum + page.views, 0) ?? 0;
+  const postPlusBannerChartData = (data?.topPostPlusBanners ?? []).map((item) => ({
+    ...item,
+    shortName: truncateLabel(item.name, 24),
+  }));
 
   const kpiCards = [
     {
@@ -162,6 +178,13 @@ export default function AnalyticsDashboard() {
       icon: MousePointerClick,
       color: "text-amber-600 dark:text-amber-400",
       bg: "bg-amber-50 dark:bg-amber-500/10",
+    },
+    {
+      label: "Cliques Banners Pós+",
+      value: data?.totalPostPlusBannerClicks ?? 0,
+      icon: TrendingUp,
+      color: "text-yellow-600 dark:text-yellow-400",
+      bg: "bg-yellow-50 dark:bg-yellow-500/10",
     },
     {
       label: "Formulários enviados",
@@ -390,7 +413,7 @@ export default function AnalyticsDashboard() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="space-y-6">
         <Card>
           <CardHeader className="pb-0">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -502,6 +525,41 @@ export default function AnalyticsDashboard() {
                   );
                 })}
               </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <MousePointerClick className="h-5 w-5 text-muted-foreground" />
+              Cliques nos banners Pós+
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex h-64 items-center justify-center text-muted-foreground">Carregando…</div>
+            ) : !postPlusBannerChartData.length ? (
+              <div className="flex h-64 items-center justify-center text-muted-foreground">Sem cliques de banners Pós+ no período</div>
+            ) : (
+              <ChartContainer config={postPlusClicksChartConfig} className="aspect-auto h-64 w-full">
+                <BarChart data={postPlusBannerChartData} margin={{ left: 8, right: 8, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="4 4" className="stroke-border/60" vertical={false} />
+                  <XAxis
+                    dataKey="shortName"
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={11}
+                    interval={0}
+                    angle={-12}
+                    textAnchor="end"
+                    height={52}
+                  />
+                  <YAxis allowDecimals={false} width={46} tickLine={false} axisLine={false} fontSize={12} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="clicks" fill="var(--color-clicks)" radius={[6, 6, 0, 0]} isAnimationActive={false} />
+                </BarChart>
+              </ChartContainer>
             )}
           </CardContent>
         </Card>

@@ -4,11 +4,15 @@ import LeadForm from "@/components/LeadForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Award, Clock, Star, TrendingUp, CheckCircle, BookOpen, Users, Target } from "lucide-react";
 import { useState } from "react";
+import { usePostPlusCarouselQuery } from "@/hooks/usePostPlusCarousel";
+import { trackCardClick } from "@/lib/tracker";
 
 const PosGraduacao = () => {
   const [categoriaSelecionada, setCategoriaSelecionada] = useState("Todas");
+  const { data: carouselItems = [] } = usePostPlusCarouselQuery({ activeOnly: true });
 
   const areas = [
     {
@@ -439,6 +443,7 @@ const PosGraduacao = () => {
 
   const categorias = ["Todas", ...areas.map(area => area.categoria)];
   const areasFiltradas = categoriaSelecionada === "Todas" ? areas : areas.filter(area => area.categoria === categoriaSelecionada);
+  const postPlusCarouselItems = carouselItems;
 
   return (
     <div className="min-h-screen bg-background">
@@ -656,6 +661,119 @@ const PosGraduacao = () => {
   
         </div>
       </section>
+
+      {/* Post Plus Carousel Section */}
+      {postPlusCarouselItems.length > 0 && (
+        <section className="relative py-20 overflow-hidden bg-gradient-to-br from-[#02683E] via-[#024a2d] to-black">
+          {/* Efeito de textura sutil */}
+          <div className="absolute inset-0 opacity-5" style={{ 
+            backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', 
+            backgroundSize: '48px 48px' 
+          }}></div>
+          
+          <div className="container mx-auto px-4 relative z-10">
+            {/* Header da seção */}
+            <div className="text-center mb-16 space-y-6">
+              <div className="flex justify-center animate-pulse">
+                <Badge className="px-6 py-2.5 text-sm font-bold bg-gradient-to-r from-[#ce9e0d] via-[#f4d03f] to-[#ce9e0d] text-black border-0 shadow-2xl">
+                  <Star className="h-4 w-4 mr-2 fill-current" /> 
+                  EXCLUSIVO UNICV
+                </Badge>
+              </div>
+              
+              <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-white">
+                Cursos <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ce9e0d] to-[#f4d03f]">Pós+</span>
+              </h2>
+              
+              <p className="text-lg lg:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
+                Programas de alto nível com proposta acadêmica diferenciada e posicionamento premium para sua carreira.
+              </p>
+            </div>
+
+            {/* Carrossel */}
+            <Carousel
+              className="w-full max-w-6xl mx-auto"
+              opts={{ loop: postPlusCarouselItems.length > 1, align: "center" }}
+            >
+              <CarouselContent className="-ml-4">
+                {postPlusCarouselItems.map((item) => (
+                  <CarouselItem key={item.id} className="pl-4">
+                    <div className="relative group flex justify-center items-center">
+                      {/* Container com borda gradiente e glow que se ajusta à imagem */}
+                      <div className="relative inline-block rounded-2xl bg-gradient-to-br from-[#ce9e0d] via-[#f4d03f] to-[#02683E] p-[3px] shadow-2xl">
+                        {/* Glow effect que respeita border-radius */}
+                        <div className="absolute -inset-[2px] bg-gradient-to-br from-[#ce9e0d]/60 via-[#f4d03f]/40 to-[#02683E]/60 rounded-2xl blur-lg opacity-60 group-hover:opacity-90 group-hover:blur-xl transition-all duration-500 -z-10"></div>
+                        
+                        {item.targetUrl ? (
+                          <a
+                            href={item.targetUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={() =>
+                              trackCardClick(item.bannerName, {
+                                source: "post_plus_banner",
+                                banner_id: item.id,
+                                banner_name: item.bannerName,
+                                destination_url: item.targetUrl,
+                              })
+                            }
+                            aria-label={item.bannerName}
+                            title={item.bannerName}
+                            className="block rounded-[14px] overflow-hidden bg-black"
+                          >
+                            {/* Imagem Mobile - 1080x1080 (exibida apenas em mobile) */}
+                            <img
+                              src={item.mobileImageUrl}
+                              alt={item.metaDescription}
+                              loading="lazy"
+                              className="md:hidden w-full max-w-[500px] h-auto aspect-square object-cover rounded-[14px] transition-all duration-500 group-hover:scale-[1.02]"
+                            />
+                            {/* Imagem Desktop - formato horizontal (exibida em tablets e desktop) */}
+                            <img
+                              src={item.imageUrl}
+                              alt={item.metaDescription}
+                              loading="lazy"
+                              className="hidden md:block max-w-full h-[420px] lg:h-[480px] w-auto object-contain rounded-[14px] transition-all duration-500 group-hover:scale-[1.02]"
+                            />
+                          </a>
+                        ) : (
+                          <div className="rounded-[14px] overflow-hidden bg-black">
+                            {/* Imagem Mobile - 1080x1080 (exibida apenas em mobile) */}
+                            <img
+                              src={item.mobileImageUrl}
+                              alt={item.metaDescription}
+                              loading="lazy"
+                              title={item.metaDescription}
+                              className="md:hidden w-full max-w-[500px] h-auto aspect-square object-cover rounded-[14px] transition-all duration-500 group-hover:scale-[1.02]"
+                            />
+                            {/* Imagem Desktop - formato horizontal (exibida em tablets e desktop) */}
+                            <img
+                              src={item.imageUrl}
+                              alt={item.metaDescription}
+                              loading="lazy"
+                              title={item.metaDescription}
+                              className="hidden md:block max-w-full h-[420px] lg:h-[480px] w-auto object-contain rounded-[14px] transition-all duration-500 group-hover:scale-[1.02]"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              {/* Controles de navegação */}
+              {postPlusCarouselItems.length > 1 && (
+                <>
+                  <CarouselPrevious className="left-0 lg:-left-12 bg-gradient-to-br from-[#02683E] to-[#024a2d] border-2 border-[#ce9e0d] hover:border-[#f4d03f] text-white hover:scale-110 transition-all duration-300 shadow-xl" />
+                  <CarouselNext className="right-0 lg:-right-12 bg-gradient-to-br from-[#02683E] to-[#024a2d] border-2 border-[#ce9e0d] hover:border-[#f4d03f] text-white hover:scale-110 transition-all duration-300 shadow-xl" />
+                </>
+              )}
+            </Carousel>
+          </div>
+        </section>
+      )}
+
 
       {/* Contact Section */}
       <section id="contato" className="py-16 bg-gradient-subtle">

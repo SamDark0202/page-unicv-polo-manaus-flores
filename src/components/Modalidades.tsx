@@ -49,7 +49,7 @@ const Modalidades = () => {
       duracao: "1,5 a 2,5 anos",
       link: "/tecnologo",
       color: "bg-warning",
-      examples: ["Análise de Sistemas", "Marketing Digital", "Logística", "Recursos Humanos"],
+      examples: ["Análise de Sistemas", "Marketing Digital", "Logística", "RH"],
       special: "Técnico → Tecnólogo em 1 ano"
     },
     {
