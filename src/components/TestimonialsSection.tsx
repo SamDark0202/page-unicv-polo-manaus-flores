@@ -98,7 +98,6 @@ export default function TestimonialsSection() {
                       >
                         <PlayCircle className="h-14 w-14" />
                         <p className="text-sm font-semibold">Assistir depoimento</p>
-                        <p className="text-xs text-white/80">Vídeo hospedado no YouTube</p>
                       </button>
                     )}
                   </div>
