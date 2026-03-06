@@ -503,7 +503,7 @@ const PosGraduacao = () => {
               <iframe
               width="560"
               height="315"
-              src="https://www.youtube-nocookie.com/embed/3u5QaDaIqH8?si=X4Rw2deuXXa84d-D&amp;controls=0"
+              src="https://www.youtube-nocookie.com/embed/HOQDYtVpCFg?si=X4Rw2deuXXa84d-D&amp;controls=0"
               title="YouTube video player"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               referrerPolicy="strict-origin-when-cross-origin"

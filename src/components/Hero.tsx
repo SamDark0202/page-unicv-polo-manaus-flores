@@ -5,25 +5,20 @@ import LeadForm from "./LeadForm";
 import { GraduationCap, Star, Users, Award } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const heroVideoUrl = "https://res.cloudinary.com/dtfcavqgi/video/upload/v1759686310/CONHE%C3%87A_O_UNICV_bahbov.mp4";
-const heroVideoWebM = "https://res.cloudinary.com/dtfcavqgi/video/upload/a_auto,f_webm/v1759686310/CONHE%C3%87A_O_UNICV_bahbov.webm";
-
 const Hero = () => {
   return (
     <section className="relative bg-gradient-hero text-white overflow-hidden">
       {/* ✅ Video Background */}
-      <div className="absolute inset-0 overflow-hidden opacity-20">
-        <video
-          loop
-          autoPlay
-          muted
-          playsInline
-          preload="metadata"
-          className="min-w-full min-h-full absolute object-cover"
-        >
-          <source src={heroVideoWebM} type="video/webm" />
-          <source src={heroVideoUrl} type="video/mp4" />
-        </video>
+      <div className="absolute inset-0 overflow-hidden opacity-20 pointer-events-none" aria-hidden="true">
+        <iframe
+          src="https://www.youtube.com/embed/Ejylx2UGs3Y?autoplay=1&mute=1&loop=1&playlist=Ejylx2UGs3Y&controls=0&modestbranding=1&rel=0&playsinline=1&disablekb=1"
+          title="YouTube video player"
+          frameBorder="0"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          referrerPolicy="strict-origin-when-cross-origin"
+          tabIndex={-1}
+          className="absolute left-1/2 top-1/2 h-[56.25vw] w-[177.7778vh] min-h-full min-w-full -translate-x-1/2 -translate-y-1/2"
+        ></iframe>
       </div>
       
       {/* Content */}
