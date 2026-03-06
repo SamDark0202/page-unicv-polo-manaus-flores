@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, MapPin, Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import logoImage from "@/assets/NOVA LOGO UNICV 12-04.png";
 import { isChristmas } from "@/lib/isChristmas";
@@ -17,18 +17,54 @@ declare global {
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDesktopTecnologoOpen, setIsDesktopTecnologoOpen] = useState(false);
+  const [isMobileTecnologoOpen, setIsMobileTecnologoOpen] = useState(false);
   const location = useLocation();
+  const closeTimeoutRef = useRef<number | null>(null);
+
+  type NavigationItem = {
+    name: string;
+    href: string;
+    children?: Array<{ name: string; href: string }>;
+  };
 
   const navigation = [
     { name: "Início", href: "/" },
     { name: "Bacharelado", href: "/bacharelado" },
     { name: "Licenciatura", href: "/licenciatura" },
-    { name: "Tecnólogo", href: "/tecnologo" },
+    {
+      name: "Tecnólogo",
+      href: "/tecnologo",
+      children: [{ name: "Técnico Para Tecnólogo", href: "/tecnico-para-tecnologo" }],
+    },
     { name: "Pós-Graduação", href: "/pos-graduacao" },
     { name: "Blog", href: "/Blog" },
-  ];
+  ] satisfies NavigationItem[];
 
   const isCurrentPage = (href: string) => location.pathname === href;
+
+  const isActiveItem = (item: NavigationItem) =>
+    isCurrentPage(item.href) || (item.children?.some((child) => isCurrentPage(child.href)) ?? false);
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+    setIsDesktopTecnologoOpen(false);
+    setIsMobileTecnologoOpen(false);
+  }, [location.pathname]);
+
+  const openDesktopTecnologoMenu = () => {
+    if (closeTimeoutRef.current) {
+      window.clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setIsDesktopTecnologoOpen(true);
+  };
+
+  const closeDesktopTecnologoMenuWithDelay = () => {
+    closeTimeoutRef.current = window.setTimeout(() => {
+      setIsDesktopTecnologoOpen(false);
+    }, 120);
+  };
 
   return (
     <header className="bg-background border-b sticky top-0 z-50">
@@ -49,19 +85,79 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center space-x-8">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={`font-medium transition-colors hover:text-primary ${
-                isCurrentPage(item.href)
-                  ? "text-primary border-b-2 border-primary pb-1"
-                  : "text-foreground"
-              }`}
-            >
-              {item.name}
-            </Link>
-          ))}
+          {navigation.map((item) =>
+            item.children ? (
+              <div
+                key={item.name}
+                className="relative"
+                onMouseEnter={openDesktopTecnologoMenu}
+                onMouseLeave={closeDesktopTecnologoMenuWithDelay}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsDesktopTecnologoOpen((prev) => !prev)}
+                  className={`font-medium transition-colors hover:text-primary inline-flex items-center gap-1 px-1 py-2 rounded-md ${
+                    isActiveItem(item)
+                      ? "text-primary"
+                      : "text-foreground"
+                  }`}
+                  aria-haspopup="menu"
+                  aria-expanded={isDesktopTecnologoOpen}
+                >
+                  {item.name}
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isDesktopTecnologoOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {isDesktopTecnologoOpen && (
+                  <div
+                    className="absolute left-0 top-full mt-2 z-50 min-w-[260px] rounded-lg border bg-background shadow-elevated p-2"
+                    role="menu"
+                    onMouseEnter={openDesktopTecnologoMenu}
+                    onMouseLeave={closeDesktopTecnologoMenuWithDelay}
+                  >
+                    <Link
+                      to={item.href}
+                      className={`block px-3 py-2 rounded-md transition-colors font-semibold ${
+                        isCurrentPage(item.href)
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground hover:bg-muted"
+                      }`}
+                      role="menuitem"
+                    >
+                      Ver {item.name}
+                    </Link>
+
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.name}
+                        to={child.href}
+                        className={`block px-3 py-2 rounded-md transition-colors ${
+                          isCurrentPage(child.href)
+                            ? "bg-primary text-primary-foreground"
+                            : "text-foreground hover:bg-muted"
+                        }`}
+                        role="menuitem"
+                      >
+                        {child.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`font-medium transition-colors hover:text-primary px-1 py-2 rounded-md ${
+                  isCurrentPage(item.href)
+                    ? "text-primary"
+                    : "text-foreground"
+                }`}
+              >
+                {item.name}
+              </Link>
+            )
+          )}
         </nav>
 
         {/* CTA Button */}
@@ -101,20 +197,69 @@ const Header = () => {
       {isMenuOpen && (
         <div className="lg:hidden py-4 border-t border-border">
           <nav className="flex flex-col space-y-4">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`font-medium py-2 px-4 rounded-lg transition-colors ${
-                  isCurrentPage(item.href)
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground hover:bg-muted"
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) =>
+              item.children ? (
+                <div key={item.name} className="space-y-2">
+                  <button
+                    type="button"
+                    className={`w-full text-left font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center justify-between gap-1 ${
+                      isActiveItem(item)
+                        ? "bg-primary text-primary-foreground"
+                        : "text-foreground hover:bg-muted"
+                    }`}
+                    onClick={() => setIsMobileTecnologoOpen((prev) => !prev)}
+                    aria-expanded={isMobileTecnologoOpen}
+                  >
+                    {item.name}
+                    <ChevronDown className={`h-4 w-4 transition-transform ${isMobileTecnologoOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {isMobileTecnologoOpen && (
+                    <div className="ml-4 flex flex-col space-y-2 border-l border-border pl-3">
+                      <Link
+                        to={item.href}
+                        className={`font-medium py-2 px-3 rounded-lg transition-colors ${
+                          isCurrentPage(item.href)
+                            ? "bg-primary text-primary-foreground"
+                            : "text-foreground hover:bg-muted"
+                        }`}
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Ver {item.name}
+                      </Link>
+
+                      {item.children.map((child) => (
+                        <Link
+                          key={child.name}
+                          to={child.href}
+                          className={`font-medium py-2 px-3 rounded-lg transition-colors ${
+                            isCurrentPage(child.href)
+                              ? "bg-primary text-primary-foreground"
+                              : "text-foreground hover:bg-muted"
+                          }`}
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          {child.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`font-medium py-2 px-4 rounded-lg transition-colors ${
+                    isCurrentPage(item.href)
+                      ? "bg-primary text-primary-foreground"
+                      : "text-foreground hover:bg-muted"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              )
+            )}
             <Button variant="hero" className="mx-4 mt-4" asChild>
               <Link to="#contato" onClick={() => setIsMenuOpen(false)}>
                 Quero minha Bolsa!

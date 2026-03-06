@@ -497,20 +497,21 @@ const PosGraduacao = () => {
             </p>
           </div>
 
-          {/* Video Highlight */}
-          <div className="mt-12 flex justify-center ">
+            {/* Video Highlight */}
+            <div className="mt-12 flex justify-center">
             <div className="relative aspect-video w-3/4 rounded-xl overflow-hidden shadow-md">
-              <video
-                src="https://res.cloudinary.com/dtfcavqgi/video/upload/v1759690431/V%C3%8DDEO_P%C3%93S-GRADUA%C3%87%C3%83O_OPORTUNIDADES_-_YOUTUBE_e8h1sn.mp4"
-                loop
-                autoPlay
-                muted={false}
-                controls
-                controlsList="nodownload"
-                className="min-w-full min-h-full absolute object-cover"
+              <iframe
+              width="560"
+              height="315"
+              src="https://www.youtube-nocookie.com/embed/3u5QaDaIqH8?si=X4Rw2deuXXa84d-D&amp;controls=0"
+              title="YouTube video player"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+              className="w-full h-full"
               />
             </div>
-          </div>
+            </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 mt-12">
             {beneficios.map((beneficio, index) => (

@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadForm from "@/components/LeadForm";
 import CourseDetailDialog from "@/components/CourseDetailDialog";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -111,20 +112,21 @@ const Tecnologo = () => {
             </p>
           </div>
 
-          {/* Video Highlight */}
-          <div className="mt-12 flex justify-center">
+            {/* Video Highlight */}
+            <div className="mt-12 flex justify-center">
             <div className="relative aspect-video w-3/4 rounded-xl overflow-hidden shadow-md">
-              <video
-                src="https://res.cloudinary.com/dtfcavqgi/video/upload/v1759689947/GRADUA%C3%87%C3%83O_EAD_COM_1_5_ANOS_zkth5e.mp4"
-                loop
-                autoPlay
-                muted={false}
-                controls
-                controlsList="nodownload"
-                className="min-w-full min-h-full absolute object-cover"
+              <iframe
+              width="560"
+              height="315"
+              src="https://www.youtube-nocookie.com/embed/HS_XpPVZvGs?si=j0sRjUtiahHn2hZ1&controls=0"
+              title="YouTube video player"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+              className="w-full h-full"
               />
             </div>
-          </div>
+            </div>
         </div>
       </section>
 
@@ -258,7 +260,7 @@ const Tecnologo = () => {
             </div>
 
             <Button variant="secondary" size="lg" className="text-lg px-8 w-full md:w-auto" asChild>
-              <a href="#contato">Saiba como Aproveitar seu Técnico</a>
+              <Link to="/tecnico-para-tecnologo">Saiba como Aproveitar seu Técnico</Link>
             </Button>
           </div>
         </div>

@@ -8,6 +8,14 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      "/api/cursos-tecnicos": {
+        target: "https://diariodebordo.unicv.edu.br",
+        changeOrigin: true,
+        secure: true,
+        rewrite: () => "/cursos-tecnicos/publico",
+      },
+    },
   },
   build: {
     target: "ES2020",

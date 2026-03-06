@@ -84,20 +84,21 @@ const Diferenciais = () => {
             </p>
           </div>
 
-          {/* Video Highlight */}
-          <div className="mt-12 flex justify-center">
+            {/* Video Highlight */}
+            <div className="mt-12 flex justify-center">
             <div className="relative aspect-video w-3/4 rounded-xl overflow-hidden shadow-md">
-              <video
-                src="https://res.cloudinary.com/dtfcavqgi/video/upload/v1759688368/Gradua%C3%A7%C3%A3o_EAD_Youtube_ogmveh.mp4"
-                loop
-                autoPlay={false}
-                muted={false}
-                controls
-                controlsList="nodownload"
-                className="min-w-full min-h-full absolute object-cover"
+              <iframe
+              width="560"
+              height="315"
+              src="https://www.youtube-nocookie.com/embed/FWPQRmwUGxA?si=j0sRjUtiahHn2hZ1&controls=0"
+              title="YouTube video player"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+              className="w-full h-full"
               />
             </div>
-          </div>
+            </div>
 
           {/* Diferenciais Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">

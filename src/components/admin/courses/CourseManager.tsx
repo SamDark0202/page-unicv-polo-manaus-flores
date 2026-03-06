@@ -4,10 +4,11 @@ import CourseList from "./CourseList";
 import CourseForm from "./CourseForm";
 import PostPlusCarouselManager from "./PostPlusCarouselManager";
 import HomeLaunchBannersManager from "./HomeLaunchBannersManager";
+import TechnicalToTechnologistManager from "./TechnicalToTechnologistManager";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type View = "list" | "form";
-type CourseSection = "courses" | "post-plus-carousel" | "home-launch-banners";
+type CourseSection = "courses" | "technical-to-technologist" | "post-plus-carousel" | "home-launch-banners";
 
 type Props = {
   createSignal?: number;
@@ -47,6 +48,7 @@ export default function CourseManager({ createSignal }: Props) {
         <Tabs value={section} onValueChange={(value) => setSection(value as CourseSection)}>
           <TabsList className="flex flex-wrap gap-2">
             <TabsTrigger value="courses">Cursos</TabsTrigger>
+            <TabsTrigger value="technical-to-technologist">Téc. → Tecnólogo</TabsTrigger>
             <TabsTrigger value="post-plus-carousel">Carrossel Pós+</TabsTrigger>
             <TabsTrigger value="home-launch-banners">Lançamentos Home</TabsTrigger>
           </TabsList>
@@ -62,11 +64,28 @@ export default function CourseManager({ createSignal }: Props) {
         <Tabs value={section} onValueChange={(value) => setSection(value as CourseSection)}>
           <TabsList className="flex flex-wrap gap-2">
             <TabsTrigger value="courses">Cursos</TabsTrigger>
+            <TabsTrigger value="technical-to-technologist">Téc. → Tecnólogo</TabsTrigger>
             <TabsTrigger value="post-plus-carousel">Carrossel Pós+</TabsTrigger>
             <TabsTrigger value="home-launch-banners">Lançamentos Home</TabsTrigger>
           </TabsList>
         </Tabs>
         <HomeLaunchBannersManager />
+      </div>
+    );
+  }
+
+  if (section === "technical-to-technologist") {
+    return (
+      <div className="space-y-6">
+        <Tabs value={section} onValueChange={(value) => setSection(value as CourseSection)}>
+          <TabsList className="flex flex-wrap gap-2">
+            <TabsTrigger value="courses">Cursos</TabsTrigger>
+            <TabsTrigger value="technical-to-technologist">Téc. → Tecnólogo</TabsTrigger>
+            <TabsTrigger value="post-plus-carousel">Carrossel Pós+</TabsTrigger>
+            <TabsTrigger value="home-launch-banners">Lançamentos Home</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <TechnicalToTechnologistManager />
       </div>
     );
   }
@@ -77,6 +96,7 @@ export default function CourseManager({ createSignal }: Props) {
         <Tabs value={section} onValueChange={(value) => setSection(value as CourseSection)}>
           <TabsList className="flex flex-wrap gap-2">
             <TabsTrigger value="courses">Cursos</TabsTrigger>
+            <TabsTrigger value="technical-to-technologist">Téc. → Tecnólogo</TabsTrigger>
             <TabsTrigger value="post-plus-carousel">Carrossel Pós+</TabsTrigger>
             <TabsTrigger value="home-launch-banners">Lançamentos Home</TabsTrigger>
           </TabsList>
@@ -95,6 +115,7 @@ export default function CourseManager({ createSignal }: Props) {
       <Tabs value={section} onValueChange={(value) => setSection(value as CourseSection)}>
         <TabsList className="flex flex-wrap gap-2">
           <TabsTrigger value="courses">Cursos</TabsTrigger>
+          <TabsTrigger value="technical-to-technologist">Téc. → Tecnólogo</TabsTrigger>
           <TabsTrigger value="post-plus-carousel">Carrossel Pós+</TabsTrigger>
           <TabsTrigger value="home-launch-banners">Lançamentos Home</TabsTrigger>
         </TabsList>
