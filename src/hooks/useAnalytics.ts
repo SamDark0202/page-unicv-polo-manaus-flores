@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabaseClient";
+import { DEFAULT_BASE_DELAY_MS, DEFAULT_MAX_RETRIES, getRetryDelay, shouldRetryHttpLikeError } from "@/lib/retry";
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -316,5 +317,10 @@ export function useAnalytics(filter: AnalyticsFilter, dynamicFilters?: DynamicFi
     queryFn: () => fetchKpis(filter, dynamicFilters),
     refetchInterval: 60_000, // atualiza a cada 60s
     staleTime: 30_000,
+    retry: (failureCount, error) => failureCount < DEFAULT_MAX_RETRIES && shouldRetryHttpLikeError(error),
+    retryDelay: (attemptIndex) => getRetryDelay(DEFAULT_BASE_DELAY_MS, attemptIndex),
+    meta: {
+      errorMessage: "Falha ao carregar analytics.",
+    },
   });
 }

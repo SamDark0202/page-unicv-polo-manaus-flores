@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, Bar, BarChart } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -137,6 +137,11 @@ export default function AnalyticsDashboard() {
   };
 
   const { data, isLoading, error, refetch } = useAnalytics(filter, dynamicFilters);
+
+  useEffect(() => {
+    if (!error) return;
+    console.error(`[${new Date().toISOString()}] Controle/AnalyticsDashboard: erro ao carregar dados`, error);
+  }, [error]);
 
   const isCustomActive = rangeTab === "custom";
   const isCustomValid = Boolean(

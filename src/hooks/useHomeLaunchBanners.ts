@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { HomeLaunchBannerFilters, HomeLaunchBannerInput } from "@/types/homeLaunchBanner";
+import { DEFAULT_BASE_DELAY_MS, DEFAULT_MAX_RETRIES, getRetryDelay, shouldRetryHttpLikeError } from "@/lib/retry";
 import {
   deleteHomeLaunchBanner,
   fetchHomeLaunchBanners,
@@ -28,6 +29,8 @@ export function useHomeLaunchBannersQuery(filters?: HomeLaunchBannerFilters) {
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
+    retry: (failureCount, error) => failureCount < DEFAULT_MAX_RETRIES && shouldRetryHttpLikeError(error),
+    retryDelay: (attemptIndex) => getRetryDelay(DEFAULT_BASE_DELAY_MS, attemptIndex),
   });
 }
 

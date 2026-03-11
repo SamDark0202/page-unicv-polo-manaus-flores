@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Post } from "@/types/post";
 import { fetchPosts, upsertPost as upsertSupabase, deletePost as deleteSupabase } from "@/lib/supabaseClient";
+import { runWithRetry } from "@/lib/retry";
 
 export function useAdminPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -14,7 +15,9 @@ export function useAdminPosts() {
   async function loadPosts() {
     try {
       setLoading(true);
-      const data = await fetchPosts();
+      const data = await runWithRetry(() => fetchPosts(), {
+        label: "Controle/useAdminPosts.loadPosts",
+      });
       setPosts(data);
       setError(null);
     } catch (err: any) {

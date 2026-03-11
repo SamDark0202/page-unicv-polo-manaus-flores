@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CourseFilters, CourseInput } from "@/types/course";
 import { deleteCourse, fetchCourses, saveCourse, setCourseActive } from "@/lib/courseService";
+import { DEFAULT_BASE_DELAY_MS, DEFAULT_MAX_RETRIES, getRetryDelay, shouldRetryHttpLikeError } from "@/lib/retry";
 
 const baseKey = ["courses"] as const;
 
@@ -29,6 +30,8 @@ export function useCoursesQuery(filters?: CourseFilters) {
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
+    retry: (failureCount, error) => failureCount < DEFAULT_MAX_RETRIES && shouldRetryHttpLikeError(error),
+    retryDelay: (attemptIndex) => getRetryDelay(DEFAULT_BASE_DELAY_MS, attemptIndex),
   });
 }
 

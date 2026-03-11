@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, ArrowRight, BookOpenCheck, Rocket, Target, CheckCircle2, MessageCircle } from "lucide-react";
+import { Search, BookOpenCheck, Rocket, Target, CheckCircle2, MessageCircle, Loader2 } from "lucide-react";
 
 interface CompatibleCourse {
   courseName: string;
@@ -25,6 +25,21 @@ interface TechnicalCourse {
 const DEFAULT_API_URL = "/api/cursos-tecnicos";
 const API_URL = import.meta.env.VITE_TECNICO_TECNOLOGO_API_URL || DEFAULT_API_URL;
 const WHATSAPP_PHONE = "559220201260";
+const REQUEST_TIMEOUT_MS = 20000;
+const MAX_FETCH_RETRIES = 5;
+const RETRY_BASE_DELAY_MS = 1200;
+
+class ApiFetchError extends Error {
+  status?: number;
+  code?: string;
+
+  constructor(message: string, status?: number, code?: string) {
+    super(message);
+    this.name = "ApiFetchError";
+    this.status = status;
+    this.code = code;
+  }
+}
 
 const normalize = (text: string) =>
   (text || "")
@@ -78,6 +93,55 @@ const toWhatsappLink = (courseName: string) => {
   const message = `Olá! Tenho curso técnico e quero me matricular em ${courseName}. Pode me ajudar?`;
   return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`;
 };
+
+const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+
+const getBackoffDelay = (attempt: number) => RETRY_BASE_DELAY_MS * 2 ** (attempt - 1);
+
+const shouldRetryFetch = (error: unknown) => {
+  if (!(error instanceof ApiFetchError)) {
+    return true;
+  }
+
+  if (error.code === "TIMEOUT") {
+    return true;
+  }
+
+  if (typeof error.status === "number") {
+    if (error.status >= 500) return true;
+    if (error.status === 429 || error.status === 408) return true;
+    return false;
+  }
+
+  return true;
+};
+
+function SimulatorLoadingState({ attempt }: { attempt: number }) {
+  return (
+    <div className="space-y-5">
+      <div className="rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 p-4">
+        <div className="flex items-center gap-2 text-primary font-semibold">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Carregando opções compatíveis...
+        </div>
+        <p className="text-sm text-muted-foreground mt-2">
+          Aguarde um momento enquanto liberamos a busca de cursos técnicos e as trilhas compatíveis.
+        </p>
+        <p className="text-xs text-muted-foreground/90 mt-1">Tentativa {attempt} de {MAX_FETCH_RETRIES}</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {[1, 2, 3].map((item) => (
+          <div key={item} className="rounded-lg border bg-card p-3 animate-pulse">
+            <div className="h-3 w-2/3 bg-muted rounded mb-2" />
+            <div className="h-3 w-4/5 bg-muted rounded mb-2" />
+            <div className="h-3 w-1/2 bg-muted rounded" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function parseTechnicalCourses(payload: unknown): TechnicalCourse[] {
   if (!Array.isArray(payload)) return [];
@@ -138,6 +202,7 @@ const TecnicoParaTecnologo = () => {
   const [selectedTechnicalCourse, setSelectedTechnicalCourse] = useState<TechnicalCourse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fetchAttempt, setFetchAttempt] = useState(1);
 
   const suggestions = useMemo(() => {
     const query = normalize(searchTerm.trim());
@@ -154,43 +219,70 @@ const TecnicoParaTecnologo = () => {
     setIsLoading(true);
     setErrorMessage(null);
     setSelectedTechnicalCourse(null);
+    setFetchAttempt(1);
 
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 20000);
+    let lastError: unknown = null;
 
-    try {
-      const response = await fetch(API_URL, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-        signal: controller.signal,
-      });
+    for (let attempt = 1; attempt <= MAX_FETCH_RETRIES; attempt += 1) {
+      setFetchAttempt(attempt);
 
-      if (!response.ok) {
-        throw new Error(`Falha ao carregar cursos (HTTP ${response.status})`);
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new ApiFetchError(`Falha ao carregar cursos (HTTP ${response.status})`, response.status);
+        }
+
+        const contentType = response.headers.get("content-type") || "";
+        if (!contentType.toLowerCase().includes("application/json")) {
+          throw new ApiFetchError("Resposta inválida da API de cursos.");
+        }
+
+        const payload = (await response.json()) as unknown;
+        const parsed = parseTechnicalCourses(payload);
+        setTechnicalCourses(parsed);
+
+        if (!parsed.length) {
+          setErrorMessage("Nenhum curso técnico disponível no momento.");
+        }
+
+        setIsLoading(false);
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          lastError = new ApiFetchError("Tempo de resposta da API excedido.", undefined, "TIMEOUT");
+        } else {
+          lastError = error;
+        }
+
+        if (attempt < MAX_FETCH_RETRIES && shouldRetryFetch(lastError)) {
+          await wait(getBackoffDelay(attempt));
+          continue;
+        }
+
+        break;
+      } finally {
+        window.clearTimeout(timeoutId);
       }
-
-      const contentType = response.headers.get("content-type") || "";
-      if (!contentType.toLowerCase().includes("application/json")) {
-        throw new Error("Resposta inválida da API de cursos.");
-      }
-
-      const payload = (await response.json()) as unknown;
-      const parsed = parseTechnicalCourses(payload);
-      setTechnicalCourses(parsed);
-
-      if (!parsed.length) {
-        setErrorMessage("Nenhum curso técnico disponível no momento.");
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Erro inesperado ao consultar cursos.";
-      setErrorMessage(message);
-      setTechnicalCourses([]);
-    } finally {
-      window.clearTimeout(timeoutId);
-      setIsLoading(false);
     }
+
+    const message =
+      lastError instanceof Error
+        ? `${lastError.message} Tentamos automaticamente ${MAX_FETCH_RETRIES} vezes.`
+        : `Erro inesperado ao consultar cursos. Tentamos automaticamente ${MAX_FETCH_RETRIES} vezes.`;
+
+    setErrorMessage(message);
+    setTechnicalCourses([]);
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -283,18 +375,20 @@ const TecnicoParaTecnologo = () => {
                   <Input
                     id="technical-search"
                     type="search"
-                    placeholder="Ex.: Técnico em Automação Industrial"
+                    placeholder={isLoading ? "Carregando cursos..." : "Ex.: Técnico em Automação Industrial"}
                     className="pl-9"
                     autoComplete="off"
                     value={searchTerm}
+                    disabled={isLoading}
                     onChange={(event) => {
                       setSearchTerm(event.target.value);
                       setSelectedTechnicalCourse(null);
                     }}
                   />
+                  {isLoading && <Loader2 className="h-4 w-4 animate-spin text-primary absolute right-3 top-3" />}
                 </div>
 
-                {!selectedTechnicalCourse && searchTerm.trim() && suggestions.length > 0 && (
+                {!isLoading && !selectedTechnicalCourse && searchTerm.trim() && suggestions.length > 0 && (
                   <Card className="mt-2 border-border">
                     <CardContent className="p-2">
                       <div className="grid gap-1">
@@ -318,10 +412,17 @@ const TecnicoParaTecnologo = () => {
                 Escolha um curso compatível e inicie seu atendimento agora
               </div>
 
-              {isLoading && <div className="text-sm text-muted-foreground">Carregando opções compatíveis...</div>}
-              {!isLoading && errorMessage && <div className="text-sm text-destructive">{errorMessage}</div>}
+              {isLoading && <SimulatorLoadingState attempt={fetchAttempt} />}
+              {!isLoading && errorMessage && (
+                <div className="space-y-3">
+                  <div className="text-sm text-destructive">{errorMessage}</div>
+                  <Button type="button" variant="outline" onClick={fetchTechnicalCourses}>
+                    Tentar novamente
+                  </Button>
+                </div>
+              )}
 
-              {selectedTechnicalCourse && (
+              {!isLoading && selectedTechnicalCourse && (
                 <div className="space-y-4">
 
                   {selectedTechnicalCourse.compatibleCourses.length === 0 && (

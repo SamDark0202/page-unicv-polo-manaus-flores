@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { PostPlusCarouselFilters, PostPlusCarouselItemInput } from "@/types/postPlusCarousel";
+import { DEFAULT_BASE_DELAY_MS, DEFAULT_MAX_RETRIES, getRetryDelay, shouldRetryHttpLikeError } from "@/lib/retry";
 import {
   deletePostPlusCarouselItem,
   fetchPostPlusCarouselItems,
@@ -31,6 +32,8 @@ export function usePostPlusCarouselQuery(filters?: PostPlusCarouselFilters) {
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
+    retry: (failureCount, error) => failureCount < DEFAULT_MAX_RETRIES && shouldRetryHttpLikeError(error),
+    retryDelay: (attemptIndex) => getRetryDelay(DEFAULT_BASE_DELAY_MS, attemptIndex),
   });
 }
 
