@@ -5,6 +5,7 @@ import type { Post } from '@/types/post';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { fetchPostBySlug } from '@/lib/supabaseClient';
+import { toSupabaseRenderImageUrl } from '@/lib/supabaseImage';
 
 const PostPage = () => {
   const { slug } = useParams();
@@ -147,8 +148,15 @@ const PostPage = () => {
         {/* Imagem */}
         <div className="flex justify-center mb-8">
           <img
-            src={post.imageUrl}
+            src={toSupabaseRenderImageUrl(post.imageUrl, {
+              width: 1200,
+              quality: 72,
+              format: 'webp',
+              resize: 'contain',
+            })}
             alt={post.title}
+            loading="eager"
+            decoding="async"
             className="max-w-full h-auto rounded-lg shadow"
           />
         </div>

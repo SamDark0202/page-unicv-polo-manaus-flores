@@ -28,6 +28,9 @@ export function usePostPlusCarouselQuery(filters?: PostPlusCarouselFilters) {
   return useQuery({
     queryKey,
     queryFn: () => fetchPostPlusCarouselItems(filters),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 }
 

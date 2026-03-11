@@ -25,9 +25,9 @@ export default function ImagePicker({
     if (value) {
       // tenta extrair nome do caminho
       const parts = value.split("/");
-      setFilename(parts[parts.length - 1] || `${safeSlug}.png`);
+      setFilename(parts[parts.length - 1] || `${safeSlug}.webp`);
     } else {
-      setFilename("imagem.png");
+      setFilename("imagem.webp");
     }
   }, [slug, value]);
 
@@ -46,12 +46,12 @@ export default function ImagePicker({
 
     try {
       setUploading(true);
-      const pngBlob = await toPngResized(file, maxWidth);
-      const pngFile = new File([pngBlob], `${slug}.png`, { type: "image/png" });
+      const webpBlob = await toWebpResized(file, maxWidth);
+      const webpFile = new File([webpBlob], `${slug}.webp`, { type: "image/webp" });
 
-      const url = await uploadCoverImage(pngFile, slug);
+      const url = await uploadCoverImage(webpFile, slug);
       setPreviewUrl(url);
-      setFilename(url.split("/").pop() || "imagem.png");
+      setFilename(url.split("/").pop() || "imagem.webp");
       onChange(url);
       setStatus("Imagem enviada com sucesso.");
     } catch (err: any) {
@@ -64,7 +64,7 @@ export default function ImagePicker({
 
   function clearImage() {
     setPreviewUrl("");
-    setFilename("imagem.png");
+    setFilename("imagem.webp");
     onChange("");
     setStatus("Imagem removida.");
   }
@@ -73,7 +73,7 @@ export default function ImagePicker({
     <div className="rounded-2xl border p-4 dark:border-gray-600 dark:bg-gray-900">
       <div className="flex items-center justify-between mb-3">
         <div className="font-semibold dark:text-gray-100">Imagem do Post</div>
-        <div className="text-xs text-gray-500 dark:text-gray-400">PNG otimizado • Largura max: {maxWidth}px</div>
+        <div className="text-xs text-gray-500 dark:text-gray-400">WebP otimizado • Largura max: {maxWidth}px</div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
@@ -139,7 +139,7 @@ export default function ImagePicker({
 
 /* ---------------- utils ---------------- */
 
-function toPngResized(file: File, maxWidth = 1600): Promise<Blob> {
+function toWebpResized(file: File, maxWidth = 1600): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const fr = new FileReader();
     fr.onload = () => {
@@ -158,11 +158,11 @@ function toPngResized(file: File, maxWidth = 1600): Promise<Blob> {
         ctx.drawImage(img, 0, 0, targetW, targetH);
         canvas.toBlob(
           (blob) => {
-            if (!blob) return reject(new Error("Falha ao gerar PNG"));
+            if (!blob) return reject(new Error("Falha ao gerar WebP"));
             resolve(blob);
           },
-          "image/png",
-          0.92
+          "image/webp",
+          0.82
         );
       };
       img.onerror = () => reject(new Error("Não foi possível carregar a imagem"));

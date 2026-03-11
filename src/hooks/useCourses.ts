@@ -26,6 +26,9 @@ export function useCoursesQuery(filters?: CourseFilters) {
   return useQuery({
     queryKey,
     queryFn: () => fetchCourses(filters),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 }
 

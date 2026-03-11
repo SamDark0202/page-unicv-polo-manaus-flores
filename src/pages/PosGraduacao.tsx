@@ -8,6 +8,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Award, Clock, Star, TrendingUp, CheckCircle, BookOpen, Users, Target } from "lucide-react";
 import { useState } from "react";
 import { usePostPlusCarouselQuery } from "@/hooks/usePostPlusCarousel";
+import { toSupabaseRenderImageUrl } from "@/lib/supabaseImage";
 import { trackCardClick } from "@/lib/tracker";
 
 const PosGraduacao = () => {
@@ -722,39 +723,56 @@ const PosGraduacao = () => {
                             title={item.bannerName}
                             className="block rounded-[14px] overflow-hidden bg-black"
                           >
-                            {/* Imagem Mobile - 1080x1080 (exibida apenas em mobile) */}
-                            <img
-                              src={item.mobileImageUrl}
-                              alt={item.metaDescription}
-                              loading="lazy"
-                              className="md:hidden w-full max-w-[500px] h-auto aspect-square object-cover rounded-[14px] transition-all duration-500 group-hover:scale-[1.02]"
-                            />
-                            {/* Imagem Desktop - formato horizontal (exibida em tablets e desktop) */}
-                            <img
-                              src={item.imageUrl}
-                              alt={item.metaDescription}
-                              loading="lazy"
-                              className="hidden md:block max-w-full h-[420px] lg:h-[480px] w-auto object-contain rounded-[14px] transition-all duration-500 group-hover:scale-[1.02]"
-                            />
+                            <picture>
+                              <source
+                                media="(min-width: 768px)"
+                                srcSet={toSupabaseRenderImageUrl(item.imageUrl, {
+                                  width: 1400,
+                                  quality: 68,
+                                  format: "webp",
+                                  resize: "contain",
+                                })}
+                              />
+                              <img
+                                src={toSupabaseRenderImageUrl(item.mobileImageUrl, {
+                                  width: 900,
+                                  quality: 68,
+                                  format: "webp",
+                                  resize: "cover",
+                                })}
+                                alt={item.metaDescription}
+                                loading="lazy"
+                                decoding="async"
+                                className="w-full max-w-[500px] md:max-w-full h-auto aspect-square md:aspect-auto md:h-[420px] lg:h-[480px] md:w-auto object-cover md:object-contain rounded-[14px] transition-all duration-500 group-hover:scale-[1.02]"
+                              />
+                            </picture>
                           </a>
                         ) : (
                           <div className="rounded-[14px] overflow-hidden bg-black">
-                            {/* Imagem Mobile - 1080x1080 (exibida apenas em mobile) */}
-                            <img
-                              src={item.mobileImageUrl}
-                              alt={item.metaDescription}
-                              loading="lazy"
-                              title={item.metaDescription}
-                              className="md:hidden w-full max-w-[500px] h-auto aspect-square object-cover rounded-[14px] transition-all duration-500 group-hover:scale-[1.02]"
-                            />
-                            {/* Imagem Desktop - formato horizontal (exibida em tablets e desktop) */}
-                            <img
-                              src={item.imageUrl}
-                              alt={item.metaDescription}
-                              loading="lazy"
-                              title={item.metaDescription}
-                              className="hidden md:block max-w-full h-[420px] lg:h-[480px] w-auto object-contain rounded-[14px] transition-all duration-500 group-hover:scale-[1.02]"
-                            />
+                            <picture>
+                              <source
+                                media="(min-width: 768px)"
+                                srcSet={toSupabaseRenderImageUrl(item.imageUrl, {
+                                  width: 1400,
+                                  quality: 68,
+                                  format: "webp",
+                                  resize: "contain",
+                                })}
+                              />
+                              <img
+                                src={toSupabaseRenderImageUrl(item.mobileImageUrl, {
+                                  width: 900,
+                                  quality: 68,
+                                  format: "webp",
+                                  resize: "cover",
+                                })}
+                                alt={item.metaDescription}
+                                loading="lazy"
+                                decoding="async"
+                                title={item.metaDescription}
+                                className="w-full max-w-[500px] md:max-w-full h-auto aspect-square md:aspect-auto md:h-[420px] lg:h-[480px] md:w-auto object-cover md:object-contain rounded-[14px] transition-all duration-500 group-hover:scale-[1.02]"
+                              />
+                            </picture>
                           </div>
                         )}
                       </div>

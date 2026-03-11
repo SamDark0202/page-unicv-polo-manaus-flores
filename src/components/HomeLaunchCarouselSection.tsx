@@ -5,6 +5,7 @@ import { useHomeLaunchBannersQuery } from "@/hooks/useHomeLaunchBanners";
 import { useCoursesQuery } from "@/hooks/useCourses";
 import CourseDetailDialog from "@/components/CourseDetailDialog";
 import { trackCardClick } from "@/lib/tracker";
+import { toSupabaseRenderImageUrl } from "@/lib/supabaseImage";
 import type { Course } from "@/types/course";
 import { Sparkles } from "lucide-react";
 
@@ -101,9 +102,15 @@ export default function HomeLaunchCarouselSection() {
                       >
                         <div className="rounded-lg overflow-hidden border">
                           <img
-                            src={banner.imageUrl}
+                            src={toSupabaseRenderImageUrl(banner.imageUrl, {
+                              width: 640,
+                              quality: 65,
+                              format: "webp",
+                              resize: "cover",
+                            })}
                             alt={banner.bannerName}
                             loading="lazy"
+                            decoding="async"
                             className="w-full aspect-[4/5] object-cover"
                           />
                         </div>

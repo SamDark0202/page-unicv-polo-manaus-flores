@@ -250,7 +250,7 @@ export default function RichTextEditor({
     }
     try {
       const url = await onUploadVideo(file);
-      insertHtmlAtCursor(`<video controls style="max-width:100%;" src="${url}"></video>`);
+      insertHtmlAtCursor(`<video controls preload="metadata" style="max-width:100%;" src="${url}"></video>`);
     } catch (err) {
       console.error(err);
       alert("Falha ao enviar video.");

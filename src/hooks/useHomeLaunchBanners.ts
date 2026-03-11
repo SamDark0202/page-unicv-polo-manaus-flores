@@ -25,6 +25,9 @@ export function useHomeLaunchBannersQuery(filters?: HomeLaunchBannerFilters) {
   return useQuery({
     queryKey,
     queryFn: () => fetchHomeLaunchBanners(filters),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 }
 

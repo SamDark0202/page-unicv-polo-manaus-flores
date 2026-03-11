@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import type { Post } from '@/types/post';
+import { toSupabaseRenderImageUrl } from '@/lib/supabaseImage';
 
 interface BlogCardProps {
   post: Post;
@@ -11,8 +12,17 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
       <div className="relative">
         <img 
-          src={post.imageUrl} 
+          src={toSupabaseRenderImageUrl(post.imageUrl, {
+            width: 560,
+            height: 320,
+            quality: 65,
+            format: 'webp',
+            resize: 'cover',
+          })}
           alt={post.title}
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
           className="w-full h-48 object-cover rounded-t-lg"
         />
         {post.category && (

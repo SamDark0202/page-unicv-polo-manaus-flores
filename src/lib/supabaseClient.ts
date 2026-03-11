@@ -118,17 +118,21 @@ function toSafeFileName(value: string) {
 
 function getExt(fileName: string) {
   const ext = fileName.split(".").pop();
-  return ext ? ext.toLowerCase() : "png";
+  return ext ? ext.toLowerCase() : "webp";
 }
 
 export async function uploadCoverImage(file: File, slug: string): Promise<string> {
-  const ext = getExt(file.name);
   const safeSlug = toSafeFileName(slug || "post") || "post";
-  const fileName = `${safeSlug}.${ext}`;
+  // Blog cover is standardized as WebP to minimize transfer size.
+  const fileName = `${safeSlug}.webp`;
 
   const { error } = await supabase.storage
     .from("blog-images")
-    .upload(fileName, file, { upsert: true });
+    .upload(fileName, file, {
+      upsert: true,
+      // Cover image may be replaced with same slug, so keep a shorter cache TTL.
+      cacheControl: "3600",
+    });
 
   if (error) throw error;
 
@@ -144,7 +148,11 @@ export async function uploadInlineMedia(file: File, folder: "content-images" | "
 
   const { error } = await supabase.storage
     .from("blog-images")
-    .upload(fileName, file, { upsert: false });
+    .upload(fileName, file, {
+      upsert: false,
+      // Timestamped path is immutable; long browser cache avoids repeated transfers.
+      cacheControl: "31536000",
+    });
 
   if (error) throw error;
 
@@ -160,7 +168,11 @@ export async function uploadPostPlusCarouselImage(file: File): Promise<string> {
 
   const { error } = await supabase.storage
     .from("blog-images")
-    .upload(fileName, file, { upsert: false });
+    .upload(fileName, file, {
+      upsert: false,
+      // Timestamped path is immutable; long browser cache avoids repeated transfers.
+      cacheControl: "31536000",
+    });
 
   if (error) throw error;
 
@@ -176,7 +188,11 @@ export async function uploadHomeLaunchBannerImage(file: File): Promise<string> {
 
   const { error } = await supabase.storage
     .from("blog-images")
-    .upload(fileName, file, { upsert: false });
+    .upload(fileName, file, {
+      upsert: false,
+      // Timestamped path is immutable; long browser cache avoids repeated transfers.
+      cacheControl: "31536000",
+    });
 
   if (error) throw error;
 
