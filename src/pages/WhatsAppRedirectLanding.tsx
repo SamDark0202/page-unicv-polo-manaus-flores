@@ -3,7 +3,7 @@ import { Loader2, MessageCircle } from "lucide-react";
 import { trackRedirectPageAccess, trackWhatsAppClick } from "@/lib/tracker";
 
 type WhatsAppRedirectLandingProps = {
-  campaignKey: "qr_panfleto" | "palestrante_tania";
+  campaignKey: "qr_panfleto" | "palestrante_tania" | "folder_vire_pagina";
   campaignLabel: string;
 };
 

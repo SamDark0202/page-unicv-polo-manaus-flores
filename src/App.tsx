@@ -49,7 +49,11 @@ const queryClient = new QueryClient();
 ========================= */
 const AppRoutes = () => {
   const location = useLocation();
-  const redirectPaths = new Set(["/zap/panfleto-flores-2026", "/zap/palestrante-tania"]);
+  const redirectPaths = new Set([
+    "/zap/panfleto-flores-2026",
+    "/zap/palestrante-tania",
+    "/zap/folder-vire-pagina",
+  ]);
   const isRedirectLanding = redirectPaths.has(location.pathname);
   const isAdmin = location.pathname.startsWith("/controle");
   const hideGlobalChrome = isAdmin || isRedirectLanding;
@@ -90,6 +94,15 @@ const AppRoutes = () => {
               />
             }
           />
+          <Route
+            path="/zap/folder-vire-pagina"
+            element={
+              <WhatsAppRedirectLanding
+                campaignKey="folder_vire_pagina"
+                campaignLabel="Folder Vire Pagina"
+              />
+            }
+          />
           <Route path="/controle" element={<Controle />} />
           <Route path="/termos-de-servico" element={<TermosDeServico />} />
           <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
@@ -105,7 +118,11 @@ const AppRoutes = () => {
 ========================= */
 const AppContent = () => {
   const location = useLocation();
-  const redirectPaths = new Set(["/zap/panfleto-flores-2026", "/zap/palestrante-tania"]);
+  const redirectPaths = new Set([
+    "/zap/panfleto-flores-2026",
+    "/zap/palestrante-tania",
+    "/zap/folder-vire-pagina",
+  ]);
   const isRedirectLanding = redirectPaths.has(location.pathname);
   const isAdmin = location.pathname.startsWith("/controle");
   return (

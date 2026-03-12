@@ -26,7 +26,7 @@ export type DailyMetricsPoint = {
 };
 
 export type RedirectCampaignMetric = {
-  key: "qr_panfleto" | "palestrante_tania";
+  key: "qr_panfleto" | "palestrante_tania" | "folder_vire_pagina";
   label: string;
   path: string;
   visits: number;
@@ -131,6 +131,11 @@ async function fetchKpis(filter: AnalyticsFilter, dynamicFilters?: DynamicFilter
       key: "palestrante_tania",
       label: "Palestrante Tania",
       path: "/zap/palestrante-tania",
+    },
+    {
+      key: "folder_vire_pagina",
+      label: "Folder Vire Pagina",
+      path: "/zap/folder-vire-pagina",
     },
   ];
 

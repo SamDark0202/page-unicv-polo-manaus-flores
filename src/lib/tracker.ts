@@ -106,7 +106,7 @@ export function trackWhatsAppClick(source: string, extra?: Record<string, unknow
 
 /** Acesso dedicado das landing pages secretas de redirecionamento */
 export function trackRedirectPageAccess(
-  campaign: "qr_panfleto" | "palestrante_tania",
+  campaign: "qr_panfleto" | "palestrante_tania" | "folder_vire_pagina",
   campaignLabel: string,
   path?: string,
 ) {

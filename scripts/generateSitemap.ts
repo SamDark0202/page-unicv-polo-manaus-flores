@@ -65,7 +65,12 @@ async function generateSitemap() {
   const baseUrl = "https://www.unicvpoloam.com.br";
 
   // Rotas internas/secretas que nunca devem ser indexadas no sitemap.
-  const blockedInternalRoutes = ["/zap/panfleto-flores-2026", "/zap/palestrante-tania", "/controle"];
+  const blockedInternalRoutes = [
+    "/zap/panfleto-flores-2026",
+    "/zap/palestrante-tania",
+    "/zap/folder-vire-pagina",
+    "/controle",
+  ];
   if (blockedInternalRoutes.length > 0) {
     console.log(`🔒 Rotas internas bloqueadas de indexação: ${blockedInternalRoutes.join(", ")}`);
   }
