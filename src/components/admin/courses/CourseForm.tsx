@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import type { Course, CourseInput, CourseModality } from "@/types/course";
+import type { Course, CourseDeliveryMode, CourseInput, CourseModality } from "@/types/course";
 import { useCourseMutations } from "@/hooks/useCourses";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,6 +13,11 @@ const modalityOptions: Array<{ value: CourseModality; label: string }> = [
   { value: "bacharelado", label: "Bacharelado" },
   { value: "licenciatura", label: "Licenciatura" },
   { value: "tecnologo", label: "Tecnologo" },
+];
+
+const deliveryModeOptions: Array<{ value: CourseDeliveryMode; label: string }> = [
+  { value: "ead", label: "EAD" },
+  { value: "semipresencial", label: "Semipresencial" },
 ];
 
 type Props = {
@@ -25,6 +30,7 @@ type FormState = CourseInput;
 
 const emptyState: FormState = {
   modality: "bacharelado",
+  deliveryMode: "ead",
   name: "",
   duration: "",
   preview: "",
@@ -40,6 +46,7 @@ function cloneCourse(course: Course | null): FormState {
   return {
     id: course.id,
     modality: course.modality,
+    deliveryMode: course.deliveryMode,
     name: course.name,
     duration: course.duration,
     preview: course.preview,
@@ -154,15 +161,29 @@ export default function CourseForm({ course, onCancel, onSaved }: Props) {
           <CardTitle>Informações gerais</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label>Modalidade</Label>
+              <Label>Tipo de curso</Label>
               <select
                 className="mt-1 w-full rounded-xl border px-3 py-2"
                 value={form.modality}
                 onChange={(event) => updateField("modality", event.target.value as CourseModality)}
               >
                 {modalityOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label>Modalidade</Label>
+              <select
+                className="mt-1 w-full rounded-xl border px-3 py-2"
+                value={form.deliveryMode}
+                onChange={(event) => updateField("deliveryMode", event.target.value as CourseDeliveryMode)}
+              >
+                {deliveryModeOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>

@@ -1,9 +1,10 @@
-import type { Course, CourseFilters, CourseInput, CourseModality } from "@/types/course";
+import type { Course, CourseDeliveryMode, CourseFilters, CourseInput, CourseModality } from "@/types/course";
 import { supabase } from "./supabaseClient";
 
 export type DbCourse = {
   id: string;
   modalidade: CourseModality;
+  modalidade_entrega: CourseDeliveryMode | null;
   nome_curso: string;
   duracao: string;
   texto_preview: string;
@@ -57,6 +58,7 @@ function dbToCourse(data: DbCourse): Course {
   return {
     id: data.id,
     modality: data.modalidade,
+    deliveryMode: data.modalidade_entrega ?? "ead",
     name: data.nome_curso,
     duration: data.duracao,
     preview: data.texto_preview,
@@ -73,6 +75,7 @@ function dbToCourse(data: DbCourse): Course {
 function toDbPayload(course: CourseInput) {
   const payload: Record<string, unknown> = {
     modalidade: course.modality,
+    modalidade_entrega: course.deliveryMode,
     nome_curso: course.name,
     duracao: course.duration,
     texto_preview: course.preview,

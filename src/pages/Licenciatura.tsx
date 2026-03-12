@@ -199,7 +199,7 @@ const Licenciatura = () => {
                       <Star className="h-4 w-4 text-warning fill-current" />
                       <div className="flex flex-col items-start">
                         <span className="text-sm text-muted-foreground">MODALIDADE</span>
-                        <span className="text-sm font-medium">SEMIPRESENCIAL</span>
+                        <span className="text-sm font-medium">{curso.deliveryMode === "semipresencial" ? "SEMIPRESENCIAL" : "EAD"}</span>
                       </div>
                     </div>
                     <Button

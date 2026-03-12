@@ -38,20 +38,7 @@ function normalizeText(value: string) {
 }
 
 function getTeachingMode(course: Course) {
-  if (course.modality === "licenciatura") {
-    return "Semipresencial";
-  }
-
-  if (course.modality === "tecnologo") {
-    return "EAD";
-  }
-
-  const normalizedName = normalizeText(course.name);
-  if (normalizedName.includes("educacao fisica")) {
-    return "Semipresencial";
-  }
-
-  return "EAD";
+  return course.deliveryMode === "semipresencial" ? "Semipresencial" : "EAD";
 }
 
 function groupedCourses(courses: Course[]) {

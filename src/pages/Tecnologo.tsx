@@ -183,7 +183,7 @@ const Tecnologo = () => {
                       <Star className="h-4 w-4 text-warning fill-current" />
                       <div className="flex flex-col items-start">
                         <span className="text-sm text-muted-foreground">Entrada rápida no mercado</span>
-                        <span className="text-sm font-medium">MODALIDADE EAD</span>
+                        <span className="text-sm font-medium">{curso.deliveryMode === "semipresencial" ? "SEMIPRESENCIAL" : "MODALIDADE EAD"}</span>
                       </div>
                     </div>
                     <Button

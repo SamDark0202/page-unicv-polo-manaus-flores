@@ -59,7 +59,7 @@ const Bacharelado = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-4xl mx-auto">
             <Badge variant="secondary" className="mb-4 bg-warning text-warning-foreground">
-              Modalidade EAD
+              Modalidade EAD/SEMIPRESENCIAL
             </Badge>
             <h1 className="text-4xl lg:text-6xl font-bold mb-6">Graduação Bacharelado</h1>
             <p className="text-xl lg:text-2xl text-blue-100 mb-8">
@@ -170,7 +170,7 @@ const Bacharelado = () => {
                       <Star className="h-4 w-4 text-warning fill-current" />
                       <div className="flex flex-col items-start">
                         <span className="text-sm text-muted-foreground">Reconhecido pelo MEC</span>
-                        <span className="text-sm font-medium">MODALIDADE EAD</span>
+                        <span className="text-sm font-medium">{curso.deliveryMode === "semipresencial" ? "SEMIPRESENCIAL" : "MODALIDADE EAD"}</span>
                       </div>
                     </div>
                     <Button
