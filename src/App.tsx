@@ -26,6 +26,7 @@ const PosGraduacao = lazy(() => import("./pages/PosGraduacao"));
 const Blog = lazy(() => import("./pages/Blog"));
 const PostPage = lazy(() => import("./pages/Blog/[slug]"));
 const ParceriaEducacional = lazy(() => import("./pages/ParceriaEducacional"));
+const WhatsAppRedirectLanding = lazy(() => import("./pages/WhatsAppRedirectLanding"));
 const Controle = lazy(() => import("@/pages/Controle"));
 const TermosDeServico = lazy(() => import("./pages/TermosDeServico"));
 const PoliticaDePrivacidade = lazy(() => import("./pages/PoliticaDePrivacidade"));
@@ -48,13 +49,16 @@ const queryClient = new QueryClient();
 ========================= */
 const AppRoutes = () => {
   const location = useLocation();
+  const redirectPaths = new Set(["/zap/panfleto-flores-2026", "/zap/palestrante-tania"]);
+  const isRedirectLanding = redirectPaths.has(location.pathname);
   const isAdmin = location.pathname.startsWith("/controle");
-  const showWhatsApp = location.pathname !== "/form-parceria-mt" && !isAdmin;
+  const hideGlobalChrome = isAdmin || isRedirectLanding;
+  const showWhatsApp = location.pathname !== "/form-parceria-mt" && !hideGlobalChrome;
 
   return (
     <>
       <PageTracker />
-      {!isAdmin && <TopbarFixed isChristmas={isChristmas} />}
+      {!hideGlobalChrome && <TopbarFixed isChristmas={isChristmas} />}
       {showWhatsApp && <WhatsAppFloat />}
 
       <Suspense fallback={<PageLoadingSkeleton />}>
@@ -68,6 +72,24 @@ const AppRoutes = () => {
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<PostPage />} />
           <Route path="/form-parceria-mt" element={<ParceriaEducacional />} />
+          <Route
+            path="/zap/panfleto-flores-2026"
+            element={
+              <WhatsAppRedirectLanding
+                campaignKey="qr_panfleto"
+                campaignLabel="QR Code do panfleto"
+              />
+            }
+          />
+          <Route
+            path="/zap/palestrante-tania"
+            element={
+              <WhatsAppRedirectLanding
+                campaignKey="palestrante_tania"
+                campaignLabel="Palestrante Tania"
+              />
+            }
+          />
           <Route path="/controle" element={<Controle />} />
           <Route path="/termos-de-servico" element={<TermosDeServico />} />
           <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
@@ -83,9 +105,11 @@ const AppRoutes = () => {
 ========================= */
 const AppContent = () => {
   const location = useLocation();
+  const redirectPaths = new Set(["/zap/panfleto-flores-2026", "/zap/palestrante-tania"]);
+  const isRedirectLanding = redirectPaths.has(location.pathname);
   const isAdmin = location.pathname.startsWith("/controle");
   return (
-    <div className={isAdmin ? "min-h-screen" : "pt-[90px] min-h-screen"}>
+    <div className={isAdmin || isRedirectLanding ? "min-h-screen" : "pt-[90px] min-h-screen"}>
       <AppRoutes />
     </div>
   );

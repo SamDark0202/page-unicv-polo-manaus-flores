@@ -33,7 +33,13 @@ function sessionId() {
 // Envio de eventos (fire-and-forget, nunca bloqueia UI)
 // ---------------------------------------------------------------------------
 
-export type EventType = "page_view" | "card_click" | "form_submit" | "session_end" | "whatsapp_click";
+export type EventType =
+  | "page_view"
+  | "card_click"
+  | "form_submit"
+  | "session_end"
+  | "whatsapp_click"
+  | "redirect_page_access";
 
 interface TrackEventPayload {
   event_type: EventType;
@@ -95,6 +101,23 @@ export function trackWhatsAppClick(source: string, extra?: Record<string, unknow
   sendEvent({
     event_type: "whatsapp_click",
     metadata: { source, ...extra },
+  });
+}
+
+/** Acesso dedicado das landing pages secretas de redirecionamento */
+export function trackRedirectPageAccess(
+  campaign: "qr_panfleto" | "palestrante_tania",
+  campaignLabel: string,
+  path?: string,
+) {
+  sendEvent({
+    event_type: "redirect_page_access",
+    page_path: path ?? window.location.pathname,
+    metadata: {
+      source: "secret_redirect_page",
+      campaign,
+      campaign_label: campaignLabel,
+    },
   });
 }
 

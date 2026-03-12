@@ -4,51 +4,104 @@
 # Google Bot - Permitir tudo
 User-agent: Googlebot
 Allow: /
+Disallow: /controle
+Disallow: /admin
+Disallow: /zap
+Disallow: /zap/
+Disallow: /zap/*
 Crawl-delay: 0
 
 # Bing Bot
 User-agent: Bingbot
 Allow: /
+Disallow: /controle
+Disallow: /admin
+Disallow: /zap
+Disallow: /zap/
+Disallow: /zap/*
 Crawl-delay: 1
 
 # Yahoo Bot
 User-agent: Slurp
 Allow: /
+Disallow: /controle
+Disallow: /admin
+Disallow: /zap
+Disallow: /zap/
+Disallow: /zap/*
 
 # DuckDuckGo
 User-agent: DuckDuckBot
 Allow: /
+Disallow: /controle
+Disallow: /admin
+Disallow: /zap
+Disallow: /zap/
+Disallow: /zap/*
 
 # Yandex
 User-agent: YandexBot
 Allow: /
+Disallow: /controle
+Disallow: /admin
+Disallow: /zap
+Disallow: /zap/
+Disallow: /zap/*
 Crawl-delay: 2
 
 # Twitterbot para cards
 User-agent: Twitterbot
 Allow: /
+Disallow: /controle
+Disallow: /admin
+Disallow: /zap
+Disallow: /zap/
+Disallow: /zap/*
 
 # Facebook para compartilhamentos
 User-agent: facebookexternalhit
 Allow: /
+Disallow: /controle
+Disallow: /admin
+Disallow: /zap
+Disallow: /zap/
+Disallow: /zap/*
 
 # LinkedIn
 User-agent: LinkedInBot
 Allow: /
+Disallow: /controle
+Disallow: /admin
+Disallow: /zap
+Disallow: /zap/
+Disallow: /zap/*
 
 # WhatsApp
 User-agent: WhatsApp
 Allow: /
+Disallow: /controle
+Disallow: /admin
+Disallow: /zap
+Disallow: /zap/
+Disallow: /zap/*
 
 # Instagram
 User-agent: Instagram
 Allow: /
+Disallow: /controle
+Disallow: /admin
+Disallow: /zap
+Disallow: /zap/
+Disallow: /zap/*
 
 # Todos os outros bots
 User-agent: *
 Allow: /
 Disallow: /controle
 Disallow: /admin
+Disallow: /zap
+Disallow: /zap/
+Disallow: /zap/*
 Crawl-delay: 5
 
 # Sitemap Location

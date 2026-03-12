@@ -16,6 +16,8 @@ import {
   BarChart3,
   RefreshCcw,
   Link,
+  Copy,
+  QrCode,
   X,
 } from "lucide-react";
 import {
@@ -33,11 +35,13 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 type RangeTabValue = DateRange | "custom";
 type MetricView = "all" | "views" | "whatsapp" | "forms";
 type MetricSeries = Exclude<MetricView, "all">;
 type CustomRange = { start: string; end: string };
+const PUBLIC_SITE_DOMAIN = "https://www.unicvpoloam.com.br";
 
 const rangeTabs: Array<{ value: RangeTabValue; label: string }> = [
   { value: "today", label: "Hoje" },
@@ -120,6 +124,7 @@ function formatDuration(ms: number): string {
 }
 
 export default function AnalyticsDashboard() {
+  const { toast } = useToast();
   const [filter, setFilter] = useState<AnalyticsFilter>({ mode: "preset", range: "7d" });
   const [customDraft, setCustomDraft] = useState<CustomRange>(() => defaultCustomRange());
   const [metricView, setMetricView] = useState<MetricView>("all");
@@ -161,6 +166,23 @@ export default function AnalyticsDashboard() {
     ...item,
     shortName: truncateLabel(item.name, 24),
   }));
+  const redirectCampaigns = data?.redirectCampaigns ?? [];
+
+  async function copyRedirectLink(path: string) {
+    const fullLink = `${PUBLIC_SITE_DOMAIN}${path}`;
+    try {
+      await navigator.clipboard.writeText(fullLink);
+      toast({
+        title: "Link copiado",
+        description: fullLink,
+      });
+    } catch {
+      toast({
+        title: "Nao foi possivel copiar",
+        description: "Copie manualmente o link exibido no painel.",
+      });
+    }
+  }
 
   const kpiCards = [
     {
@@ -661,6 +683,57 @@ export default function AnalyticsDashboard() {
                           </span>
                         </div>
                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <QrCode className="h-5 w-5 text-muted-foreground" />
+              Campanhas de redirecionamento WhatsApp
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex h-36 items-center justify-center text-muted-foreground">Carregando…</div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                {redirectCampaigns.map((campaign) => {
+                  const fullLink = `${PUBLIC_SITE_DOMAIN}${campaign.path}`;
+                  return (
+                    <div
+                      key={campaign.key}
+                      className="rounded-xl border border-border/70 bg-muted/30 p-4"
+                    >
+                      <p className="text-sm font-semibold text-foreground">{campaign.label}</p>
+                      <p className="mt-3 text-xs text-muted-foreground">Visitantes unicos</p>
+                      <p className="text-2xl font-bold leading-tight text-foreground">
+                        {campaign.uniqueVisitors.toLocaleString("pt-BR")}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Acessos totais: {campaign.visits.toLocaleString("pt-BR")}
+                      </p>
+
+                      <div className="mt-3 rounded-lg bg-background px-3 py-2 text-xs text-muted-foreground">
+                        <p className="font-medium text-foreground">Link completo</p>
+                        <p className="mt-1 break-all">{fullLink}</p>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyRedirectLink(campaign.path)}
+                        className="mt-3 w-full"
+                      >
+                        <Copy className="mr-2 h-4 w-4" />
+                        Copiar link
+                      </Button>
                     </div>
                   );
                 })}

@@ -53,12 +53,22 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+function escapeRegExp(input: string): string {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 // Função para gerar XML do sitemap
 async function generateSitemap() {
   console.log("🚀 Iniciando geração do sitemap...\n");
 
   const today = new Date().toISOString().split("T")[0];
   const baseUrl = "https://www.unicvpoloam.com.br";
+
+  // Rotas internas/secretas que nunca devem ser indexadas no sitemap.
+  const blockedInternalRoutes = ["/zap/panfleto-flores-2026", "/zap/palestrante-tania", "/controle"];
+  if (blockedInternalRoutes.length > 0) {
+    console.log(`🔒 Rotas internas bloqueadas de indexação: ${blockedInternalRoutes.join(", ")}`);
+  }
 
   // Buscar posts publicados do blog
   console.log("📰 Buscando posts do blog...");
@@ -259,6 +269,15 @@ async function generateSitemap() {
 
   // Fechar XML
   xml += `</urlset>`;
+
+  // Camada final de segurança: remove qualquer rota interna bloqueada, se houver.
+  for (const blockedRoute of blockedInternalRoutes) {
+    const routeRegex = new RegExp(
+      `<url>\\s*<loc>${baseUrl}${escapeRegExp(blockedRoute)}<\\/loc>[\\s\\S]*?<\\/url>\\s*`,
+      "g",
+    );
+    xml = xml.replace(routeRegex, "");
+  }
 
   // Salvar arquivo
   const sitemapPath = path.join(process.cwd(), "public", "sitemap.xml");

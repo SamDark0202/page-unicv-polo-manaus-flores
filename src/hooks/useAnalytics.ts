@@ -25,6 +25,14 @@ export type DailyMetricsPoint = {
   forms: number;
 };
 
+export type RedirectCampaignMetric = {
+  key: "qr_panfleto" | "palestrante_tania";
+  label: string;
+  path: string;
+  visits: number;
+  uniqueVisitors: number;
+};
+
 export interface KpiSummary {
   totalVisitors: number;
   totalPageViews: number;
@@ -38,6 +46,7 @@ export interface KpiSummary {
   topPostPlusBanners: Array<{ name: string; clicks: number }>;
   topReferrers: Array<{ referrer: string; count: number }>;
   dailyMetrics: DailyMetricsPoint[];
+  redirectCampaigns: RedirectCampaignMetric[];
 }
 
 // ---------------------------------------------------------------------------
@@ -112,6 +121,27 @@ async function fetchKpis(filter: AnalyticsFilter, dynamicFilters?: DynamicFilter
   if (error) throw error;
   let rows = events ?? [];
 
+  const redirectCampaignDefinitions: Array<Pick<RedirectCampaignMetric, "key" | "label" | "path">> = [
+    {
+      key: "qr_panfleto",
+      label: "QR Code do panfleto",
+      path: "/zap/panfleto-flores-2026",
+    },
+    {
+      key: "palestrante_tania",
+      label: "Palestrante Tania",
+      path: "/zap/palestrante-tania",
+    },
+  ];
+
+  const normalizePath = (path: string | null | undefined) => {
+    if (!path) return "/";
+    if (path.length > 1 && path.endsWith("/")) {
+      return path.slice(0, -1);
+    }
+    return path;
+  };
+
   // Filtra eventos da página de Controle e de testes locais
   rows = rows.filter((r) => {
     // Exclude /controle page
@@ -170,6 +200,29 @@ async function fetchKpis(filter: AnalyticsFilter, dynamicFilters?: DynamicFilter
 
   // Totais por tipo
   const pageViews = rows.filter((r) => r.event_type === "page_view");
+  const redirectPageAccesses = rows.filter((r) => r.event_type === "redirect_page_access");
+    const redirectCampaigns: RedirectCampaignMetric[] = redirectCampaignDefinitions.map((campaign) => {
+      const dedicatedCampaignAccesses = redirectPageAccesses.filter((event) => {
+        const metadata = (event.metadata as Record<string, unknown>) ?? {};
+        return String(metadata.campaign ?? "") === campaign.key;
+      });
+
+      // Compatibilidade com eventos antigos que foram registrados apenas como page_view.
+      const fallbackCampaignViews = pageViews.filter(
+        (event) => normalizePath(event.page_path) === campaign.path
+      );
+
+      const campaignRows =
+        dedicatedCampaignAccesses.length > 0 ? dedicatedCampaignAccesses : fallbackCampaignViews;
+      const campaignVisitors = new Set(campaignRows.map((event) => event.visitor_id));
+
+      return {
+        ...campaign,
+        visits: campaignRows.length,
+        uniqueVisitors: campaignVisitors.size,
+      };
+    });
+
   const cardClicks = rows.filter((r) => r.event_type === "card_click");
   const formSubmits = rows.filter((r) => r.event_type === "form_submit");
   const whatsappClicks = rows.filter((r) => r.event_type === "whatsapp_click");
@@ -294,6 +347,7 @@ async function fetchKpis(filter: AnalyticsFilter, dynamicFilters?: DynamicFilter
     topPostPlusBanners,
     topReferrers,
     dailyMetrics,
+    redirectCampaigns,
   };
 }
 

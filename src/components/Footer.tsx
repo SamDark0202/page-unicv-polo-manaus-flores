@@ -35,7 +35,7 @@ const Footer = () => {
     "Pedagogia",
     "Análise de Sistemas",
     "MBA Gestão Empresarial",
-    "Serviço Social",
+    "Gestão da Produção Industrial",
     "Marketing Digital"
   ];
 
@@ -68,7 +68,7 @@ const Footer = () => {
               className="text-lg px-8 py-6 border-white text-[#F09300] hover:bg-white hover:text-primary"
               onClick={() => {
                 if (typeof window.fbq !== "undefined") {
-                  fbq("track", "Contact");
+                  window.fbq("track", "Contact");
                 }
                 handleWhatsApp();
               }}
@@ -153,9 +153,12 @@ const Footer = () => {
                 <Clock className="h-4 w-4 text-[#11493C]" />
                 <span className="text-sm font-semibold text-[#11493C]">Destaque</span>
               </div>
-              <p className="text-sm text-secondary-foreground/80">
+              <Link
+                to="/tecnico-para-tecnologo"
+                className="text-sm text-secondary-foreground/80 underline-offset-2 transition-colors hover:text-secondary-foreground hover:underline"
+              >
                 Técnico para Tecnólogo em apenas 1 ano
-              </p>
+              </Link>
             </div>
           </div>
 
@@ -237,7 +240,7 @@ const Footer = () => {
                 <button
                   onClick={() => {
                     if (typeof window.fbq !== "undefined") {
-                      fbq("track", "Contact");
+                      window.fbq("track", "Contact");
                     }
                     handleWhatsApp();
                   }}
