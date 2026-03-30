@@ -105,6 +105,6 @@ Disallow: /zap/*
 Crawl-delay: 5
 
 # Sitemap Location
-Sitemap: https://www.unicvpoloam.com.br/sitemap.xml
+Sitemap: https://www.unicivepoloam.com.br/sitemap.xml
 
 

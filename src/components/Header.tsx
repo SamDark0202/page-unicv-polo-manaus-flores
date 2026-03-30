@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import logoImage from "@/assets/NOVA LOGO UNICV 12-04.png";
+import logoImage from "@/assets/unicive-logo-principal.png";
 import { isChristmas } from "@/lib/isChristmas";
 
 // Nota: colocar um arquivo `public/gorro-natal.png` com fundo transparente
@@ -72,7 +72,12 @@ const Header = () => {
         {/* Logo com detalhe natalino (gorrito) */}
         <Link to="/" className="flex items-center space-x-3">
           <div className="relative">
-            <img src={logoImage} alt="UniCV Polo Manaus Flores" className="h-10 w-auto" />
+            <img 
+              src={logoImage} 
+              alt="Unicive Polo Manaus Flores" 
+              className="h-8 sm:h-10 md:h-12 lg:h-14 w-auto max-h-14 transition-all duration-200"
+              style={{ maxWidth: '180px', objectFit: 'contain' }}
+            />
             {isChristmas && (
               <img
                 src="/gorro-natal.png"
@@ -164,7 +169,7 @@ const Header = () => {
         <div className="hidden lg:flex items-center space-x-4">
           <Button variant="hero" asChild>
             <a
-              href="https://wa.me/559220201260?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20cursos%20da%20UniCV%20e%20as%20condi%C3%A7%C3%B5es%20especiais."
+              href="https://wa.me/559220201260?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20cursos%20da%20Unicive%20e%20as%20condi%C3%A7%C3%B5es%20especiais."
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => {

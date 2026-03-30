@@ -68,7 +68,7 @@ export default function HomeLaunchCarouselSection() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-8">
           <Badge variant="outline" className="mb-4 px-4 py-1.5 text-sm font-bold border-2 shadow-sm bg-background">
-            <Sparkles className="h-4 w-4 mr-2" /> Lançamentos UniCV
+            <Sparkles className="h-4 w-4 mr-2" /> Lançamentos Unicive
           </Badge>
           <h2 className="text-2xl lg:text-4xl font-bold mb-3">Oportunidades que podem acelerar sua carreira</h2>
           <p className="text-base text-muted-foreground max-w-xl mx-auto">

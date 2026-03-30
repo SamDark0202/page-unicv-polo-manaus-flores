@@ -6,10 +6,10 @@ const PoliticaDePrivacidade = () => {
   return (
     <>
       <Helmet>
-        <title>Politica de Privacidade - UniCV Polo Manaus Flores</title>
+        <title>Politica de Privacidade - Unicive Polo Manaus Flores</title>
         <meta
           name="description"
-          content="Politica de Privacidade do site UniCV Polo Manaus Flores."
+          content="Politica de Privacidade do site Unicive Polo Manaus Flores."
         />
       </Helmet>
 
@@ -27,7 +27,7 @@ const PoliticaDePrivacidade = () => {
             <section className="space-y-3">
               <h2 className="text-xl font-semibold">1. Controlador dos dados</h2>
               <p>
-                O controlador dos dados pessoais tratados neste site e o UniCV
+                O controlador dos dados pessoais tratados neste site e o Unicive
                 Polo Manaus Flores.
               </p>
               <p>

@@ -30,7 +30,7 @@ export default function Controle() {
   const [courseCreateSignal, setCourseCreateSignal] = useState(0);
   const { theme, toggleTheme } = useThemeMode();
   const { user, signOut } = useAuth();
-  const userEmail = user?.email ?? "Conta UniCV";
+  const userEmail = user?.email ?? "Conta Unicive";
   const userInitials = userEmail.charAt(0).toUpperCase() || "UC";
 
   async function handleLogout() {
@@ -112,7 +112,7 @@ export default function Controle() {
             </div>
             {!isSidebarCollapsed && (
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-muted-foreground">Painel UniCV</p>
+                <p className="text-sm font-semibold text-muted-foreground">Painel Unicive</p>
                 <p className="text-xs text-muted-foreground/80">Administração integrada</p>
               </div>
             )}

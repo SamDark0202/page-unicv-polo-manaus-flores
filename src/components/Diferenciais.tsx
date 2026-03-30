@@ -73,7 +73,7 @@ const Diferenciais = () => {
           {/* Header */}
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4">
-              Por que escolher a UniCV?
+              Por que escolher a Unicive?
             </Badge>
             <h2 className="text-3xl lg:text-5xl font-bold mb-6 text-foreground">
               Nossos Diferenciais

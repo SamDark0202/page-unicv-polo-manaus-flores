@@ -13,7 +13,7 @@ import {
   Star
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import logoImage from "@/assets/LOGO UNICV.png"; // ✅ Import da logo
+import logoImage from "@/assets/unicive-logo-branco.png"; // ✅ Import da logo
 
 // Declare fbq on the Window interface for TypeScript
 declare global {
@@ -41,7 +41,7 @@ const Footer = () => {
 
   const handleWhatsApp = () => {
     import("@/lib/tracker").then(({ trackWhatsAppClick }) => trackWhatsAppClick("footer"));
-    const message = "Olá! Gostaria de saber mais sobre os cursos da UniCV e as condições especiais.";
+    const message = "Olá! Gostaria de saber mais sobre os cursos da Unicive e as condições especiais.";
     const phone = "559220201260";
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
@@ -92,8 +92,9 @@ const Footer = () => {
               <div>
                 <img
                   src={logoImage}
-                  alt="Logo UniCV Polo Manaus Flores"
-                  className="h-10 w-auto"
+                  alt="Logo Unicive Polo Manaus Flores"
+                  className="h-8 sm:h-10 md:h-12 lg:h-14 w-auto max-h-14 transition-all duration-200"
+                  style={{ maxWidth: '180px', objectFit: 'contain' }}
                 />
               </div>
             </div>
@@ -260,20 +261,20 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="text-sm text-secondary-foreground/60">
-            © 2025 UniCV Polo Manaus Flores. Todos os direitos reservados.
+            © 2026 Unicive Polo Manaus Flores. Todos os direitos reservados.
           </div>
           <div className="flex items-center gap-4 text-sm">
             <Link
               to="/termos-de-servico"
               className="text-secondary-foreground/70 hover:text-secondary-foreground transition-colors"
             >
-              Termos de Servico
+              Termos de Serviço
             </Link>
             <Link
               to="/politica-de-privacidade"
               className="text-secondary-foreground/70 hover:text-secondary-foreground transition-colors"
             >
-              Politica de Privacidade
+              Política de Privacidade
             </Link>
           </div>
         </div>

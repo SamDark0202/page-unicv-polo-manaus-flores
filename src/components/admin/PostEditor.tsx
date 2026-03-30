@@ -20,7 +20,7 @@ type Draft = Post & {
   category?: string;
 };
 
-const DEFAULT_AUTHOR = "UniCV Polo Manaus Flores";
+const DEFAULT_AUTHOR = "Unicive Polo Manaus Flores";
 const BRAND_LINK_COLOR = "#ce9e0d";
 
 export default function PostEditor({ index, onBack }: Props) {

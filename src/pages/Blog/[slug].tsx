@@ -73,12 +73,12 @@ const PostPage = () => {
     "dateModified": modifiedDate,
     "author": {
       "@type": "Organization",
-      "name": "UniCV Polo Manaus Flores",
+      "name": "Unicive Polo Manaus Flores",
       "url": siteUrl
     },
     "publisher": {
       "@type": "Organization",
-      "name": "UniCV Polo Manaus Flores",
+      "name": "Unicive Polo Manaus Flores",
       "logo": {
         "@type": "ImageObject",
         "url": `${siteUrl}/logo.png`
@@ -92,7 +92,7 @@ const PostPage = () => {
     "isAccessibleForFree": true,
     "isPartOf": {
       "@type": ["CreativeWork", "Product"],
-      "name": "UniCV News",
+      "name": "Unicive News",
       "productID": "CAow4uWeDA:openaccess"
     }
   };
@@ -101,12 +101,12 @@ const PostPage = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         {/* Título da página */}
-        <title>{post.title} - Blog UniCV Polo Flores</title>
+        <title>{post.title} - Blog Unicive Polo Flores</title>
         
         {/* Meta tags básicas */}
         <meta name="description" content={plainText} />
         <meta name="keywords" content={post.tags?.join(', ')} />
-        <meta name="author" content="UniCV Polo Manaus Flores" />
+        <meta name="author" content="Unicive Polo Manaus Flores" />
         <link rel="canonical" href={postUrl} />
         
         {/* Open Graph / Facebook */}
@@ -115,10 +115,10 @@ const PostPage = () => {
         <meta property="og:description" content={plainText} />
         <meta property="og:image" content={post.imageUrl} />
         <meta property="og:url" content={postUrl} />
-        <meta property="og:site_name" content="UniCV Polo Manaus Flores" />
+        <meta property="og:site_name" content="Unicive Polo Manaus Flores" />
         <meta property="article:published_time" content={publishedDate} />
         <meta property="article:modified_time" content={modifiedDate} />
-        <meta property="article:author" content="UniCV Polo Manaus Flores" />
+        <meta property="article:author" content="Unicive Polo Manaus Flores" />
         {post.tags?.map((tag) => (
           <meta key={tag} property="article:tag" content={tag} />
         ))}

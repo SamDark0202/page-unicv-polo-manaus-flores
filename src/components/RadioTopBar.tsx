@@ -8,7 +8,7 @@ export function RadioTopBar() {
         frameBorder="0"
         scrolling="no"
         allowTransparency={true}
-        title="Rádio UniCV"
+        title="Rádio Unicive"
       />
     </div>
   );

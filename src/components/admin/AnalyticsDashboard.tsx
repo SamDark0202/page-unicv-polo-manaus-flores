@@ -41,7 +41,7 @@ type RangeTabValue = DateRange | "custom";
 type MetricView = "all" | "views" | "whatsapp" | "forms";
 type MetricSeries = Exclude<MetricView, "all">;
 type CustomRange = { start: string; end: string };
-const PUBLIC_SITE_DOMAIN = "https://www.unicvpoloam.com.br";
+const PUBLIC_SITE_DOMAIN = "https://www.unicivepoloam.com.br";
 
 const rangeTabs: Array<{ value: RangeTabValue; label: string }> = [
   { value: "today", label: "Hoje" },

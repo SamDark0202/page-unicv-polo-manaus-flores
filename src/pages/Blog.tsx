@@ -89,10 +89,10 @@ const Blog = () => {
   return (
     <>
       <Helmet>
-        <title>Blog UniCV Polo Flores - Educação e Desenvolvimento</title>
+        <title>Blog Unicive Polo Flores - Educação e Desenvolvimento</title>
         <meta name="description" content="Blog com dicas, novidades e informações sobre educação à distância, desenvolvimento profissional e vida acadêmica." />
-        <meta name="keywords" content="educação à distância, ead, unicv, graduação, pós-graduação, estudos, desenvolvimento profissional" />
-        <meta property="og:title" content="Blog UniCV Polo Flores" />
+        <meta name="keywords" content="educação à distância, ead, Unicive, graduação, pós-graduação, estudos, desenvolvimento profissional" />
+        <meta property="og:title" content="Blog Unicive Polo Flores" />
         <meta property="og:description" content="Conteúdo educacional e dicas para sua jornada acadêmica" />
         <meta property="og:type" content="blog" />
       </Helmet>
@@ -101,7 +101,7 @@ const Blog = () => {
         <Header />
         <main className="container mx-auto py-8 px-4">
           <section className="mb-12">
-            <h1 className="text-4xl font-bold mb-6 text-center">Blog UniCV</h1>
+            <h1 className="text-4xl font-bold mb-6 text-center">Blog Unicive</h1>
             <p className="text-xl text-gray-600 text-center mb-8">
               Conteúdo exclusivo para sua jornada acadêmica
             </p>

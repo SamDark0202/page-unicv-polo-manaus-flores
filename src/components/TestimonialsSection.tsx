@@ -14,31 +14,31 @@ type TestimonialVideo = {
 const testimonialVideos: TestimonialVideo[] = [
   {
     id: "depoimento-1",
-    studentName: "Aluna UniCV",
+    studentName: "Aluna Unicive",
     highlight: "Transformação profissional com apoio real da instituição.",
     youtubeId: "SqWQJKLTD1k",
   },
   {
     id: "depoimento-1b",
-    studentName: "Aluno UniCV",
+    studentName: "Aluno Unicive",
     highlight: "Mudança de trajetória com formação alinhada ao mercado atual.",
     youtubeId: "wS6CsL-HFG0",
   },
   {
     id: "depoimento-2",
-    studentName: "Aluna UniCV",
+    studentName: "Aluna Unicive",
     highlight: "Evolução na carreira com ensino prático e aplicável.",
     youtubeId: "Rgr85G-JSt4",
   },
   {
     id: "depoimento-3",
-    studentName: "Aluna UniCV",
+    studentName: "Aluna Unicive",
     highlight: "Conquista de novas oportunidades após a formação.",
     youtubeId: "a7-DWQzSBqU",
   },
   {
     id: "depoimento-4",
-    studentName: "Aluna UniCV",
+    studentName: "Aluna Unicive",
     highlight: "Confiança para avançar e alcançar novos objetivos.",
     youtubeId: "9kQyvG8tbvE",
   },
@@ -56,7 +56,7 @@ export default function TestimonialsSection() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <Badge variant="outline" className="mb-4 px-4 py-2 text-sm font-semibold">
-            <Quote className="h-4 w-4 mr-2" /> Histórias Reais UniCV
+            <Quote className="h-4 w-4 mr-2" /> Histórias Reais Unicive
           </Badge>
           <h2 className="text-3xl lg:text-5xl font-bold mb-4">
             Resultados que inspiram novas conquistas

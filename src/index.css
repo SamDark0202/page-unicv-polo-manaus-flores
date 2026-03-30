@@ -2,11 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* UniCV Polo Manaus Design System */
+/* UNICIVE Polo Manaus Design System */
 
 @layer base {
   :root {
-    /* UniCV Brand Colors */
+    /* UNICIVE Brand Colors */
     --background: 0 0% 100%;
     --foreground: 75 43% 15%;
 

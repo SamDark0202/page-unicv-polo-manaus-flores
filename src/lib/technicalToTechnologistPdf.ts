@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import logoUnicv from "@/assets/LOGO UNICV.png";
+import logoUnicv from "@/assets/unicive-logo-principal.png";
 
 export interface CompatibleCoursePdfItem {
   courseName: string;
@@ -20,7 +20,7 @@ type LoadedImage = {
 };
 
 const poloInfo = {
-  name: "UniCV Polo Manaus Flores",
+  name: "Unicive Polo Manaus Flores",
   address: "Av. Prof. Nilton Lins, 1984 - Flores, Manaus - AM",
   cep: "CEP: 69058-300",
   phone: "(92) 2020-1260",
@@ -49,7 +49,7 @@ function loadImageDataUrl(src: string) {
         height: image.height,
       });
     };
-    image.onerror = () => reject(new Error("Falha ao carregar logo da UniCV."));
+    image.onerror = () => reject(new Error("Falha ao carregar logo da Unicive."));
     image.src = src;
   });
 }

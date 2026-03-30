@@ -6,10 +6,10 @@ const TermosDeServico = () => {
   return (
     <>
       <Helmet>
-        <title>Termos de Servico - UniCV Polo Manaus Flores</title>
+        <title>Termos de Servico - Unicive Polo Manaus Flores</title>
         <meta
           name="description"
-          content="Termos de Servico do site UniCV Polo Manaus Flores."
+          content="Termos de Servico do site Unicive Polo Manaus Flores."
         />
       </Helmet>
 
@@ -27,8 +27,8 @@ const TermosDeServico = () => {
             <section className="space-y-3">
               <h2 className="text-xl font-semibold">1. Identificacao do responsavel</h2>
               <p>
-                Este site e operado por UniCV Polo Manaus Flores (doravante,
-                "UniCV Polo Manaus Flores").
+                Este site e operado por Unicive Polo Manaus Flores (doravante,
+                "Unicive Polo Manaus Flores").
               </p>
               <p>
                 Endereco: Av. Prof. Nilton Lins, 1984, Flores, Manaus - AM,

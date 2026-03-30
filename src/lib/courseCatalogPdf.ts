@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import type { Course, CourseModality } from "@/types/course";
-import logoUnicv from "@/assets/LOGO UNICV.png";
+import logoUnicv from "@/assets/unicive-logo-principal.png";
 
 type GenerateCatalogOptions = {
   generatedAt?: Date;
@@ -21,11 +21,11 @@ const modalityTheme: Record<CourseModality, { primary: [number, number, number];
 };
 
 const poloInfo = {
-  name: "UniCV Polo Manaus Flores",
+  name: "Unicive Polo Manaus Flores",
   address: "Av. Prof. Nilton Lins, 1984 - Flores, Manaus - AM",
   cep: "CEP: 69058-300",
   phone: "(92) 2020-1260",
-  email: "polo.manaus.flores@unicv.edu.br",
+  email: "polo.manaus.flores@unicive.edu.br",
 };
 
 const whatsappNumber = "559220201260";
@@ -87,7 +87,7 @@ function loadImageDataUrl(src: string) {
         height: image.height,
       });
     };
-    image.onerror = () => reject(new Error("Falha ao carregar logo da UniCV."));
+    image.onerror = () => reject(new Error("Falha ao carregar logo da Unicive."));
     image.src = src;
   });
 }
@@ -117,7 +117,7 @@ export async function generateCourseCatalogPdf(courses: Course[], options?: Gene
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
-    doc.text("Catálogo de Cursos UniCV", margin, 16);
+    doc.text("Catálogo de Cursos Unicive", margin, 16);
 
     const logoRatio = logoImage.width / logoImage.height;
     const boxRatio = logoBoxWidth / logoBoxHeight;
@@ -223,11 +223,11 @@ export async function generateCourseCatalogPdf(courses: Course[], options?: Gene
   }
 
   const fileDate = generatedAt.toISOString().slice(0, 10);
-  doc.save(`catalogo-cursos-unicv-${fileDate}.pdf`);
+  doc.save(`catalogo-cursos-unicive-${fileDate}.pdf`);
 }
 
 function buildWhatsAppLink(courseName: string) {
-  const text = `Olá! Tenho interesse no curso ${courseName} da UniCV Polo Manaus Flores. Quero esse curso!`;
+  const text = `Olá! Tenho interesse no curso ${courseName} da Unicive Polo Manaus Flores. Quero esse curso!`;
   return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
 }
 
@@ -255,7 +255,7 @@ export async function generateCourseInformationPdf(course: Course, options?: Gen
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
-    doc.text("UniCV Polo Manaus Flores", margin, 21);
+    doc.text("Unicive Polo Manaus Flores", margin, 21);
 
     const logoBoxWidth = 30;
     const logoBoxHeight = 28;
@@ -379,5 +379,5 @@ export async function generateCourseInformationPdf(course: Course, options?: Gen
 
   const fileDate = generatedAt.toISOString().slice(0, 10);
   const safeName = normalizeText(course.name).replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-  doc.save(`curso-${safeName || "unicv"}-${fileDate}.pdf`);
+  doc.save(`curso-${safeName || "unicive"}-${fileDate}.pdf`);
 }

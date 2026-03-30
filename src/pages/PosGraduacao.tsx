@@ -679,7 +679,7 @@ const PosGraduacao = () => {
               <div className="flex justify-center animate-pulse">
                 <Badge className="px-6 py-2.5 text-sm font-bold bg-gradient-to-r from-[#ce9e0d] via-[#f4d03f] to-[#ce9e0d] text-black border-0 shadow-2xl">
                   <Star className="h-4 w-4 mr-2 fill-current" /> 
-                  EXCLUSIVO UNICV
+                  EXCLUSIVO Unicive
                 </Badge>
               </div>
               

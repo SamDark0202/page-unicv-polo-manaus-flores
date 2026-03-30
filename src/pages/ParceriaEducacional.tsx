@@ -91,7 +91,7 @@ const ParceriaEducacional = () => {
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="flex flex-col justify-center">
           <h2 className="text-3xl font-bold tracking-tight">
-            Formulário Parceria Educacional UniCV
+            Formulário Parceria Educacional Unicive
           </h2>
           <p className="text-muted-foreground">
             Preencha o formulário para ganha uma bolsa exclusiva de 40% de Desconto + Taxa de Matricula com 50% de desconto.
@@ -165,13 +165,13 @@ const ParceriaEducacional = () => {
     
 
       <div className="py-12">
-        <h2 className="text-2xl font-semibold tracking-tight">Sobre a UniCV</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Sobre a Unicive</h2>
         <p className="text-muted-foreground">
-          A UniCV é uma instituição de ensino superior comprometida com a excelência acadêmica e a formação de profissionais capacitados para o mercado de trabalho.
+          A Unicive é uma instituição de ensino superior comprometida com a excelência acadêmica e a formação de profissionais capacitados para o mercado de trabalho.
         </p>
         
         <p className="text-muted-foreground text-center pt-6">
-          Todos os direitos reservados. UniCV 2025
+          Todos os direitos reservados. Unicive 2026
         </p>
 
 

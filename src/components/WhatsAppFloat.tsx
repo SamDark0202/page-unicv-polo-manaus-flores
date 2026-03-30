@@ -8,7 +8,7 @@ const WhatsAppFloat = () => {
     if (typeof window.fbq === "function") {
       window.fbq('track', 'Contact');
     }
-    const message = "Olá! Vim pelo site da UniCV e gostaria de saber mais sobre os cursos e como garatir uma bolsa de desconto!";
+    const message = "Olá! Vim pelo site da Unicive e gostaria de saber mais sobre os cursos e como garatir uma bolsa de desconto!";
     const whatsappUrl = `https://wa.me/559220201260?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
