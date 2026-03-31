@@ -1,3 +1,4 @@
+import { supabaseImgUrl } from "@/lib/imageUrl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -417,7 +418,7 @@ export default function PostPlusCarouselManager() {
                     <div className="space-y-2">
                       <p className="text-xs text-muted-foreground font-medium">Desktop</p>
                       <div className="rounded-xl overflow-hidden border bg-background">
-                        <img src={form.imageUrl} alt={form.metaDescription || "Preview desktop"} className="w-full aspect-[16/7] object-cover" />
+                        <img src={supabaseImgUrl(form.imageUrl, 900)} alt={form.metaDescription || "Preview desktop"} className="w-full aspect-[16/7] object-cover" />
                       </div>
                     </div>
                   )}
@@ -425,7 +426,7 @@ export default function PostPlusCarouselManager() {
                     <div className="space-y-2">
                       <p className="text-xs text-muted-foreground font-medium">Mobile (1080x1080)</p>
                       <div className="rounded-xl overflow-hidden border bg-background">
-                        <img src={form.mobileImageUrl} alt={form.metaDescription || "Preview mobile"} className="w-full aspect-square object-cover" />
+                        <img src={supabaseImgUrl(form.mobileImageUrl, 900)} alt={form.metaDescription || "Preview mobile"} className="w-full aspect-square object-cover" />
                       </div>
                     </div>
                   )}
@@ -482,10 +483,10 @@ export default function PostPlusCarouselManager() {
                     <p className="text-sm text-muted-foreground line-clamp-2">{item.metaDescription}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="rounded-xl overflow-hidden border bg-background">
-                        <img src={item.imageUrl} alt={item.metaDescription} className="w-full aspect-[16/7] object-cover" />
+                        <img src={supabaseImgUrl(item.imageUrl, 900)} alt={item.metaDescription} className="w-full aspect-[16/7] object-cover" />
                       </div>
                       <div className="rounded-xl overflow-hidden border bg-background">
-                        <img src={item.mobileImageUrl} alt={item.metaDescription} className="w-full aspect-square object-cover" />
+                        <img src={supabaseImgUrl(item.mobileImageUrl, 900)} alt={item.metaDescription} className="w-full aspect-square object-cover" />
                       </div>
                     </div>
                   </div>

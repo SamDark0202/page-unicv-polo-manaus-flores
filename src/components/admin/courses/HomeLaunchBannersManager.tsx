@@ -1,3 +1,4 @@
+import { supabaseImgUrl } from "@/lib/imageUrl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -330,7 +331,7 @@ export default function HomeLaunchBannersManager() {
               <div className="space-y-2">
                 <Label>Preview</Label>
                 <div className="max-w-[260px] rounded-xl overflow-hidden border">
-                  <img src={form.imageUrl} alt={form.bannerName || "Preview banner"} className="w-full aspect-[3/4] object-cover" />
+                  <img src={supabaseImgUrl(form.imageUrl, 900)} alt={form.bannerName || "Preview banner"} className="w-full aspect-[3/4] object-cover" />
                 </div>
               </div>
             )}
@@ -358,7 +359,7 @@ export default function HomeLaunchBannersManager() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
               {activeItems.map((item) => (
                 <div key={item.id} className="rounded-xl border bg-background overflow-hidden">
-                  <img src={item.imageUrl} alt={item.bannerName} className="w-full aspect-[3/4] object-cover" />
+                  <img src={supabaseImgUrl(item.imageUrl, 900)} alt={item.bannerName} className="w-full aspect-[3/4] object-cover" />
                   <div className="p-3 space-y-1">
                     <p className="text-sm font-semibold line-clamp-1">{item.bannerName}</p>
                     <p className="text-xs text-muted-foreground line-clamp-1">{coursesById.get(item.courseId) ?? "Curso não encontrado"}</p>

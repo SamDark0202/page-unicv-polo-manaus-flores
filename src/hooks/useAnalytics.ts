@@ -109,7 +109,9 @@ async function fetchKpis(filter: AnalyticsFilter, dynamicFilters?: DynamicFilter
   const { gte, lte } = getQueryBounds(filter);
 
   // Busca todos os eventos do período de uma vez
-  let query = supabase.from("site_events").select("*");
+  let query = supabase.from("site_events").select(
+    "id, event_type, page_path, referrer, metadata, visitor_id, created_at"
+  );
   if (gte) {
     query = query.gte("created_at", gte);
   }
@@ -374,8 +376,8 @@ export function useAnalytics(filter: AnalyticsFilter, dynamicFilters?: DynamicFi
   return useQuery({
     queryKey,
     queryFn: () => fetchKpis(filter, dynamicFilters),
-    refetchInterval: 60_000, // atualiza a cada 60s
-    staleTime: 30_000,
+    refetchInterval: 5 * 60_000,  // 5 minutos — analytics não precisa de tempo real
+    staleTime: 2 * 60_000,         // 2 minutos de cache antes de considerar stale
     retry: (failureCount, error) => failureCount < DEFAULT_MAX_RETRIES && shouldRetryHttpLikeError(error),
     retryDelay: (attemptIndex) => getRetryDelay(DEFAULT_BASE_DELAY_MS, attemptIndex),
     meta: {

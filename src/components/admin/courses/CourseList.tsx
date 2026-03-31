@@ -50,12 +50,12 @@ export default function CourseList({ onCreate, onEdit }: Props) {
   const [exportStatus, setExportStatus] = useState<ExportStatusFilter>("all");
   const [exportQuery, setExportQuery] = useState("");
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
-  const filters = useMemo(
-    () => ({ modality: modality === "all" ? undefined : modality, activeOnly: false as const }),
-    [modality]
-  );
-  const { data: courses = [], isLoading, error, refetch } = useCoursesQuery(filters);
-  const { data: allCourses = [] } = useCoursesQuery({ activeOnly: false });
+  const { data: allCourses = [], isLoading, error, refetch } = useCoursesQuery({ activeOnly: false });
+
+  const courses = useMemo(() => {
+    if (modality === "all") return allCourses;
+    return allCourses.filter((course) => course.modality === modality);
+  }, [allCourses, modality]);
   const fetchError = error instanceof Error ? error.message : null;
   const { toggleActive, hardDelete } = useCourseMutations();
   const { toast } = useToast();
