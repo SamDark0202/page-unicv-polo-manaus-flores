@@ -25,28 +25,12 @@ const Diferenciais = () => {
       color: "text-warning"
     },
     {
-      icon: MapPin,
-      title: "900+ Polos Espalhados",
-      description:
-        "Presente em todo o Brasil com mais de 900 polos de apoio presencial para seu suporte acadêmico.",
-      highlight: "900+ Polos",
-      color: "text-primary"
-    },
-    {
       icon: Users,
       title: "Professores Mestres e Doutores",
       description:
         "Corpo docente altamente qualificado com mestres e doutores nas principais universidades do país.",
       highlight: "100% Qualificados",
       color: "text-accent"
-    },
-    {
-      icon: Clock,
-      title: "Técnico para Tecnólogo",
-      description:
-        "Programa exclusivo que permite concluir a graduação tecnóloga em até 1 ano para quem já tem curso técnico.",
-      highlight: "Apenas 1 Ano",
-      color: "text-warning"
     },
     {
       icon: BookOpen,
@@ -100,40 +84,42 @@ const Diferenciais = () => {
             </div>
             </div>
 
-          {/* Diferenciais Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-            {diferenciais.map((diferencial, index) => {
-              const IconComponent = diferencial.icon;
-              return (
-                <Card
-                  key={index}
-                  className="group hover:shadow-elevated transition-all duration-300 hover:-translate-y-2 bg-background"
-                >
-                  <CardContent className="p-8">
-                    <div className="flex items-start space-x-4">
-                      <div
-                        className={`p-3 rounded-xl bg-gradient-primary ${diferencial.color}`}
-                      >
-                        <IconComponent className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-xl font-bold text-foreground">
-                            {diferencial.title}
-                          </h3>
-                          <Badge variant="secondary" className="text-xs">
-                            {diferencial.highlight}
-                          </Badge>
+          {/* Diferenciais Grid - 2x2 centralizado */}
+          <div className="flex justify-center mt-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+              {diferenciais.map((diferencial, index) => {
+                const IconComponent = diferencial.icon;
+                return (
+                  <Card
+                    key={index}
+                    className="group hover:shadow-elevated transition-all duration-300 hover:-translate-y-2 bg-background"
+                  >
+                    <CardContent className="p-8">
+                      <div className="flex items-start space-x-4">
+                        <div
+                          className={`p-3 rounded-xl bg-gradient-primary ${diferencial.color}`}
+                        >
+                          <IconComponent className="h-6 w-6 text-white" />
                         </div>
-                        <p className="text-muted-foreground leading-relaxed">
-                          {diferencial.description}
-                        </p>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-xl font-bold text-foreground">
+                              {diferencial.title}
+                            </h3>
+                            <Badge variant="secondary" className="text-xs">
+                              {diferencial.highlight}
+                            </Badge>
+                          </div>
+                          <p className="text-muted-foreground leading-relaxed">
+                            {diferencial.description}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           </div>
 
         </div>

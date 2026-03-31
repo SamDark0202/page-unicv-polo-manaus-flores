@@ -9,18 +9,25 @@ const Hero = () => {
   return (
     <section className="relative bg-gradient-hero text-white overflow-hidden">
       {/* ✅ Video Background */}
-      <div className="absolute inset-0 overflow-hidden opacity-20 pointer-events-none" aria-hidden="true">
-        <iframe
-          src="https://www.youtube.com/embed/Ejylx2UGs3Y?autoplay=1&mute=1&loop=1&playlist=Ejylx2UGs3Y&controls=0&modestbranding=1&rel=0&playsinline=1&disablekb=1"
-          title="YouTube video player"
-          frameBorder="0"
-          allow="autoplay; encrypted-media; picture-in-picture"
-          referrerPolicy="strict-origin-when-cross-origin"
-          tabIndex={-1}
-          className="absolute left-1/2 top-1/2 h-[56.25vw] w-[177.7778vh] min-h-full min-w-full -translate-x-1/2 -translate-y-1/2"
+       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+         <iframe
+         src="https://www.youtube.com/embed/Ejylx2UGs3Y?autoplay=1&mute=1&loop=1&playlist=Ejylx2UGs3Y&controls=0&modestbranding=1&rel=0&playsinline=1&disablekb=1"
+         title="YouTube video player"
+         frameBorder="0"
+         allow="autoplay; encrypted-media; picture-in-picture"
+         referrerPolicy="strict-origin-when-cross-origin"
+         tabIndex={-1}
+         style={{
+           position: 'absolute',
+           top: '50%',
+           left: '50%',
+           transform: 'translate(-50%, -50%)',
+           width: 'calc(max(100vw, 100vh * 16 / 9) + 1000px)',
+           height: 'calc(max(100vh, 100vw * 9 / 16) + 1000px)',
+           opacity: 0.2,
+         }}
         ></iframe>
-      </div>
-      
+        </div>
       {/* Content */}
       <div className="relative container mx-auto px-4 py-16 lg:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -49,49 +56,6 @@ const Hero = () => {
                 Matrícula por <strong>R$ 99,00</strong>
               </p>
             </div>
-
-            {/* Key Benefits */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3">
-                <div className="bg-accent p-2 rounded-lg">
-                  <GraduationCap className="h-6 w-6 text-accent-foreground" />
-                </div>
-                <div>
-                  <div className="font-semibold">900+ Polos</div>
-                  <div className="text-sm text-blue-200">Em todo Brasil</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="bg-accent p-2 rounded-lg">
-                  <Star className="h-6 w-6 text-accent-foreground" />
-                </div>
-                <div>
-                  <div className="font-semibold">Nota Máxima MEC</div>
-                  <div className="text-sm text-blue-200">Qualidade garantida</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="bg-accent p-2 rounded-lg">
-                  <Users className="h-6 w-6 text-accent-foreground" />
-                </div>
-                <div>
-                  <div className="font-semibold">Professores Mestres</div>
-                  <div className="text-sm text-blue-200">e Doutores</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="bg-accent p-2 rounded-lg">
-                  <Award className="h-6 w-6 text-accent-foreground" />
-                </div>
-                <div>
-                  <div className="font-semibold">Técnico → Tecnólogo</div>
-                  <div className="text-sm text-blue-200">Em até 1 ano</div>
-                </div>
-              </div>
-            </div>
-
-           
-
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               <Button variant="hero" size="lg" className="text-lg px-8 py-6" asChild>
