@@ -215,7 +215,7 @@ const Footer = () => {
               <h4 className="font-semibold mb-3">Redes Sociais</h4>
               <div className="flex space-x-3">
                 <a
-                  href="https://www.instagram.com/unicvpoloam/"
+                  href="https://www.instagram.com/unicivepoloam/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-secondary-foreground/10 p-2 rounded-lg hover:bg-primary hover:text-primary-foreground transition-colors"
@@ -223,7 +223,7 @@ const Footer = () => {
                   <Instagram className="h-5 w-5" />
                 </a>
                 <a
-                  href="https://www.facebook.com/unicvpoloam"
+                  href="https://www.facebook.com/unicivepoloam/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-secondary-foreground/10 p-2 rounded-lg hover:bg-primary hover:text-primary-foreground transition-colors"
@@ -231,7 +231,7 @@ const Footer = () => {
                   <Facebook className="h-5 w-5" />
                 </a>
                 <a
-                  href="https://www.linkedin.com/company/unicv-polo-manaus-flores/"
+                  href="https://www.linkedin.com/company/unicive-polo-manaus-flores/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-secondary-foreground/10 p-2 rounded-lg hover:bg-primary hover:text-primary-foreground transition-colors"

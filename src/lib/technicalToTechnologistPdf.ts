@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import logoUnicv from "@/assets/unicive-logo-principal.png";
+import logoUnicv from "@/assets/unicive-logo-branco.png";
 
 export interface CompatibleCoursePdfItem {
   courseName: string;
@@ -217,7 +217,7 @@ export async function generateTechnicalToTechnologistPdf(
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9.3);
-  doc.text("UniCV Polo Manaus Flores", margin + 2.5, cursorY + 5.5);
+  doc.text("Unicive Polo Manaus Flores", margin + 2.5, cursorY + 5.5);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.2);
   doc.text(`${poloInfo.address} • ${poloInfo.cep}`, margin + 2.5, cursorY + 10.2);

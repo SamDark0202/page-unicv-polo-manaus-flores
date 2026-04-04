@@ -62,7 +62,7 @@ async function run() {
       continue;
     }
 
-    const rows = (data || []) as Record<string, unknown>[];
+    const rows = (data || []) as unknown as Record<string, unknown>[];
     const refs: Array<{ key: string; column: string; url: string }> = [];
 
     for (const row of rows) {

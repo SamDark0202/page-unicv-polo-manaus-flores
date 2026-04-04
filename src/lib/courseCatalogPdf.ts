@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import type { Course, CourseModality } from "@/types/course";
-import logoUnicv from "@/assets/unicive-logo-principal.png";
+import logoUnicv from "@/assets/unicive-logo-branco.png";
 
 type GenerateCatalogOptions = {
   generatedAt?: Date;

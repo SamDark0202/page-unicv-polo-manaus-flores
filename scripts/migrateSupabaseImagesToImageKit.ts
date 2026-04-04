@@ -98,7 +98,7 @@ async function collectUrlRefs(): Promise<UrlRef[]> {
       throw new Error(`Failed to query ${cfg.table}: ${error.message}`);
     }
 
-    const rows = (data || []) as Record<string, unknown>[];
+    const rows = (data || []) as unknown as Record<string, unknown>[];
     for (const row of rows) {
       const keyRaw = row[cfg.keyColumn];
       if (typeof keyRaw !== "string" || !keyRaw.trim()) continue;
