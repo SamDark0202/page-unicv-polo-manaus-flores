@@ -14,6 +14,7 @@ export default function ImagePicker({
   onChange,
   maxWidth = 1600,
 }: Props) {
+  const safeSlug = (slug || "").trim();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [filename, setFilename] = useState<string>("");
@@ -21,7 +22,6 @@ export default function ImagePicker({
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    const safeSlug = (slug || "").trim();
     if (value) {
       // tenta extrair nome do caminho
       const parts = value.split("/");
@@ -32,14 +32,19 @@ export default function ImagePicker({
   }, [slug, value]);
 
   function chooseFile() {
+    if (!safeSlug) {
+      setStatus("Informe o titulo/slug do post antes de enviar a capa.");
+      return;
+    }
     fileRef.current?.click();
   }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!slug.trim()) {
-      setStatus("Informe o slug antes de enviar a imagem.");
+    if (!safeSlug) {
+      setStatus("Informe o titulo/slug do post antes de enviar a capa.");
+      if (fileRef.current) fileRef.current.value = "";
       return;
     }
     setStatus("Processando imagem...");
@@ -47,9 +52,9 @@ export default function ImagePicker({
     try {
       setUploading(true);
       const webpBlob = await toWebpResized(file, maxWidth);
-      const webpFile = new File([webpBlob], `${slug}.webp`, { type: "image/webp" });
+      const webpFile = new File([webpBlob], `${safeSlug}.webp`, { type: "image/webp" });
 
-      const url = await uploadCoverImage(webpFile, slug);
+      const url = await uploadCoverImage(webpFile, safeSlug);
       setPreviewUrl(url);
       setFilename(url.split("/").pop() || "imagem.webp");
       onChange(url);
@@ -60,6 +65,7 @@ export default function ImagePicker({
       setStatus(`Falha ao enviar a imagem: ${message}`);
     } finally {
       setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
     }
   }
 
@@ -84,7 +90,8 @@ export default function ImagePicker({
               className="px-3 py-2 rounded-2xl border hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100"
               onClick={chooseFile}
               type="button"
-              disabled={uploading}
+              disabled={uploading || !safeSlug}
+              title={!safeSlug ? "Preencha o titulo/slug do post para habilitar upload" : undefined}
             >
               {uploading ? "Enviando..." : "Selecionar e enviar"}
             </button>
@@ -117,6 +124,11 @@ export default function ImagePicker({
           </div>
 
           {status && <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">{status}</div>}
+          {!safeSlug && (
+            <div className="mt-2 text-xs text-amber-700 dark:text-amber-400">
+              Defina o titulo ou slug do post para habilitar o upload da capa.
+            </div>
+          )}
         </div>
 
         <div className="w-full md:w-1/3">

@@ -9,7 +9,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-const IMAGE_UPLOAD_PROVIDER = (import.meta.env.VITE_IMAGE_UPLOAD_PROVIDER ?? "imagekit").toLowerCase();
+const rawImageUploadProvider = (import.meta.env.VITE_IMAGE_UPLOAD_PROVIDER ?? "imagekit").toLowerCase();
+const IMAGE_UPLOAD_PROVIDER = (() => {
+  if (rawImageUploadProvider === "imagekit" || rawImageUploadProvider === "supabase") {
+    return rawImageUploadProvider;
+  }
+
+  throw new Error(
+    `Invalid VITE_IMAGE_UPLOAD_PROVIDER: ${rawImageUploadProvider}. Use \"imagekit\" or \"supabase\".`
+  );
+})();
 const IMAGEKIT_ROOT_FOLDER = import.meta.env.VITE_IMAGEKIT_ROOT_FOLDER ?? "/site-polouniciveflores";
 
 // Database types

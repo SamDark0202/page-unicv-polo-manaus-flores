@@ -67,6 +67,20 @@ Observações:
 - As transformações de imagem são aplicadas automaticamente pela função `toSupabaseRenderImageUrl` (compatível com ImageKit e Supabase).
 - Para rollback rápido, altere `VITE_IMAGE_UPLOAD_PROVIDER=supabase`.
 
+### Corte final (produção)
+
+Após migrar 100% das URLs antigas para ImageKit e validar regressão:
+
+- Mantenha `VITE_IMAGE_UPLOAD_PROVIDER=imagekit` em todos os ambientes.
+- Mantenha `VITE_IMAGEKIT_TRANSFORMS=true` para otimização de entrega.
+- Preserve o fallback para `supabase` apenas como plano de contingência.
+
+Rollback emergencial:
+
+1. Alterar `VITE_IMAGE_UPLOAD_PROVIDER` para `supabase`.
+2. Fazer novo deploy.
+3. Reverter para `imagekit` após normalização.
+
 ### Estrutura da tabela `courses`
 
 | coluna             | tipo                   | observação                                        |

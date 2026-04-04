@@ -9,6 +9,9 @@
     "preview": "vite preview",
     "migrate:posts": "tsx scripts/migratePostsToSupabase.ts",
     "migrate:courses": "tsx scripts/migrateCoursesToSupabase.ts",
+    "migrate:images:dry": "tsx scripts/migrateSupabaseImagesToImageKit.ts",
+    "migrate:images": "tsx scripts/migrateSupabaseImagesToImageKit.ts --apply",
+    "migrate:images:verify": "tsx scripts/validateImageMigration.ts",
     "sitemap": "tsx scripts/generateSitemap.ts"
   },
   "dependencies": {
