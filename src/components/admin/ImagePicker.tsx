@@ -56,7 +56,8 @@ export default function ImagePicker({
       setStatus("Imagem enviada com sucesso.");
     } catch (err: any) {
       console.error(err);
-      setStatus("Falha ao enviar a imagem. Tente outra ou reduza a resolução.");
+      const message = err instanceof Error ? err.message : "Falha ao enviar a imagem.";
+      setStatus(`Falha ao enviar a imagem: ${message}`);
     } finally {
       setUploading(false);
     }

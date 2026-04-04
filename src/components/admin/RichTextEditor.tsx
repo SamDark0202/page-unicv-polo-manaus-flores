@@ -235,7 +235,8 @@ export default function RichTextEditor({
       insertHtmlAtCursor(`<img src="${url}" alt="" style="max-width:100%;" />`);
     } catch (err) {
       console.error(err);
-      alert("Falha ao enviar imagem.");
+      const message = err instanceof Error ? err.message : "Falha ao enviar imagem.";
+      alert(message);
     } finally {
       if (imageInputRef.current) imageInputRef.current.value = "";
     }
@@ -253,7 +254,8 @@ export default function RichTextEditor({
       insertHtmlAtCursor(`<video controls preload="metadata" style="max-width:100%;" src="${url}"></video>`);
     } catch (err) {
       console.error(err);
-      alert("Falha ao enviar video.");
+      const message = err instanceof Error ? err.message : "Falha ao enviar video.";
+      alert(message);
     } finally {
       if (videoInputRef.current) videoInputRef.current.value = "";
     }

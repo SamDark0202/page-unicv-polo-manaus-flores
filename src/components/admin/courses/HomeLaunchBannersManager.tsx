@@ -131,7 +131,8 @@ export default function HomeLaunchBannersManager() {
       toast({ title: "Imagem enviada", description: "Imagem do lançamento enviada com sucesso." });
     } catch (err) {
       console.error(err);
-      toast({ title: "Erro", description: "Falha ao enviar a imagem do lançamento." });
+      const message = err instanceof Error ? err.message : "Falha ao enviar a imagem do lançamento.";
+      toast({ title: "Erro", description: message });
     } finally {
       setUploadingImage(false);
       if (fileInputRef.current) {

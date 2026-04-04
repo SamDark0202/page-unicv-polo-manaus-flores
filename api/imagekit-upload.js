@@ -1,5 +1,27 @@
 const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
 
+async function parseJsonBody(request) {
+  if (request.body && typeof request.body === "object") {
+    return request.body;
+  }
+
+  if (typeof request.body === "string") {
+    return JSON.parse(request.body);
+  }
+
+  const chunks = [];
+  for await (const chunk of request) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+  }
+
+  if (chunks.length === 0) {
+    return {};
+  }
+
+  const raw = Buffer.concat(chunks).toString("utf8");
+  return raw ? JSON.parse(raw) : {};
+}
+
 function normalizeFolder(folder) {
   const raw = typeof folder === "string" ? folder.trim() : "";
   if (!raw) return "/site-polouniciveflores";
@@ -20,13 +42,15 @@ export default async function handler(request, response) {
   }
 
   try {
+    const body = await parseJsonBody(request);
+
     const {
       file,
       fileName,
       folder,
       useUniqueFileName = true,
       overwriteFile = false,
-    } = request.body || {};
+    } = body || {};
 
     if (!file || typeof file !== "string") {
       return response.status(400).json({ error: "Campo 'file' (base64/data URL) é obrigatório." });

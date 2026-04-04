@@ -157,7 +157,8 @@ export default function PostPlusCarouselManager() {
       toast({ title: "Imagem enviada", description: "Imagem desktop do carrossel atualizada com sucesso." });
     } catch (err) {
       console.error(err);
-      toast({ title: "Erro", description: "Falha ao enviar a imagem desktop do carrossel." });
+      const message = err instanceof Error ? err.message : "Falha ao enviar a imagem desktop do carrossel.";
+      toast({ title: "Erro", description: message });
     } finally {
       setUploadingImage(false);
       if (fileInputRef.current) {
@@ -177,7 +178,8 @@ export default function PostPlusCarouselManager() {
       toast({ title: "Imagem mobile enviada", description: "Imagem mobile (1080x1080) atualizada com sucesso." });
     } catch (err) {
       console.error(err);
-      toast({ title: "Erro", description: "Falha ao enviar a imagem mobile do carrossel." });
+      const message = err instanceof Error ? err.message : "Falha ao enviar a imagem mobile do carrossel.";
+      toast({ title: "Erro", description: message });
     } finally {
       setUploadingMobileImage(false);
       if (mobileFileInputRef.current) {
