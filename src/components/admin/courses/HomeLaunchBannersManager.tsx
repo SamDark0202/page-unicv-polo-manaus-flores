@@ -128,7 +128,7 @@ export default function HomeLaunchBannersManager() {
       setUploadingImage(true);
       const imageUrl = await uploadHomeLaunchBannerImage(file);
       updateField("imageUrl", imageUrl);
-      toast({ title: "Imagem enviada", description: "Imagem do lançamento enviada para o Supabase Storage." });
+      toast({ title: "Imagem enviada", description: "Imagem do lançamento enviada com sucesso." });
     } catch (err) {
       console.error(err);
       toast({ title: "Erro", description: "Falha ao enviar a imagem do lançamento." });

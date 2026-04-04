@@ -42,6 +42,31 @@ VITE_SUPABASE_ANON_KEY=<chave-anon>
 SUPABASE_SERVICE_ROLE_KEY=<chave-service-role> # usado apenas em scripts locais
 ```
 
+## Imagens com ImageKit
+
+O projeto já está preparado para usar o ImageKit como provedor principal de upload e otimização de imagens, mantendo fallback para Supabase quando necessário.
+
+Variáveis no frontend (`.env.local`):
+
+```
+VITE_IMAGE_UPLOAD_PROVIDER=imagekit
+VITE_IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/<seu-endpoint>
+VITE_IMAGEKIT_ROOT_FOLDER=/site-polouniciveflores
+VITE_IMAGEKIT_TRANSFORMS=true
+```
+
+Variáveis no ambiente serverless (Vercel Project Settings):
+
+```
+IMAGEKIT_PRIVATE_KEY=<private-key>
+```
+
+Observações:
+
+- O upload ocorre pela rota `POST /api/imagekit-upload`, protegendo a chave privada no servidor.
+- As transformações de imagem são aplicadas automaticamente pela função `toSupabaseRenderImageUrl` (compatível com ImageKit e Supabase).
+- Para rollback rápido, altere `VITE_IMAGE_UPLOAD_PROVIDER=supabase`.
+
 ### Estrutura da tabela `courses`
 
 | coluna             | tipo                   | observação                                        |

@@ -154,7 +154,7 @@ export default function PostPlusCarouselManager() {
       setUploadingImage(true);
       const imageUrl = await uploadPostPlusCarouselImage(file);
       updateField("imageUrl", imageUrl);
-      toast({ title: "Imagem enviada", description: "Imagem desktop do carrossel atualizada no Supabase Storage." });
+      toast({ title: "Imagem enviada", description: "Imagem desktop do carrossel atualizada com sucesso." });
     } catch (err) {
       console.error(err);
       toast({ title: "Erro", description: "Falha ao enviar a imagem desktop do carrossel." });
@@ -174,7 +174,7 @@ export default function PostPlusCarouselManager() {
       setUploadingMobileImage(true);
       const imageUrl = await uploadPostPlusCarouselImage(file);
       updateField("mobileImageUrl", imageUrl);
-      toast({ title: "Imagem mobile enviada", description: "Imagem mobile (1080x1080) atualizada no Supabase Storage." });
+      toast({ title: "Imagem mobile enviada", description: "Imagem mobile (1080x1080) atualizada com sucesso." });
     } catch (err) {
       console.error(err);
       toast({ title: "Erro", description: "Falha ao enviar a imagem mobile do carrossel." });

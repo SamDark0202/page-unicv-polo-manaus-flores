@@ -9,6 +9,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const IMAGE_UPLOAD_PROVIDER = (import.meta.env.VITE_IMAGE_UPLOAD_PROVIDER ?? "imagekit").toLowerCase();
+const IMAGEKIT_ROOT_FOLDER = import.meta.env.VITE_IMAGEKIT_ROOT_FOLDER ?? "/site-polouniciveflores";
 
 // Database types
 export type DbPost = {
@@ -121,81 +123,130 @@ function getExt(fileName: string) {
   return ext ? ext.toLowerCase() : "webp";
 }
 
-export async function uploadCoverImage(file: File, slug: string): Promise<string> {
-  const safeSlug = toSafeFileName(slug || "post") || "post";
-  // Blog cover is standardized as WebP to minimize transfer size.
-  const fileName = `${safeSlug}.webp`;
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Falha ao ler arquivo para upload"));
+    reader.readAsDataURL(file);
+  });
+}
 
+type UploadAssetInput = {
+  file: File;
+  folder: string;
+  fileName: string;
+  upsert: boolean;
+  cacheControl: string;
+};
+
+async function uploadToImageKit({ file, folder, fileName, upsert }: UploadAssetInput): Promise<string> {
+  const dataUrl = await fileToDataUrl(file);
+  const root = IMAGEKIT_ROOT_FOLDER.replace(/\/+$/, "");
+  const folderPath = folder.replace(/^\/+/, "");
+  const response = await fetch("/api/imagekit-upload", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      file: dataUrl,
+      fileName,
+      folder: `${root}/${folderPath}`,
+      useUniqueFileName: !upsert,
+      overwriteFile: upsert,
+    }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload?.url) {
+    throw new Error(payload?.error || "Falha ao enviar imagem para o ImageKit.");
+  }
+
+  return payload.url as string;
+}
+
+async function uploadToSupabase({ file, fileName, upsert, cacheControl }: UploadAssetInput): Promise<string> {
   const { error } = await supabase.storage
     .from("blog-images")
     .upload(fileName, file, {
-      upsert: true,
-      // Cover image may be replaced with same slug, so keep a shorter cache TTL.
-      cacheControl: "3600",
+      upsert,
+      cacheControl,
     });
 
   if (error) throw error;
 
   const { data } = supabase.storage.from("blog-images").getPublicUrl(fileName);
   return data.publicUrl;
+}
+
+async function uploadImageAsset(input: UploadAssetInput): Promise<string> {
+  if (IMAGE_UPLOAD_PROVIDER === "imagekit") {
+    return uploadToImageKit(input);
+  }
+
+  return uploadToSupabase(input);
+}
+
+export async function uploadCoverImage(file: File, slug: string): Promise<string> {
+  const safeSlug = toSafeFileName(slug || "post") || "post";
+  // Blog cover is standardized as WebP to minimize transfer size.
+  const fileName = `${safeSlug}.webp`;
+
+  return uploadImageAsset({
+    file,
+    folder: "blog-covers",
+    fileName,
+    upsert: true,
+    // Cover image may be replaced with same slug, so keep a shorter cache TTL.
+    cacheControl: "3600",
+  });
 }
 
 export async function uploadInlineMedia(file: File, folder: "content-images" | "content-videos") {
   const ext = getExt(file.name);
   const stamp = Date.now();
   const rand = Math.random().toString(36).slice(2, 8);
-  const fileName = `${folder}/${stamp}-${rand}.${ext}`;
+  const fileName = `${stamp}-${rand}.${ext}`;
 
-  const { error } = await supabase.storage
-    .from("blog-images")
-    .upload(fileName, file, {
-      upsert: false,
-      // Timestamped path is immutable; long browser cache avoids repeated transfers.
-      cacheControl: "31536000",
-    });
-
-  if (error) throw error;
-
-  const { data } = supabase.storage.from("blog-images").getPublicUrl(fileName);
-  return data.publicUrl;
+  return uploadImageAsset({
+    file,
+    folder,
+    fileName,
+    upsert: false,
+    // Timestamped path is immutable; long browser cache avoids repeated transfers.
+    cacheControl: "31536000",
+  });
 }
 
 export async function uploadPostPlusCarouselImage(file: File): Promise<string> {
   const ext = getExt(file.name);
   const stamp = Date.now();
   const rand = Math.random().toString(36).slice(2, 8);
-  const fileName = `pos-plus-carousel/${stamp}-${rand}.${ext}`;
+  const fileName = `${stamp}-${rand}.${ext}`;
 
-  const { error } = await supabase.storage
-    .from("blog-images")
-    .upload(fileName, file, {
-      upsert: false,
-      // Timestamped path is immutable; long browser cache avoids repeated transfers.
-      cacheControl: "31536000",
-    });
-
-  if (error) throw error;
-
-  const { data } = supabase.storage.from("blog-images").getPublicUrl(fileName);
-  return data.publicUrl;
+  return uploadImageAsset({
+    file,
+    folder: "pos-plus-carousel",
+    fileName,
+    upsert: false,
+    // Timestamped path is immutable; long browser cache avoids repeated transfers.
+    cacheControl: "31536000",
+  });
 }
 
 export async function uploadHomeLaunchBannerImage(file: File): Promise<string> {
   const ext = getExt(file.name);
   const stamp = Date.now();
   const rand = Math.random().toString(36).slice(2, 8);
-  const fileName = `home-launch-banners/${stamp}-${rand}.${ext}`;
+  const fileName = `${stamp}-${rand}.${ext}`;
 
-  const { error } = await supabase.storage
-    .from("blog-images")
-    .upload(fileName, file, {
-      upsert: false,
-      // Timestamped path is immutable; long browser cache avoids repeated transfers.
-      cacheControl: "31536000",
-    });
-
-  if (error) throw error;
-
-  const { data } = supabase.storage.from("blog-images").getPublicUrl(fileName);
-  return data.publicUrl;
+  return uploadImageAsset({
+    file,
+    folder: "home-launch-banners",
+    fileName,
+    upsert: false,
+    // Timestamped path is immutable; long browser cache avoids repeated transfers.
+    cacheControl: "31536000",
+  });
 }
