@@ -15,6 +15,12 @@ export default defineConfig(({ mode }) => ({
         secure: true,
         rewrite: () => "/cursos-tecnicos/publico",
       },
+      "/api/segunda-graduacao": {
+        target: "https://diariodebordo.unicv.edu.br",
+        changeOrigin: true,
+        secure: true,
+        rewrite: () => "/cursos-segunda-graduacao/publico",
+      },
     },
   },
   build: {

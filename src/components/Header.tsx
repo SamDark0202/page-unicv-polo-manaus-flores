@@ -17,53 +17,92 @@ declare global {
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDesktopTecnologoOpen, setIsDesktopTecnologoOpen] = useState(false);
-  const [isMobileTecnologoOpen, setIsMobileTecnologoOpen] = useState(false);
+  const [isDesktopGraduacaoOpen, setIsDesktopGraduacaoOpen] = useState(false);
+  const [isMobileGraduacaoOpen, setIsMobileGraduacaoOpen] = useState(false);
   const location = useLocation();
+  const openTimeoutRef = useRef<number | null>(null);
   const closeTimeoutRef = useRef<number | null>(null);
 
   type NavigationItem = {
     name: string;
-    href: string;
+    href?: string;
     children?: Array<{ name: string; href: string }>;
   };
 
   const navigation = [
     { name: "Início", href: "/" },
-    { name: "Bacharelado", href: "/bacharelado" },
-    { name: "Licenciatura", href: "/licenciatura" },
     {
-      name: "Tecnólogo",
-      href: "/tecnologo",
-      children: [{ name: "Técnico Para Tecnólogo", href: "/tecnico-para-tecnologo" }],
+      name: "Graduação EAD/SEMI",
+      children: [
+        { name: "Bacharelado", href: "/bacharelado" },
+        { name: "Licenciatura", href: "/licenciatura" },
+        { name: "Tecnólogo", href: "/tecnologo" },
+      ],
     },
+    { name: "Técnico para Tecnólogo", href: "/tecnico-para-tecnologo" },
+    { name: "2ª Graduação", href: "/segunda-graduacao" },
     { name: "Pós-Graduação", href: "/pos-graduacao" },
-    { name: "Blog", href: "/Blog" },
+    { name: "Blog", href: "/blog" },
   ] satisfies NavigationItem[];
 
-  const isCurrentPage = (href: string) => location.pathname === href;
+  const isCurrentPage = (href: string) => location.pathname.toLowerCase() === href.toLowerCase();
 
   const isActiveItem = (item: NavigationItem) =>
-    isCurrentPage(item.href) || (item.children?.some((child) => isCurrentPage(child.href)) ?? false);
+    (item.href ? isCurrentPage(item.href) : false) ||
+    (item.children?.some((child) => isCurrentPage(child.href)) ?? false);
 
-  useEffect(() => {
-    setIsMenuOpen(false);
-    setIsDesktopTecnologoOpen(false);
-    setIsMobileTecnologoOpen(false);
-  }, [location.pathname]);
-
-  const openDesktopTecnologoMenu = () => {
+  const clearMenuTimers = () => {
+    if (openTimeoutRef.current) {
+      window.clearTimeout(openTimeoutRef.current);
+      openTimeoutRef.current = null;
+    }
     if (closeTimeoutRef.current) {
       window.clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
     }
-    setIsDesktopTecnologoOpen(true);
   };
 
-  const closeDesktopTecnologoMenuWithDelay = () => {
+  useEffect(() => {
+    setIsMenuOpen(false);
+    setIsDesktopGraduacaoOpen(false);
+    setIsMobileGraduacaoOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    return () => {
+      clearMenuTimers();
+    };
+  }, []);
+
+  const openDesktopGraduacaoMenuWithDelay = () => {
+    if (closeTimeoutRef.current) {
+      window.clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+
+    if (isDesktopGraduacaoOpen) return;
+
+    if (closeTimeoutRef.current) {
+      window.clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+
+    openTimeoutRef.current = window.setTimeout(() => {
+      setIsDesktopGraduacaoOpen(true);
+      openTimeoutRef.current = null;
+    }, 80);
+  };
+
+  const closeDesktopGraduacaoMenuWithDelay = () => {
+    if (openTimeoutRef.current) {
+      window.clearTimeout(openTimeoutRef.current);
+      openTimeoutRef.current = null;
+    }
+
     closeTimeoutRef.current = window.setTimeout(() => {
-      setIsDesktopTecnologoOpen(false);
-    }, 120);
+      setIsDesktopGraduacaoOpen(false);
+      closeTimeoutRef.current = null;
+    }, 140);
   };
 
   return (
@@ -89,54 +128,43 @@ const Header = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center space-x-8">
+        <nav className="hidden lg:flex items-center space-x-5">
           {navigation.map((item) =>
             item.children ? (
               <div
                 key={item.name}
                 className="relative"
-                onMouseEnter={openDesktopTecnologoMenu}
-                onMouseLeave={closeDesktopTecnologoMenuWithDelay}
+                onMouseEnter={openDesktopGraduacaoMenuWithDelay}
+                onMouseLeave={closeDesktopGraduacaoMenuWithDelay}
               >
                 <button
                   type="button"
-                  onClick={() => setIsDesktopTecnologoOpen((prev) => !prev)}
-                  className={`font-medium transition-colors hover:text-primary inline-flex items-center gap-1 px-1 py-2 rounded-md ${
+                  onClick={() => setIsDesktopGraduacaoOpen((prev) => !prev)}
+                  className={`inline-flex items-center gap-1 px-2 py-2 text-[15px] font-medium transition-all rounded-md border-b-2 ${
                     isActiveItem(item)
-                      ? "text-primary"
-                      : "text-foreground"
+                      ? "text-primary border-primary"
+                      : "text-foreground border-transparent hover:text-primary hover:border-primary/50"
                   }`}
                   aria-haspopup="menu"
-                  aria-expanded={isDesktopTecnologoOpen}
+                  aria-expanded={isDesktopGraduacaoOpen}
                 >
                   {item.name}
-                  <ChevronDown className={`h-4 w-4 transition-transform ${isDesktopTecnologoOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isDesktopGraduacaoOpen ? "rotate-180" : ""}`} />
                 </button>
 
-                {isDesktopTecnologoOpen && (
+                {isDesktopGraduacaoOpen && (
                   <div
-                    className="absolute left-0 top-full mt-2 z-50 min-w-[260px] rounded-lg border bg-background shadow-elevated p-2"
+                    className="absolute left-0 top-full mt-2 z-50 min-w-[260px] rounded-lg border bg-background shadow-elevated p-2 opacity-100 translate-y-0 transition-all duration-200 ease-out"
                     role="menu"
-                    onMouseEnter={openDesktopTecnologoMenu}
-                    onMouseLeave={closeDesktopTecnologoMenuWithDelay}
+                    onMouseEnter={openDesktopGraduacaoMenuWithDelay}
+                    onMouseLeave={closeDesktopGraduacaoMenuWithDelay}
                   >
-                    <Link
-                      to={item.href}
-                      className={`block px-3 py-2 rounded-md transition-colors font-semibold ${
-                        isCurrentPage(item.href)
-                          ? "bg-primary text-primary-foreground"
-                          : "text-foreground hover:bg-muted"
-                      }`}
-                      role="menuitem"
-                    >
-                      Ver {item.name}
-                    </Link>
-
+                    <p className="px-3 pb-1 text-xs uppercase tracking-wide text-muted-foreground">Cursos de Graduação</p>
                     {item.children.map((child) => (
                       <Link
                         key={child.name}
                         to={child.href}
-                        className={`block px-3 py-2 rounded-md transition-colors ${
+                        className={`block px-3 py-2 rounded-md transition-colors text-sm ${
                           isCurrentPage(child.href)
                             ? "bg-primary text-primary-foreground"
                             : "text-foreground hover:bg-muted"
@@ -152,11 +180,11 @@ const Header = () => {
             ) : (
               <Link
                 key={item.name}
-                to={item.href}
-                className={`font-medium transition-colors hover:text-primary px-1 py-2 rounded-md ${
-                  isCurrentPage(item.href)
-                    ? "text-primary"
-                    : "text-foreground"
+                to={item.href!}
+                className={`px-2 py-2 text-[15px] font-medium transition-all rounded-md border-b-2 ${
+                  isCurrentPage(item.href!)
+                    ? "text-primary border-primary"
+                    : "text-foreground border-transparent hover:text-primary hover:border-primary/50"
                 }`}
               >
                 {item.name}
@@ -193,6 +221,7 @@ const Header = () => {
           size="icon"
           className="lg:hidden"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
+          aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
         >
           {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </Button>
@@ -201,61 +230,58 @@ const Header = () => {
       {/* Mobile Navigation */}
       {isMenuOpen && (
         <div className="lg:hidden py-4 border-t border-border">
-          <nav className="flex flex-col space-y-4">
+          <nav className="flex flex-col space-y-2">
             {navigation.map((item) =>
               item.children ? (
-                <div key={item.name} className="space-y-2">
+                <div key={item.name} className="space-y-1 px-2">
                   <button
                     type="button"
-                    className={`w-full text-left font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center justify-between gap-1 ${
+                    className={`w-full text-left text-base font-medium py-3 px-4 rounded-lg transition-colors inline-flex items-center justify-between gap-2 ${
                       isActiveItem(item)
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-primary/10 text-primary"
                         : "text-foreground hover:bg-muted"
                     }`}
-                    onClick={() => setIsMobileTecnologoOpen((prev) => !prev)}
-                    aria-expanded={isMobileTecnologoOpen}
+                    onClick={() => setIsMobileGraduacaoOpen((prev) => !prev)}
+                    aria-expanded={isMobileGraduacaoOpen}
+                    aria-controls="mobile-submenu-graduacao"
                   >
                     {item.name}
-                    <ChevronDown className={`h-4 w-4 transition-transform ${isMobileTecnologoOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isMobileGraduacaoOpen ? "rotate-180" : ""}`} />
                   </button>
 
-                  {isMobileTecnologoOpen && (
-                    <div className="ml-4 flex flex-col space-y-2 border-l border-border pl-3">
-                      <Link
-                        to={item.href}
-                        className={`font-medium py-2 px-3 rounded-lg transition-colors ${
-                          isCurrentPage(item.href)
-                            ? "bg-primary text-primary-foreground"
-                            : "text-foreground hover:bg-muted"
-                        }`}
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Ver {item.name}
-                      </Link>
-
+                  <div
+                    id="mobile-submenu-graduacao"
+                    className={`overflow-hidden transition-all duration-300 ease-out ${
+                      isMobileGraduacaoOpen ? "max-h-64 opacity-100 mt-1" : "max-h-0 opacity-0"
+                    }`}
+                  >
+                    <div className="ml-2 flex flex-col space-y-1 border-l border-border pl-3">
                       {item.children.map((child) => (
                         <Link
                           key={child.name}
                           to={child.href}
-                          className={`font-medium py-2 px-3 rounded-lg transition-colors ${
+                          className={`py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${
                             isCurrentPage(child.href)
                               ? "bg-primary text-primary-foreground"
                               : "text-foreground hover:bg-muted"
                           }`}
-                          onClick={() => setIsMenuOpen(false)}
+                          onClick={() => {
+                            setIsMenuOpen(false);
+                            setIsMobileGraduacaoOpen(false);
+                          }}
                         >
                           {child.name}
                         </Link>
                       ))}
                     </div>
-                  )}
+                  </div>
                 </div>
               ) : (
                 <Link
                   key={item.name}
-                  to={item.href}
-                  className={`font-medium py-2 px-4 rounded-lg transition-colors ${
-                    isCurrentPage(item.href)
+                  to={item.href!}
+                  className={`mx-2 py-3 px-4 rounded-lg text-base font-medium transition-colors ${
+                    isCurrentPage(item.href!)
                       ? "bg-primary text-primary-foreground"
                       : "text-foreground hover:bg-muted"
                   }`}
@@ -266,9 +292,14 @@ const Header = () => {
               )
             )}
             <Button variant="hero" className="mx-4 mt-4" asChild>
-              <Link to="#contato" onClick={() => setIsMenuOpen(false)}>
+              <a
+                href="https://wa.me/559220201260?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20cursos%20da%20Unicive%20e%20as%20condi%C3%A7%C3%B5es%20especiais."
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsMenuOpen(false)}
+              >
                 Quero minha Bolsa!
-              </Link>
+              </a>
             </Button>
           </nav>
         </div>

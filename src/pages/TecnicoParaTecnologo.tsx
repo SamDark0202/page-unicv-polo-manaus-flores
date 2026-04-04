@@ -298,9 +298,9 @@ const TecnicoParaTecnologo = () => {
           <Badge variant="secondary" className="mb-4 bg-warning text-warning-foreground">
             Acelere sua Graduação
           </Badge>
-          <h1 className="text-4xl lg:text-6xl font-bold mb-6">Do Técnico ao Tecnólogo com Mais Agilidade</h1>
+          <h1 className="text-4xl lg:text-6xl font-bold mb-6">Evolua do Técnico ao Tecnólogo <br/> e avance na sua carreira</h1>
           <p className="text-xl lg:text-2xl text-blue-100 max-w-4xl mx-auto">
-            Você já tem base técnica. Agora use esse diferencial para avançar rumo ao diploma de graduação tecnóloga e crescer profissionalmente.
+           Aproveite sua experiência e conquiste seu diploma de graduação <strong>em até 12 meses</strong>, abrindo novas oportunidades profissionais.
           </p>
         </div>
       </section>

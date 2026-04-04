@@ -22,6 +22,7 @@ const Bacharelado = lazy(() => import("./pages/Bacharelado"));
 const Licenciatura = lazy(() => import("./pages/Licenciatura"));
 const Tecnologo = lazy(() => import("./pages/Tecnologo"));
 const TecnicoParaTecnologo = lazy(() => import("./pages/TecnicoParaTecnologo"));
+const SegundaGraduacao = lazy(() => import("./pages/SegundaGraduacao"));
 const PosGraduacao = lazy(() => import("./pages/PosGraduacao"));
 const Blog = lazy(() => import("./pages/Blog"));
 const PostPage = lazy(() => import("./pages/Blog/[slug]"));
@@ -72,6 +73,7 @@ const AppRoutes = () => {
           <Route path="/licenciatura" element={<Licenciatura />} />
           <Route path="/tecnologo" element={<Tecnologo />} />
           <Route path="/tecnico-para-tecnologo" element={<TecnicoParaTecnologo />} />
+          <Route path="/segunda-graduacao" element={<SegundaGraduacao />} />
           <Route path="/pos-graduacao" element={<PosGraduacao />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<PostPage />} />
