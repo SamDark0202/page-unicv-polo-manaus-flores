@@ -17,8 +17,8 @@ export default function LoginGate({ children }: { children: React.ReactNode }) {
 
     try {
       await signIn(email, password);
-    } catch (err: any) {
-      setError(err.message || "Credenciais inválidas");
+    } catch {
+      setError("E-mail ou senha inválidos");
     } finally {
       setSubmitting(false);
     }

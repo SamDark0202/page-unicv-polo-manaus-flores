@@ -7,6 +7,7 @@ import ImagePicker from "@/components/admin/ImagePicker";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import { validateDraft, fixLinksColor, type Issue } from "@/utils/seoAudit";
 import { uploadInlineMedia } from "@/lib/supabaseClient";
+import DOMPurify from 'dompurify';
 
 type Props = {
   index: number | null;          // índice do post para editar; null = novo
@@ -218,7 +219,7 @@ export default function PostEditor({ index, onBack }: Props) {
             {showPreview && (
               <div className="mt-4 border rounded-2xl p-4 dark:border-gray-600 dark:bg-gray-800">
                 <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">Preview (renderizado):</div>
-                <div className="dark:text-gray-100" dangerouslySetInnerHTML={{ __html: draft.content }} />
+                <div className="dark:text-gray-100" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(draft.content) }} />
               </div>
             )}
           </div>

@@ -44,7 +44,7 @@ const Footer = () => {
     const message = "Olá! Gostaria de saber mais sobre os cursos da Unicive e as condições especiais.";
     const phone = "559220201260";
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    window.open(url, "_blank");
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (

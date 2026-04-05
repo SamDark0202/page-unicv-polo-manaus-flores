@@ -91,7 +91,7 @@ const LeadForm = ({
 
     // Envia os dados para o webhook
     try {
-      await fetch("https://hook.us2.make.com/myxuyjhu632m7hzt5lpqhoik7v4es1sp", {
+      await fetch("/api/lead-webhook", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -130,7 +130,7 @@ const LeadForm = ({
     const message = `Olá! Vi o site da Unicive Polo Manaus Flores e gostaria de saber mais sobre como gartir uma bolsa de desconto. Meu nome é ${formData.name || "[Nome]"}.`;
     const phone = "559220201260"; // WhatsApp number
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    window.open(url, "_blank");
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   if (variant === "compact") {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import type { Post } from '@/types/post';
+import DOMPurify from 'dompurify';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { fetchPostBySlug } from '@/lib/supabaseClient';
@@ -164,7 +165,7 @@ const PostPage = () => {
         {/* Conteúdo */}
         <div
           className="text-gray-800 dark:text-gray-100 leading-relaxed text-left mb-8"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
         />
 
         {/* Tags no final */}
