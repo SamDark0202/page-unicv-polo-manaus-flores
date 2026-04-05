@@ -1,5 +1,43 @@
 const REMOTE_URL = "https://diariodebordo.unicv.edu.br/cursos-tecnicos/publico";
 
+const safeStr = (v) => {
+  if (typeof v === "string") return v.slice(0, 5000);
+  if (typeof v === "number") return v;
+  return v;
+};
+
+const sanitizeCourse = (c) => ({
+  id: c?.id ?? null,
+  name: safeStr(c?.name ?? c?.nome ?? ""),
+  description: safeStr(c?.description ?? c?.descricao ?? ""),
+});
+
+const sanitizeOfferGroup = (og) => {
+  const courseRaw = og?.course;
+  return {
+    course: courseRaw ? sanitizeCourse(courseRaw) : null,
+    duration: safeStr(og?.duration ?? null),
+    total_hours: safeStr(og?.total_hours ?? null),
+    total_disciplines: safeStr(og?.total_disciplines ?? null),
+    installments: safeStr(og?.installments ?? null),
+    value: safeStr(og?.value ?? null),
+    matrice_file: og?.matrice_file
+      ? { url: safeStr(og.matrice_file.url ?? null) }
+      : null,
+  };
+};
+
+const sanitizeItem = (item) => {
+  return {
+    id: item.id ?? null,
+    name: safeStr(item.name ?? item.nome ?? ""),
+    description: item.description ?? item.descricao ?? "",
+    course_offer_groups: Array.isArray(item.course_offer_groups)
+      ? item.course_offer_groups.map(sanitizeOfferGroup)
+      : [],
+  };
+};
+
 export default async function handler(request, response) {
   if (request.method !== "GET") {
     response.setHeader("Allow", "GET");
@@ -19,13 +57,25 @@ export default async function handler(request, response) {
       signal: controller.signal,
     });
 
-    const contentType = upstream.headers.get("content-type") || "application/json; charset=utf-8";
     const body = await upstream.text();
 
-    response.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
-    response.setHeader("Content-Type", contentType);
+    if (upstream.status === 200) {
+      try {
+        const parsed = JSON.parse(body);
+        if (!Array.isArray(parsed)) {
+          return response.status(502).json({ error: "Resposta inesperada do servidor de cursos." });
+        }
+        const safe = parsed.map(sanitizeItem);
+        response.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
+        response.setHeader("Content-Type", "application/json; charset=utf-8");
+        return response.status(200).json(safe);
+      } catch {
+        return response.status(502).json({ error: "Resposta inválida do servidor de cursos." });
+      }
+    }
 
-    return response.status(upstream.status).send(body);
+    response.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
+    return response.status(upstream.status).json({ error: "Servidor de cursos indisponível." });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Falha ao consultar API de cursos";
     return response.status(502).json({ error: message });

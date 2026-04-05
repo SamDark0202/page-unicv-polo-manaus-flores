@@ -1,5 +1,39 @@
 const REMOTE_URL = "https://diariodebordo.unicv.edu.br/cursos-segunda-graduacao/publico";
 
+const safeStr = (v) => {
+  if (typeof v === "string") return v.slice(0, 5000);
+  if (typeof v === "number") return v;
+  return v;
+};
+
+const sanitizeCourses = (item) => {
+  const safeCourse = (course) => ({
+    id: course?.id ?? null,
+    name: safeStr(course?.name ?? course?.nome ?? ""),
+  });
+
+  const safeOfferGroup = (og) => ({
+    course: og.course ? safeCourse(og.course) : null,
+    duration: safeStr(og.duration ?? null),
+    total_hours: safeStr(og.total_hours ?? null),
+    total_disciplines: safeStr(og.total_disciplines ?? null),
+    installments: safeStr(og.installments ?? null),
+    value: safeStr(og.value ?? null),
+    matrice_file: og.matrice_file
+      ? { url: safeStr(og.matrice_file.url ?? null) }
+      : null,
+  });
+
+  return {
+    id: item.id ?? null,
+    name: safeStr(item.name ?? item.nome ?? ""),
+    description: safeStr(item.description ?? item.descricao ?? ""),
+    course_offer_groups: Array.isArray(item.course_offer_groups)
+      ? item.course_offer_groups.map(safeOfferGroup)
+      : [],
+  };
+};
+
 export default async function handler(request, response) {
   if (request.method !== "GET") {
     response.setHeader("Allow", "GET");
@@ -27,14 +61,7 @@ export default async function handler(request, response) {
         if (!Array.isArray(parsed)) {
           return response.status(502).json({ error: "Resposta inesperada do servidor de cursos." });
         }
-        const safe = parsed.map((item) => {
-          const safeStr = (v) => (typeof v === "string" ? v.slice(0, 5000) : v);
-          return {
-            id: item.id ?? null,
-            name: safeStr(item.name ?? item.nome ?? ""),
-            description: safeStr(item.description ?? item.descricao ?? ""),
-          };
-        });
+        const safe = parsed.map(sanitizeCourses);
         response.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
         response.setHeader("Content-Type", "application/json; charset=utf-8");
         return response.status(200).json(safe);

@@ -18,7 +18,7 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
         { "key": "Permissions-Policy", "value": "geolocation=(), camera=(), microphone=()" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' pagead2.googlesyndication.com news.google.com connect.facebook.net www.googletagmanager.com fonts.googleapis.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' fonts.gstatic.com data:; frame-src www.youtube.com; connect-src 'self' https://*.supabase.co https://*.imagekit.io;" }
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' pagead2.googlesyndication.com news.google.com connect.facebook.net www.googletagmanager.com fonts.googleapis.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' fonts.gstatic.com data:; frame-src https: https://www.youtube.com https://www.youtube-nocookie.com https://app.brascast.com https://player.vimeo.com; media-src https: https://app.brascast.com blob:; connect-src 'self' https://*.supabase.co https://*.imagekit.io https://diariodebordo.unicv.edu.br https://*.imagekit.io;" }
       ]
     }
   ],
