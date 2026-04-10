@@ -1,14 +1,62 @@
-import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
+import { useAdminAuth } from "@/contexts/AuthContext";
+import { verifyAdminSession } from "@/lib/adminSessionApi";
 import { Lock, Mail, Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function LoginGate({ children }: { children: React.ReactNode }) {
-  const { user, loading, signIn } = useAuth();
+  const { user, loading, signIn, signOut } = useAdminAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function validateAccess() {
+      if (loading) return;
+
+      if (!user) {
+        if (!active) return;
+        setIsAuthorized(false);
+        setCheckingAccess(false);
+        return;
+      }
+
+      if (active) {
+        setCheckingAccess(true);
+      }
+
+      try {
+        await verifyAdminSession();
+        if (!active) return;
+        setIsAuthorized(true);
+        setError("");
+      } catch (accessError) {
+        if (!active) return;
+        await signOut().catch(() => undefined);
+        setIsAuthorized(false);
+        setError(
+          accessError instanceof Error
+            ? accessError.message
+            : "Esta conta não possui acesso ao painel administrativo."
+        );
+      } finally {
+        if (active) {
+          setCheckingAccess(false);
+        }
+      }
+    }
+
+    validateAccess();
+
+    return () => {
+      active = false;
+    };
+  }, [loading, user]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -17,14 +65,22 @@ export default function LoginGate({ children }: { children: React.ReactNode }) {
 
     try {
       await signIn(email, password);
-    } catch {
-      setError("E-mail ou senha inválidos");
+      await verifyAdminSession();
+      setIsAuthorized(true);
+    } catch (loginError) {
+      await signOut().catch(() => undefined);
+      setIsAuthorized(false);
+      setError(
+        loginError instanceof Error
+          ? loginError.message
+          : "E-mail ou senha inválidos"
+      );
     } finally {
       setSubmitting(false);
     }
   }
 
-  if (loading) {
+  if (loading || checkingAccess) {
     return (
       <div className="min-h-screen grid place-items-center bg-gradient-to-br from-[#0d3b30] to-[#11493C]">
         <Loader2 className="h-8 w-8 animate-spin text-white" />
@@ -32,7 +88,7 @@ export default function LoginGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (user) {
+  if (user && isAuthorized) {
     return <>{children}</>;
   }
 

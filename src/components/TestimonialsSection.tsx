@@ -11,6 +11,10 @@ type TestimonialVideo = {
   youtubeId: string;
 };
 
+interface TestimonialsSectionProps {
+  ctaHref?: string;
+}
+
 const testimonialVideos: TestimonialVideo[] = [
   {
     id: "depoimento-1",
@@ -44,7 +48,7 @@ const testimonialVideos: TestimonialVideo[] = [
   },
 ];
 
-export default function TestimonialsSection() {
+export default function TestimonialsSection({ ctaHref = "#contato" }: TestimonialsSectionProps) {
   const [activatedVideos, setActivatedVideos] = useState<Record<string, boolean>>({});
 
   function activateVideo(videoId: string) {
@@ -114,7 +118,7 @@ export default function TestimonialsSection() {
 
         <div className="text-center mt-10">
           <Button size="lg" asChild>
-            <a href="#contato">Quero viver minha próxima conquista</a>
+            <a href={ctaHref}>Quero viver minha próxima conquista</a>
           </Button>
         </div>
       </div>

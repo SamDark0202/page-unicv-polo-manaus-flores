@@ -17,8 +17,8 @@ declare global {
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDesktopGraduacaoOpen, setIsDesktopGraduacaoOpen] = useState(false);
-  const [isMobileGraduacaoOpen, setIsMobileGraduacaoOpen] = useState(false);
+  const [openDesktopMenu, setOpenDesktopMenu] = useState<string | null>(null);
+  const [openMobileMenu, setOpenMobileMenu] = useState<string | null>(null);
   const location = useLocation();
   const openTimeoutRef = useRef<number | null>(null);
   const closeTimeoutRef = useRef<number | null>(null);
@@ -42,10 +42,19 @@ const Header = () => {
     { name: "Técnico para Tecnólogo", href: "/tecnico-para-tecnologo" },
     { name: "2ª Graduação", href: "/segunda-graduacao" },
     { name: "Pós-Graduação", href: "/pos-graduacao" },
+    {
+      name: "Parcerias",
+      children: [
+        { name: "Parcerias Institucionais", href: "/parcerias" },
+        { name: "Programa Indique e Ganhe", href: "/indique-e-ganhe" },
+        { name: "Painel do Parceiro", href: "/parcerias/painel" },
+      ],
+    },
     { name: "Blog", href: "/blog" },
   ] satisfies NavigationItem[];
 
   const isCurrentPage = (href: string) => location.pathname.toLowerCase() === href.toLowerCase();
+  const getMenuId = (menuName: string) => `mobile-submenu-${menuName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
   const isActiveItem = (item: NavigationItem) =>
     (item.href ? isCurrentPage(item.href) : false) ||
@@ -64,8 +73,8 @@ const Header = () => {
 
   useEffect(() => {
     setIsMenuOpen(false);
-    setIsDesktopGraduacaoOpen(false);
-    setIsMobileGraduacaoOpen(false);
+    setOpenDesktopMenu(null);
+    setOpenMobileMenu(null);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -74,33 +83,28 @@ const Header = () => {
     };
   }, []);
 
-  const openDesktopGraduacaoMenuWithDelay = () => {
+  const openDesktopMenuWithDelay = (menuName: string) => {
     if (closeTimeoutRef.current) {
       window.clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
     }
 
-    if (isDesktopGraduacaoOpen) return;
-
-    if (closeTimeoutRef.current) {
-      window.clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = null;
-    }
+    if (openDesktopMenu === menuName) return;
 
     openTimeoutRef.current = window.setTimeout(() => {
-      setIsDesktopGraduacaoOpen(true);
+      setOpenDesktopMenu(menuName);
       openTimeoutRef.current = null;
     }, 80);
   };
 
-  const closeDesktopGraduacaoMenuWithDelay = () => {
+  const closeDesktopMenuWithDelay = () => {
     if (openTimeoutRef.current) {
       window.clearTimeout(openTimeoutRef.current);
       openTimeoutRef.current = null;
     }
 
     closeTimeoutRef.current = window.setTimeout(() => {
-      setIsDesktopGraduacaoOpen(false);
+      setOpenDesktopMenu(null);
       closeTimeoutRef.current = null;
     }, 140);
   };
@@ -134,32 +138,32 @@ const Header = () => {
               <div
                 key={item.name}
                 className="relative"
-                onMouseEnter={openDesktopGraduacaoMenuWithDelay}
-                onMouseLeave={closeDesktopGraduacaoMenuWithDelay}
+                onMouseEnter={() => openDesktopMenuWithDelay(item.name)}
+                onMouseLeave={closeDesktopMenuWithDelay}
               >
                 <button
                   type="button"
-                  onClick={() => setIsDesktopGraduacaoOpen((prev) => !prev)}
+                  onClick={() => setOpenDesktopMenu((prev) => (prev === item.name ? null : item.name))}
                   className={`inline-flex items-center gap-1 px-2 py-2 text-[15px] font-medium transition-all rounded-md border-b-2 ${
                     isActiveItem(item)
                       ? "text-primary border-primary"
                       : "text-foreground border-transparent hover:text-primary hover:border-primary/50"
                   }`}
                   aria-haspopup="menu"
-                  aria-expanded={isDesktopGraduacaoOpen}
+                  aria-expanded={openDesktopMenu === item.name}
                 >
                   {item.name}
-                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isDesktopGraduacaoOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${openDesktopMenu === item.name ? "rotate-180" : ""}`} />
                 </button>
 
-                {isDesktopGraduacaoOpen && (
+                {openDesktopMenu === item.name && (
                   <div
                     className="absolute left-0 top-full mt-2 z-50 min-w-[260px] rounded-lg border bg-background shadow-elevated p-2 opacity-100 translate-y-0 transition-all duration-200 ease-out"
                     role="menu"
-                    onMouseEnter={openDesktopGraduacaoMenuWithDelay}
-                    onMouseLeave={closeDesktopGraduacaoMenuWithDelay}
+                    onMouseEnter={() => openDesktopMenuWithDelay(item.name)}
+                    onMouseLeave={closeDesktopMenuWithDelay}
                   >
-                    <p className="px-3 pb-1 text-xs uppercase tracking-wide text-muted-foreground">Cursos de Graduação</p>
+                    <p className="px-3 pb-1 text-xs uppercase tracking-wide text-muted-foreground">{item.name}</p>
                     {item.children.map((child) => (
                       <Link
                         key={child.name}
@@ -241,18 +245,18 @@ const Header = () => {
                         ? "bg-primary/10 text-primary"
                         : "text-foreground hover:bg-muted"
                     }`}
-                    onClick={() => setIsMobileGraduacaoOpen((prev) => !prev)}
-                    aria-expanded={isMobileGraduacaoOpen}
-                    aria-controls="mobile-submenu-graduacao"
+                    onClick={() => setOpenMobileMenu((prev) => (prev === item.name ? null : item.name))}
+                    aria-expanded={openMobileMenu === item.name}
+                    aria-controls={getMenuId(item.name)}
                   >
                     {item.name}
-                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isMobileGraduacaoOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${openMobileMenu === item.name ? "rotate-180" : ""}`} />
                   </button>
 
                   <div
-                    id="mobile-submenu-graduacao"
+                    id={getMenuId(item.name)}
                     className={`overflow-hidden transition-all duration-300 ease-out ${
-                      isMobileGraduacaoOpen ? "max-h-64 opacity-100 mt-1" : "max-h-0 opacity-0"
+                      openMobileMenu === item.name ? "max-h-64 opacity-100 mt-1" : "max-h-0 opacity-0"
                     }`}
                   >
                     <div className="ml-2 flex flex-col space-y-1 border-l border-border pl-3">
@@ -267,7 +271,7 @@ const Header = () => {
                           }`}
                           onClick={() => {
                             setIsMenuOpen(false);
-                            setIsMobileGraduacaoOpen(false);
+                            setOpenMobileMenu(null);
                           }}
                         >
                           {child.name}

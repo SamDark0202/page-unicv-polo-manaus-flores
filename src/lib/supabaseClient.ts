@@ -8,7 +8,27 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Missing Supabase environment variables.");
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function createBrowserSupabaseClient(
+  storageKey: string,
+  options?: {
+    detectSessionInUrl?: boolean;
+  },
+) {
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      storageKey,
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: options?.detectSessionInUrl ?? true,
+    },
+  });
+}
+
+export const supabase = createBrowserSupabaseClient("unicive-public-auth");
+export const adminSupabase = createBrowserSupabaseClient("unicive-admin-auth");
+export const partnerSupabase = createBrowserSupabaseClient("unicive-partner-auth", {
+  detectSessionInUrl: false,
+});
 const rawImageUploadProvider = (import.meta.env.VITE_IMAGE_UPLOAD_PROVIDER ?? "imagekit").toLowerCase();
 const IMAGE_UPLOAD_PROVIDER = (() => {
   if (rawImageUploadProvider === "imagekit" || rawImageUploadProvider === "supabase") {

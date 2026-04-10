@@ -6,6 +6,7 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  Navigate,
   useLocation,
 } from "react-router-dom";
 import { lazy, Suspense } from "react";
@@ -24,6 +25,20 @@ const Tecnologo = lazy(() => import("./pages/Tecnologo"));
 const TecnicoParaTecnologo = lazy(() => import("./pages/TecnicoParaTecnologo"));
 const SegundaGraduacao = lazy(() => import("./pages/SegundaGraduacao"));
 const PosGraduacao = lazy(() => import("./pages/PosGraduacao"));
+const Parcerias = lazy(() => import("./pages/Parcerias"));
+const ParceriasEmpresas = lazy(() => import("./pages/ParceriasEmpresas"));
+const ParceriasEscolas = lazy(() => import("./pages/ParceriasEscolas"));
+const ParceriasOrgaosPublicos = lazy(() => import("./pages/ParceriasOrgaosPublicos"));
+const ParceriasIndicacoes = lazy(() => import("./pages/ParceriasIndicacoes"));
+const ParceriasIndicacoesFormulario = lazy(() => import("./pages/ParceriasIndicacoesFormulario"));
+const ParceriasIndicacoesSucesso = lazy(() => import("./pages/ParceriasIndicacoesSucesso"));
+const ParceriasPainel = lazy(() => import("./pages/ParceriasPainel"));
+const ParceriasPainelDashboard = lazy(() => import("./pages/ParceriasPainelDashboard"));
+const ParceriasDefinirSenha = lazy(() => import("./pages/ParceriasDefinirSenha"));
+const ParceiroOrigem = lazy(() => import("./pages/ParceiroOrigem"));
+const ParceriasFormularioEmpresa = lazy(() => import("./pages/ParceriasFormularioEmpresa"));
+const ParceriasFormularioEscola = lazy(() => import("./pages/ParceriasFormularioEscola"));
+const ParceriasSucesso = lazy(() => import("./pages/ParceriasSucesso"));
 const Blog = lazy(() => import("./pages/Blog"));
 const PostPage = lazy(() => import("./pages/Blog/[slug]"));
 const ParceriaEducacional = lazy(() => import("./pages/ParceriaEducacional"));
@@ -57,7 +72,11 @@ const AppRoutes = () => {
   ]);
   const isRedirectLanding = redirectPaths.has(location.pathname);
   const isAdmin = location.pathname.startsWith("/controle");
-  const hideGlobalChrome = isAdmin || isRedirectLanding;
+  const isPartnershipFlow =
+    location.pathname.startsWith("/parcerias") ||
+    location.pathname.startsWith("/indique-e-ganhe");
+    const isPartnerPublicRoute = location.pathname.startsWith('/parceiro/');
+    const hideGlobalChrome = isAdmin || isRedirectLanding || isPartnershipFlow || isPartnerPublicRoute;
   const showWhatsApp = location.pathname !== "/form-parceria-mt" && !hideGlobalChrome;
 
   return (
@@ -75,6 +94,22 @@ const AppRoutes = () => {
           <Route path="/tecnico-para-tecnologo" element={<TecnicoParaTecnologo />} />
           <Route path="/segunda-graduacao" element={<SegundaGraduacao />} />
           <Route path="/pos-graduacao" element={<PosGraduacao />} />
+          <Route path="/parcerias" element={<Parcerias />} />
+          <Route path="/parcerias/empresas" element={<ParceriasEmpresas />} />
+          <Route path="/parcerias/empresas/formulario" element={<ParceriasFormularioEmpresa />} />
+          <Route path="/parcerias/escolas" element={<ParceriasEscolas />} />
+          <Route path="/parcerias/escolas/formulario" element={<ParceriasFormularioEscola />} />
+          <Route path="/parcerias/indicacoes" element={<Navigate to="/indique-e-ganhe" replace />} />
+          <Route path="/parcerias/indicacoes/formulario" element={<Navigate to="/indique-e-ganhe/formulario" replace />} />
+          <Route path="/indique-e-ganhe" element={<ParceriasIndicacoes />} />
+          <Route path="/indique-e-ganhe/formulario" element={<ParceriasIndicacoesFormulario />} />
+          <Route path="/indique-e-ganhe/sucesso" element={<ParceriasIndicacoesSucesso />} />
+          <Route path="/parcerias/painel" element={<ParceriasPainel />} />
+          <Route path="/parcerias/painel/dashboard" element={<ParceriasPainelDashboard />} />
+          <Route path="/parcerias/definir-senha" element={<ParceriasDefinirSenha />} />
+          <Route path="/parceiro/:slug" element={<ParceiroOrigem />} />
+          <Route path="/parcerias/sucesso" element={<ParceriasSucesso />} />
+          <Route path="/parcerias/orgaos-publicos" element={<ParceriasOrgaosPublicos />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<PostPage />} />
           <Route path="/form-parceria-mt" element={<ParceriaEducacional />} />
@@ -127,8 +162,12 @@ const AppContent = () => {
   ]);
   const isRedirectLanding = redirectPaths.has(location.pathname);
   const isAdmin = location.pathname.startsWith("/controle");
+  const isPartnershipFlow =
+    location.pathname.startsWith("/parcerias") ||
+    location.pathname.startsWith("/indique-e-ganhe");
+  const isPartnerPublicRoute = location.pathname.startsWith("/parceiro/");
   return (
-    <div className={isAdmin || isRedirectLanding ? "min-h-screen" : "pt-[90px] min-h-screen"}>
+    <div className={isAdmin || isRedirectLanding || isPartnershipFlow || isPartnerPublicRoute ? "min-h-screen" : "pt-[90px] min-h-screen"}>
       <AppRoutes />
     </div>
   );

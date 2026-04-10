@@ -1,24 +1,27 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ChevronLeft, ChevronRight, FileText, GraduationCap, LogOut, Moon, Sun, BarChart3 } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, GraduationCap, LogOut, Moon, Sun, BarChart3, BookOpen, Coins, UsersRound } from "lucide-react";
 import LoginGate from "../components/admin/LoginGate";
 import PostList from "../components/admin/PostList";
 import PostEditor from "../components/admin/PostEditor";
 import CourseManager from "@/components/admin/courses/CourseManager";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
+import PartnerHub from "@/components/admin/partners/PartnerHub";
+import PartnerManager from "@/components/admin/partners/PartnerManager";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useThemeMode } from "@/hooks/useThemeMode";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAdminAuth } from "@/contexts/AuthContext";
 
 type BlogView = "list" | "editor";
-type AdminSection = "blog" | "courses" | "analytics";
+type AdminSection = "blog" | "courses" | "analytics" | "partners";
 
 type SidebarItem = {
   value: AdminSection;
   label: string;
   description: string;
   icon: LucideIcon;
+  group?: string;
 };
 
 export default function Controle() {
@@ -29,7 +32,7 @@ export default function Controle() {
   const [signingOut, setSigningOut] = useState(false);
   const [courseCreateSignal, setCourseCreateSignal] = useState(0);
   const { theme, toggleTheme } = useThemeMode();
-  const { user, signOut } = useAuth();
+  const { user, signOut } = useAdminAuth();
   const userEmail = user?.email ?? "Conta Unicive";
   const userInitials = userEmail.charAt(0).toUpperCase() || "UC";
 
@@ -59,6 +62,10 @@ export default function Controle() {
       return <AnalyticsDashboard />;
     }
 
+    if (section === "partners") {
+      return <PartnerHub />;
+    }
+
     if (section === "courses") {
       return <CourseManager createSignal={courseCreateSignal} />;
     }
@@ -77,13 +84,17 @@ export default function Controle() {
 
   const sidebarItems: SidebarItem[] = [
     { value: "analytics", label: "Analytics", description: "KPIs e métricas do site", icon: BarChart3 },
+    { value: "partners", label: "Gestão de Parcerias", description: "Cadastro, CRM e comissões", icon: UsersRound, group: "Gestão de Parcerias" },
     { value: "blog", label: "Gestão de Blog", description: "Posts, capas e SEO", icon: FileText },
     { value: "courses", label: "Gestão de Cursos", description: "Modalidades e ofertas", icon: GraduationCap },
   ];
 
   const isBlogSection = section === "blog";
+  const isPartnersGroup = section === "partners";
   const pageTitle = section === "analytics"
     ? "Métricas do site"
+    : section === "partners"
+      ? "Gestão de Parcerias"
     : isBlogSection
       ? blogView === "editor"
         ? "Editar Post"
@@ -91,6 +102,8 @@ export default function Controle() {
       : "Cursos e modalidades";
   const pageSubtitle = section === "analytics"
     ? "Acompanhe visitantes, visualizações, cliques e formulários em tempo real."
+    : section === "partners"
+      ? "Centralize parceiros, pipeline comercial e financeiro em uma única experiência operacional."
     : isBlogSection
       ? "Gerencie conteúdos, capas e SEO do blog institucional."
       : "Organize matrizes curriculares e disponibilidade dos cursos.";
@@ -120,12 +133,19 @@ export default function Controle() {
 
           {/* Navegação */}
           <nav className="flex-1 px-3 space-y-1">
-            {sidebarItems.map((item) => {
+            {sidebarItems.map((item, idx) => {
               const isActive = section === item.value;
               const Icon = item.icon;
+              const prevGroup = idx > 0 ? sidebarItems[idx - 1].group : undefined;
+              const showGroupLabel = !isSidebarCollapsed && item.group && item.group !== prevGroup;
               return (
+                <Fragment key={item.value}>
+                  {showGroupLabel && (
+                    <p className="px-4 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+                      {item.group}
+                    </p>
+                  )}
                 <button
-                  key={item.value}
                   title={item.label}
                   className={cn(
                     "group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm transition-all",
@@ -157,6 +177,7 @@ export default function Controle() {
                     </div>
                   )}
                 </button>
+                </Fragment>
               );
             })}
           </nav>
@@ -225,7 +246,7 @@ export default function Controle() {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                  {section === "analytics" ? "Analytics" : isBlogSection ? "Gestão de Blog" : "Gestão de Cursos"}
+                  {isPartnersGroup ? "Gestão de Parcerias" : section === "analytics" ? "Analytics" : isBlogSection ? "Gestão de Blog" : "Gestão de Cursos"}
                 </p>
                 <h1 className="text-2xl font-bold">{pageTitle}</h1>
                 <p className="text-sm text-muted-foreground">{pageSubtitle}</p>

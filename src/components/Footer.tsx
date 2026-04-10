@@ -22,7 +22,11 @@ declare global {
   }
 }
 
-const Footer = () => {
+interface FooterProps {
+  showPromoBanner?: boolean;
+}
+
+const Footer = ({ showPromoBanner = true }: FooterProps) => {
   const modalidades = [
     { name: "Graduação Bacharelado", link: "/bacharelado" },
     { name: "Graduação Licenciatura", link: "/licenciatura" },
@@ -49,36 +53,42 @@ const Footer = () => {
 
   return (
     <footer className="bg-secondary text-secondary-foreground">
-      {/* CTA Section */}
-      <div className="bg-gradient-primary text-primary-foreground py-12">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-            Não Perca Esta Oportunidade!
-          </h2>
-          <p className="text-xl mb-8 text-primary-foreground/90">
-            Bolsa com até 70% de Desconto + Matrícula por R$ 99,00 por tempo limitado
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="secondary" size="lg" className="text-lg px-8" asChild>
-              <a href="#contato">Garantir Minha Bolsa</a>
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="text-lg px-8 py-6 border-white text-[#F09300] hover:bg-white hover:text-primary"
-              onClick={() => {
-                if (typeof window.fbq !== "undefined") {
-                  window.fbq("track", "Contact");
-                }
-                handleWhatsApp();
-              }}
-            >
-              <MessageCircle className="h-5 w-5 mr-2" />
-              WhatsApp
-            </Button>
+      {showPromoBanner && (
+        <>
+          {/* CTA Section */}
+          <div className="bg-gradient-primary text-primary-foreground py-12">
+            <div className="container mx-auto px-4 text-center">
+              <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+                Não Perca Esta Oportunidade!
+              </h2>
+              <p className="text-xl mb-8 text-primary-foreground/90">
+                Bolsa com até 70% de Desconto + Matrícula por R$ 99,00 por tempo limitado
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button variant="secondary" size="lg" className="text-lg px-8" asChild>
+                  <a href="#contato">Garantir Minha Bolsa</a>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-lg px-8 py-6 border-white text-[#F09300] hover:bg-white hover:text-primary"
+                  onClick={() => {
+                    if (typeof window.fbq !== "undefined") {
+                      window.fbq("track", "Contact");
+                    }
+                    handleWhatsApp();
+                  }}
+                >
+                  <MessageCircle className="h-5 w-5 mr-2" />
+                  WhatsApp
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+
+          <Separator className="bg-secondary-foreground/15" />
+        </>
+      )}
 
       {/* Main Footer */}
       <div className="container mx-auto px-4 py-16">
