@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { getPartnerOrigin } from "./partnerOrigin";
 
 // ---------------------------------------------------------------------------
 // Identificação anônima do visitante/sessão
@@ -64,6 +65,20 @@ async function sendEvent(payload: TrackEventPayload) {
   }
 }
 
+function buildPartnerTrackingContext() {
+  try {
+    const origin = getPartnerOrigin();
+    if (!origin?.slug) return {};
+
+    return {
+      partner_origin_slug: origin.slug,
+      partner_origin_path: origin.path,
+    };
+  } catch {
+    return {};
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Funções públicas de tracking
 // ---------------------------------------------------------------------------
@@ -92,7 +107,7 @@ export function trackCardClick(cardName: string, extra?: Record<string, unknown>
 export function trackFormSubmit(formName: string, extra?: Record<string, unknown>) {
   sendEvent({
     event_type: "form_submit",
-    metadata: { form_name: formName, ...extra },
+    metadata: { form_name: formName, ...buildPartnerTrackingContext(), ...extra },
   });
 }
 
@@ -100,7 +115,7 @@ export function trackFormSubmit(formName: string, extra?: Record<string, unknown
 export function trackWhatsAppClick(source: string, extra?: Record<string, unknown>) {
   sendEvent({
     event_type: "whatsapp_click",
-    metadata: { source, ...extra },
+    metadata: { source, ...buildPartnerTrackingContext(), ...extra },
   });
 }
 

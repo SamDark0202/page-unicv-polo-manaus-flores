@@ -20,7 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import PartnerWhatsAppMiniForm from "@/components/partner/PartnerWhatsAppMiniForm";
 import { useToast } from "@/hooks/use-toast";
-import { savePartnerOrigin } from "@/lib/partnerOrigin";
+import { normalizePartnerOriginSlug, savePartnerOrigin } from "@/lib/partnerOrigin";
 import {
   formatPartnerPublicLeadPhone,
   partnerPublicLeadSchema,
@@ -123,7 +123,7 @@ export default function ParceiroOrigem() {
   const { toast } = useToast();
   const [captured, setCaptured] = useState(false);
 
-  const safeSlug = useMemo(() => (slug || "").trim(), [slug]);
+  const safeSlug = useMemo(() => normalizePartnerOriginSlug(slug), [slug]);
   const testimonialsCtaHref = useMemo(
     () => (safeSlug ? `/parceiro/${safeSlug}?origem=depoimentos#formulario-parceiro` : "#formulario-parceiro"),
     [safeSlug],

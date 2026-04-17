@@ -1,14 +1,19 @@
 import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getPartnerOrigin } from "@/lib/partnerOrigin";
 import { trackWhatsAppClick } from "@/lib/tracker";
 
 const WhatsAppFloat = () => {
   const handleWhatsAppClick = () => {
-    trackWhatsAppClick("float_button");
+    const partnerOrigin = getPartnerOrigin();
+    trackWhatsAppClick("float_button", {
+      partner_slug: partnerOrigin?.slug || null,
+    });
     if (typeof window.fbq === "function") {
       window.fbq('track', 'Contact');
     }
-    const message = "Olá! Vim pelo site da Unicive e gostaria de saber mais sobre os cursos e como garatir uma bolsa de desconto!";
+    const partnerMessage = partnerOrigin?.slug ? ` Vim por um link de parceiro (${partnerOrigin.slug}).` : "";
+    const message = `Olá! Vim pelo site da Unicive e gostaria de saber mais sobre os cursos e como garatir uma bolsa de desconto!${partnerMessage}`;
     const whatsappUrl = `https://wa.me/559220201260?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };

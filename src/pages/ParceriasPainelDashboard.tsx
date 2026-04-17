@@ -12,7 +12,6 @@ import { usePartnerProfile } from "@/hooks/usePartnerProfile";
 import { isPartnerPasswordSetupPending } from "@/lib/partnerPasswordSetup";
 import {
   buildPartnerPublicLink,
-  formatPartnerLink,
   formatPartnerTypeLabel,
   maskPixKey,
   partnerTypeCopy,
@@ -224,7 +223,7 @@ export default function ParceriasPainelDashboard() {
                           <Link2 className="h-4 w-4" />
                           <p className="text-xs font-semibold uppercase tracking-[0.2em]">Link do parceiro</p>
                         </div>
-                        <p className="mt-3 break-all text-sm font-medium text-slate-900">{formatPartnerLink(partnerProfile.link_personalizado)}</p>
+                        <p className="mt-3 break-all text-sm font-medium text-slate-900">{buildPartnerPublicLink(partnerProfile)}</p>
                         <Button variant="outline" size="sm" className="mt-4 w-full rounded-full sm:w-auto" onClick={handleCopyLink}>
                           <Copy className="h-4 w-4" />
                           Copiar link

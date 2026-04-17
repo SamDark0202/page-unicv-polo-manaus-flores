@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getPartnerOrigin } from "@/lib/partnerOrigin";
 import { useToast } from "@/hooks/use-toast";
 import { Phone, Mail, User, MessageCircle } from "lucide-react";
 import { trackFormSubmit, trackWhatsAppClick } from "@/lib/tracker";
@@ -123,11 +124,16 @@ const LeadForm = ({
   };
 
   const handleWhatsApp = () => {
-    trackWhatsAppClick("lead_form");
+    const partnerOrigin = getPartnerOrigin();
+    trackWhatsAppClick("lead_form", {
+      variant,
+      partner_slug: partnerOrigin?.slug || null,
+    });
        if (typeof window.fbq !== 'undefined') {
         window.fbq('track', 'Contact');
        }
-    const message = `Olá! Vi o site da Unicive Polo Manaus Flores e gostaria de saber mais sobre como gartir uma bolsa de desconto. Meu nome é ${formData.name || "[Nome]"}.`;
+    const partnerMessage = partnerOrigin?.slug ? ` Vim por um link de parceiro (${partnerOrigin.slug}).` : "";
+    const message = `Olá! Vi o site da Unicive Polo Manaus Flores e gostaria de saber mais sobre como gartir uma bolsa de desconto. Meu nome é ${formData.name || "[Nome]"}.${partnerMessage}`;
     const phone = "559220201260"; // WhatsApp number
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank", "noopener,noreferrer");

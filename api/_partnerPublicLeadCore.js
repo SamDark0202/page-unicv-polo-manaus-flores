@@ -10,20 +10,70 @@ function sanitizeString(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function safeDecode(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function extractPartnerSlug(value) {
+  const trimmed = sanitizeString(value);
+  if (!trimmed) return "";
+
+  const decoded = safeDecode(trimmed);
+  const withoutHash = decoded.split("#", 1)[0] || "";
+  const withoutQuery = withoutHash.split("?", 1)[0] || "";
+
+  let pathname = withoutQuery;
+  try {
+    if (/^https?:\/\//i.test(withoutQuery)) {
+      pathname = new URL(withoutQuery).pathname;
+    }
+  } catch {
+    pathname = withoutQuery;
+  }
+
+  const normalizedPath = pathname.replace(/^\/+|\/+$/g, "");
+  if (!normalizedPath) return "";
+
+  const parceiroMatch = normalizedPath.match(/(?:^|\/)parceiro\/([^/]+)/i);
+  if (parceiroMatch?.[1]) {
+    return sanitizeString(parceiroMatch[1]);
+  }
+
+  const segments = normalizedPath.split("/").filter(Boolean);
+  return sanitizeString(segments[segments.length - 1] || normalizedPath);
+}
+
 function isValidPhone(value) {
   const phone = digitsOnly(value);
   return phone.length === 10 || phone.length === 11;
 }
 
 export function normalizeSlug(value) {
-  return sanitizeString(value).replace(/^\/+/, "").toLowerCase();
+  const extracted = extractPartnerSlug(value);
+  return extracted
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 export function buildPartnerLookupCandidates(value) {
-  const raw = sanitizeString(value).replace(/^\/+|\/+$/g, "");
+  const raw = extractPartnerSlug(value);
   const normalized = normalizeSlug(raw);
 
-  return Array.from(new Set([raw, normalized].filter(Boolean)));
+  return Array.from(
+    new Set(
+      [raw, raw.toLowerCase(), normalized]
+        .map((item) => sanitizeString(item))
+        .filter(Boolean),
+    ),
+  );
 }
 
 export function validatePartnerPublicLeadBody(body) {

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { resolvePartnerOriginSlug } from "@/lib/partnerOrigin";
 import { formatPartnerPublicLeadPhone } from "@/lib/partnerPublicLeadForm";
 import { trackFormSubmit, trackWhatsAppClick } from "@/lib/tracker";
 import { MessageCircle, X } from "lucide-react";
@@ -42,6 +43,7 @@ type PartnerWhatsAppMiniFormProps = {
 export default function PartnerWhatsAppMiniForm({ partnerSlug }: PartnerWhatsAppMiniFormProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const resolvedPartnerSlug = resolvePartnerOriginSlug(partnerSlug);
 
   const form = useForm<Values>({
     resolver: zodResolver(schema),
@@ -54,6 +56,15 @@ export default function PartnerWhatsAppMiniForm({ partnerSlug }: PartnerWhatsApp
   });
 
   async function onSubmit(values: Values) {
+    if (!resolvedPartnerSlug) {
+      toast({
+        title: "Link inválido",
+        description: "Não foi possível identificar o parceiro desta página.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const response = await fetch("/api/partner-public-lead", {
         method: "POST",
@@ -62,7 +73,7 @@ export default function PartnerWhatsAppMiniForm({ partnerSlug }: PartnerWhatsApp
           Accept: "application/json",
         },
         body: JSON.stringify({
-          slug: partnerSlug,
+          slug: resolvedPartnerSlug,
           nome: values.nome,
           telefone: values.telefone,
           email: values.email || "",
@@ -76,15 +87,15 @@ export default function PartnerWhatsAppMiniForm({ partnerSlug }: PartnerWhatsApp
       }
 
       const cleanPhone = values.telefone.replace(/\D/g, "");
-      const message = `Olá! Meu nome é ${values.nome}. Vim por um link de parceiro (${partnerSlug}) e quero atendimento sobre os cursos.${values.email ? ` Meu e-mail é ${values.email}.` : ""}`;
+      const message = `Olá! Meu nome é ${values.nome}. Vim por um link de parceiro (${resolvedPartnerSlug}) e quero atendimento sobre os cursos.${values.email ? ` Meu e-mail é ${values.email}.` : ""}`;
       const whatsappUrl = `https://wa.me/559220201260?text=${encodeURIComponent(message)}`;
 
       trackFormSubmit("partner_whatsapp_mini_form", {
-        partner_slug: partnerSlug,
+        partner_slug: resolvedPartnerSlug,
         has_email: Boolean(values.email),
       });
       trackWhatsAppClick("partner_mini_form", {
-        partner_slug: partnerSlug,
+        partner_slug: resolvedPartnerSlug,
         phone_digits: cleanPhone.length,
         has_email: Boolean(values.email),
       });
