@@ -18,10 +18,20 @@ function getAdminClient() {
   });
 }
 
+function isUuidLike(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    String(value || "").trim(),
+  );
+}
+
 async function resolvePartner(admin, slug) {
   const candidates = buildPartnerLookupCandidates(slug);
 
   for (const candidate of candidates) {
+    if (!isUuidLike(candidate)) {
+      continue;
+    }
+
     const { data, error } = await admin
       .from("parceiros")
       .select("id, link_personalizado")
