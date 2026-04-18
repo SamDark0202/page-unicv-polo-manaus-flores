@@ -1,21 +1,22 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ChevronLeft, ChevronRight, FileText, GraduationCap, LogOut, Moon, Sun, BarChart3, BookOpen, Coins, UsersRound } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, GraduationCap, LogOut, Moon, Sun, BarChart3, Settings, UsersRound } from "lucide-react";
 import LoginGate from "../components/admin/LoginGate";
 import PostList from "../components/admin/PostList";
 import PostEditor from "../components/admin/PostEditor";
 import CourseManager from "@/components/admin/courses/CourseManager";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 import PartnerHub from "@/components/admin/partners/PartnerHub";
-import PartnerManager from "@/components/admin/partners/PartnerManager";
+import AdminSettingsHub from "@/components/admin/settings/AdminSettingsHub";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useThemeMode } from "@/hooks/useThemeMode";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { useAdminAuth } from "@/contexts/AuthContext";
+import { useAdminAccess } from "@/hooks/useAdminAccess";
 
 type BlogView = "list" | "editor";
-type AdminSection = "blog" | "courses" | "analytics" | "partners";
+type AdminSection = "blog" | "courses" | "analytics" | "partners" | "settings";
 
 type SidebarItem = {
   value: AdminSection;
@@ -34,6 +35,7 @@ export default function Controle() {
   const [courseCreateSignal, setCourseCreateSignal] = useState(0);
   const { theme, toggleTheme } = useThemeMode();
   const { user, signOut } = useAdminAuth();
+  const { role, permissions } = useAdminAccess();
   const userEmail = user?.email ?? "Conta Unicive";
   const userInitials = userEmail.charAt(0).toUpperCase() || "UC";
 
@@ -59,16 +61,39 @@ export default function Controle() {
   }
 
   function renderContent() {
+    if (section === "settings") {
+      return <AdminSettingsHub canManageUsers={permissions.canManageInternalUsers} />;
+    }
+
     if (section === "analytics") {
       return <AnalyticsDashboard />;
     }
 
     if (section === "partners") {
-      return <PartnerHub />;
+      return (
+        <PartnerHub
+          permissions={{
+            canManagePartners: permissions.canManagePartners,
+            canEditCrm: permissions.canEditCrm,
+            canDeleteLeads: permissions.canDeleteLeads,
+            readOnlyOperational: permissions.canReadOnlyOperational,
+            hideCommissions: role === "vendedor",
+          }}
+        />
+      );
     }
 
     if (section === "courses") {
-      return <CourseManager createSignal={courseCreateSignal} />;
+      const allowedSections = role === "vendedor"
+        ? (["courses", "technical-to-technologist", "second-graduation"] as const)
+        : undefined;
+      return (
+        <CourseManager
+          createSignal={courseCreateSignal}
+          allowedSections={allowedSections}
+          canEditCourses={role !== "vendedor"}
+        />
+      );
     }
 
     if (blogView === "editor") {
@@ -84,10 +109,22 @@ export default function Controle() {
   }
 
   const sidebarItems: SidebarItem[] = [
-    { value: "analytics", label: "Analytics", description: "KPIs e métricas do site", icon: BarChart3 },
-    { value: "partners", label: "Gestão de Parcerias", description: "Cadastro, CRM e comissões", icon: UsersRound, group: "Gestão de Parcerias" },
-    { value: "blog", label: "Gestão de Blog", description: "Posts, capas e SEO", icon: FileText },
-    { value: "courses", label: "Gestão de Cursos", description: "Modalidades e ofertas", icon: GraduationCap },
+    ...(role === "redator"
+      ? ([{ value: "blog", label: "Gestão de Blog", description: "Posts, capas e SEO", icon: FileText }] satisfies SidebarItem[])
+      : role === "vendedor"
+        ? ([
+            { value: "partners", label: "Gestão de Parcerias", description: "Parceiros e CRM", icon: UsersRound, group: "Gestão de Parcerias" },
+            { value: "courses", label: "Gestão de Cursos", description: "Cursos e técnico para tecnólogo", icon: GraduationCap },
+          ] satisfies SidebarItem[])
+        : ([
+            { value: "analytics", label: "Analytics", description: "KPIs e métricas do site", icon: BarChart3 },
+            { value: "partners", label: "Gestão de Parcerias", description: "Cadastro, CRM e comissões", icon: UsersRound, group: "Gestão de Parcerias" },
+            { value: "blog", label: "Gestão de Blog", description: "Posts, capas e SEO", icon: FileText },
+            { value: "courses", label: "Gestão de Cursos", description: "Modalidades e ofertas", icon: GraduationCap },
+          ] satisfies SidebarItem[])),
+    ...(permissions.canSeeSettings
+      ? ([{ value: "settings", label: "Configurações", description: "Usuários internos e logs", icon: Settings, group: "Sistema" }] satisfies SidebarItem[])
+      : []),
   ];
 
   const isBlogSection = section === "blog";
@@ -96,6 +133,8 @@ export default function Controle() {
     ? "Métricas do site"
     : section === "partners"
       ? "Gestão de Parcerias"
+    : section === "settings"
+      ? "Configurações"
     : isBlogSection
       ? blogView === "editor"
         ? "Editar Post"
@@ -105,9 +144,29 @@ export default function Controle() {
     ? "Acompanhe visitantes, visualizações, cliques e formulários em tempo real."
     : section === "partners"
       ? "Centralize parceiros, pipeline comercial e financeiro em uma única experiência operacional."
+    : section === "settings"
+      ? "Controle usuários internos, perfis de acesso e trilhas de auditoria do sistema."
     : isBlogSection
       ? "Gerencie conteúdos, capas e SEO do blog institucional."
       : "Organize matrizes curriculares e disponibilidade dos cursos.";
+
+  useEffect(() => {
+    if (!role) return;
+
+    if (role === "redator" && section !== "blog") {
+      setSection("blog");
+      return;
+    }
+
+    if (role === "vendedor" && section !== "partners" && section !== "courses") {
+      setSection("partners");
+      return;
+    }
+
+    if (section === "settings" && !permissions.canSeeSettings) {
+      setSection(role === "redator" ? "blog" : role === "vendedor" ? "partners" : "analytics");
+    }
+  }, [role, section, permissions.canSeeSettings, setSection]);
 
   return (
     <LoginGate>
@@ -301,7 +360,7 @@ export default function Controle() {
                     )}
                   </div>
                 )}
-                {section === "courses" && (
+                {section === "courses" && role !== "vendedor" && (
                   <Button onClick={() => setCourseCreateSignal((p) => p + 1)}>+ Novo curso</Button>
                 )}
               </div>

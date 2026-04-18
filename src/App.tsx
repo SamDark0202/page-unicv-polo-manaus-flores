@@ -35,6 +35,7 @@ const ParceriasIndicacoesSucesso = lazy(() => import("./pages/ParceriasIndicacoe
 const ParceriasPainel = lazy(() => import("./pages/ParceriasPainel"));
 const ParceriasPainelDashboard = lazy(() => import("./pages/ParceriasPainelDashboard"));
 const ParceriasDefinirSenha = lazy(() => import("./pages/ParceriasDefinirSenha"));
+const ControleDefinirSenha = lazy(() => import("./pages/ControleDefinirSenha"));
 const ParceiroOrigem = lazy(() => import("./pages/ParceiroOrigem"));
 const ParceriasFormularioEmpresa = lazy(() => import("./pages/ParceriasFormularioEmpresa"));
 const ParceriasFormularioEscola = lazy(() => import("./pages/ParceriasFormularioEscola"));
@@ -115,6 +116,7 @@ const AppRoutes = () => {
           <Route path="/parcerias/painel" element={<ParceriasPainel />} />
           <Route path="/parcerias/painel/dashboard" element={<ParceriasPainelDashboard />} />
           <Route path="/parcerias/definir-senha" element={<ParceriasDefinirSenha />} />
+          <Route path="/controle/definir-senha" element={<ControleDefinirSenha />} />
           <Route path="/parceiro/:slug" element={<ParceiroOrigem />} />
           <Route path="/parcerias/sucesso" element={<ParceriasSucesso />} />
           <Route path="/parcerias/orgaos-publicos" element={<ParceriasOrgaosPublicos />} />

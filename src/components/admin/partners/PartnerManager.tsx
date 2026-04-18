@@ -65,7 +65,7 @@ const brl = new Intl.NumberFormat("pt-BR", {
   minimumFractionDigits: 2,
 });
 
-export default function PartnerManager() {
+export default function PartnerManager({ readOnly = false }: { readOnly?: boolean }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -334,10 +334,12 @@ export default function PartnerManager() {
               Atualizar
             </Button>
 
-            <Button onClick={openCreateDialog}>
-              <Plus className="h-4 w-4" />
-              Novo parceiro
-            </Button>
+            {!readOnly && (
+              <Button onClick={openCreateDialog}>
+                <Plus className="h-4 w-4" />
+                Novo parceiro
+              </Button>
+            )}
           </div>
 
           <div className="mt-5 space-y-3">
@@ -391,6 +393,10 @@ export default function PartnerManager() {
 
                     <TooltipProvider>
                       <div className="flex flex-wrap gap-2">
+                        {readOnly ? (
+                          <Badge variant="secondary">Somente visualização</Badge>
+                        ) : (
+                          <>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
@@ -454,6 +460,8 @@ export default function PartnerManager() {
                           </TooltipTrigger>
                           <TooltipContent>Excluir parceiro</TooltipContent>
                         </Tooltip>
+                          </>
+                        )}
                       </div>
                     </TooltipProvider>
                   </div>
@@ -464,7 +472,7 @@ export default function PartnerManager() {
         </CardContent>
       </Card>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={!readOnly && dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingPartner ? "Editar parceiro" : "Novo parceiro"}</DialogTitle>

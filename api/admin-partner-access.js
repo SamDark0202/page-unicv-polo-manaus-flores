@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
-import { extractBearerToken, resolveAllowedAdminEmails } from "./_adminPartnersCore.js";
+import { hasRequiredRole, resolveAdminAccess } from "./_adminAccessCore.js";
+import { resolveAllowedAdminEmails } from "./_adminPartnersCore.js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -52,30 +53,6 @@ function resolvePartnerRedirectTo(request) {
 function isAlreadyRegisteredError(error) {
   const text = `${error?.message || ""} ${error?.code || ""}`.toLowerCase();
   return text.includes("already") || text.includes("registered") || text.includes("exists") || text.includes("email_exists");
-}
-
-async function requireAdmin(request, admin) {
-  const token = extractBearerToken(request);
-  if (!token) {
-    return { ok: false, status: 401, error: "Token de autenticação ausente." };
-  }
-
-  const { data: userData, error: userError } = await admin.auth.getUser(token);
-  if (userError || !userData?.user?.email) {
-    return { ok: false, status: 401, error: "Token inválido para área administrativa." };
-  }
-
-  const allowedEmails = resolveAllowedAdminEmails(process.env);
-  if (allowedEmails.size === 0) {
-    return { ok: false, status: 500, error: "ADMIN_ALLOWED_EMAILS não configurado no ambiente." };
-  }
-
-  const email = userData.user.email.toLowerCase();
-  if (!allowedEmails.has(email)) {
-    return { ok: false, status: 403, error: "Usuário sem permissão para gestão de parceiros." };
-  }
-
-  return { ok: true };
 }
 
 async function findAuthUserByEmail(admin, email) {
@@ -265,9 +242,13 @@ export default async function handler(request, response) {
     });
   }
 
-  const guard = await requireAdmin(request, admin);
-  if (!guard.ok) {
-    return response.status(guard.status).json({ error: guard.error });
+  const access = await resolveAdminAccess(request, admin);
+  if (!access.ok) {
+    return response.status(access.status).json({ error: access.error });
+  }
+
+  if (!hasRequiredRole(access.actor, ["administrador"])) {
+    return response.status(403).json({ error: "Usuário sem permissão para gestão de parceiros." });
   }
 
   if (request.method === "POST") {

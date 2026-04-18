@@ -41,9 +41,10 @@ const modalityLabel: Record<ModalityTab, string> = {
 type Props = {
   onCreate: () => void;
   onEdit: (course: Course) => void;
+  canEditCourses?: boolean;
 };
 
-export default function CourseList({ onCreate, onEdit }: Props) {
+export default function CourseList({ onCreate, onEdit, canEditCourses = true }: Props) {
   const [modality, setModality] = useState<ModalityTab>("all");
   const [query, setQuery] = useState("");
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
@@ -192,9 +193,11 @@ export default function CourseList({ onCreate, onEdit }: Props) {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
         <div className="flex gap-2">
-          <Button variant="default" onClick={handleOpenExportDialog}>
-            <Download className="h-4 w-4 mr-2" /> Baixar catálogo PDF
-          </Button>
+          {canEditCourses && (
+            <Button variant="default" onClick={handleOpenExportDialog}>
+              <Download className="h-4 w-4 mr-2" /> Baixar catálogo PDF
+            </Button>
+          )}
           <Button variant="outline" onClick={() => refetch()}>
             <RefreshCcw className="h-4 w-4 mr-2" /> Atualizar lista
           </Button>
@@ -253,14 +256,18 @@ export default function CourseList({ onCreate, onEdit }: Props) {
                   <FileDown className="h-4 w-4 mr-1" /> Baixar informações
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => onEdit(course)}>
-                  Editar
+                  {canEditCourses ? "Editar" : "Ver"}
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => handleToggle(course)}>
-                  {course.active ? "Desativar" : "Ativar"}
-                </Button>
-                <Button variant="destructive" size="sm" onClick={() => handleDelete(course)}>
-                  Excluir
-                </Button>
+                {canEditCourses && (
+                  <>
+                    <Button variant="outline" size="sm" onClick={() => handleToggle(course)}>
+                      {course.active ? "Desativar" : "Ativar"}
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(course)}>
+                      Excluir
+                    </Button>
+                  </>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -270,111 +277,113 @@ export default function CourseList({ onCreate, onEdit }: Props) {
         ))}
       </div>
 
-      <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Exportar catálogo de cursos</DialogTitle>
-            <DialogDescription>
-              Filtre cursos por modalidade e status, selecione os itens e gere um PDF com layout por modalidade.
-            </DialogDescription>
-          </DialogHeader>
+      {canEditCourses && (
+        <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Exportar catálogo de cursos</DialogTitle>
+              <DialogDescription>
+                Filtre cursos por modalidade e status, selecione os itens e gere um PDF com layout por modalidade.
+              </DialogDescription>
+            </DialogHeader>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Modalidade</p>
-              <Select value={exportModality} onValueChange={(value) => setExportModality(value as ModalityTab)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="bacharelado">Bacharelado</SelectItem>
-                  <SelectItem value="licenciatura">Licenciatura</SelectItem>
-                  <SelectItem value="tecnologo">Tecnólogo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Modalidade</p>
+                <Select value={exportModality} onValueChange={(value) => setExportModality(value as ModalityTab)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="bacharelado">Bacharelado</SelectItem>
+                    <SelectItem value="licenciatura">Licenciatura</SelectItem>
+                    <SelectItem value="tecnologo">Tecnólogo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Status</p>
-              <Select value={exportStatus} onValueChange={(value) => setExportStatus(value as ExportStatusFilter)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Ativos e inativos</SelectItem>
-                  <SelectItem value="active">Somente ativos</SelectItem>
-                  <SelectItem value="inactive">Somente inativos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Status</p>
+                <Select value={exportStatus} onValueChange={(value) => setExportStatus(value as ExportStatusFilter)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Ativos e inativos</SelectItem>
+                    <SelectItem value="active">Somente ativos</SelectItem>
+                    <SelectItem value="inactive">Somente inativos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Buscar no catálogo</p>
-              <Input
-                value={exportQuery}
-                onChange={(event) => setExportQuery(event.target.value)}
-                placeholder="Nome, duração ou descrição"
-              />
-            </div>
-          </div>
-
-          <div className="rounded-lg border p-3">
-            <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <p className="text-sm text-muted-foreground">
-                {exportCandidates.length} curso(s) filtrado(s) • {selectedCourseIds.length} selecionado(s)
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedCourseIds(exportCandidates.map((course) => course.id))}
-                >
-                  Selecionar todos
-                </Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => setSelectedCourseIds([])}>
-                  Limpar seleção
-                </Button>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Buscar no catálogo</p>
+                <Input
+                  value={exportQuery}
+                  onChange={(event) => setExportQuery(event.target.value)}
+                  placeholder="Nome, duração ou descrição"
+                />
               </div>
             </div>
 
-            <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
-              {exportCandidates.length === 0 && (
-                <p className="text-sm text-muted-foreground">Nenhum curso encontrado com os filtros escolhidos.</p>
-              )}
-
-              {exportCandidates.map((course) => {
-                const checked = selectedCourseIds.includes(course.id);
-                return (
-                  <label
-                    key={course.id}
-                    className="flex cursor-pointer items-start gap-3 rounded-md border p-3 hover:bg-muted/50"
+            <div className="rounded-lg border p-3">
+              <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <p className="text-sm text-muted-foreground">
+                  {exportCandidates.length} curso(s) filtrado(s) • {selectedCourseIds.length} selecionado(s)
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedCourseIds(exportCandidates.map((course) => course.id))}
                   >
-                    <Checkbox checked={checked} onCheckedChange={() => handleToggleSelect(course.id)} />
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold">{course.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {modalityLabel[course.modality]} • {course.duration} • {course.active ? "Ativo" : "Inativo"}
-                      </p>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{course.preview}</p>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
+                    Selecionar todos
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setSelectedCourseIds([])}>
+                    Limpar seleção
+                  </Button>
+                </div>
+              </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsExportDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button type="button" onClick={handleExportCatalog}>
-              <Download className="h-4 w-4 mr-2" /> Gerar PDF
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
+                {exportCandidates.length === 0 && (
+                  <p className="text-sm text-muted-foreground">Nenhum curso encontrado com os filtros escolhidos.</p>
+                )}
+
+                {exportCandidates.map((course) => {
+                  const checked = selectedCourseIds.includes(course.id);
+                  return (
+                    <label
+                      key={course.id}
+                      className="flex cursor-pointer items-start gap-3 rounded-md border p-3 hover:bg-muted/50"
+                    >
+                      <Checkbox checked={checked} onCheckedChange={() => handleToggleSelect(course.id)} />
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold">{course.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {modalityLabel[course.modality]} • {course.duration} • {course.active ? "Ativo" : "Inativo"}
+                        </p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{course.preview}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsExportDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="button" onClick={handleExportCatalog}>
+                <Download className="h-4 w-4 mr-2" /> Gerar PDF
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { resolveAdminAccess } from "./_adminAccessCore.js";
+import { hasRequiredRole, resolveAdminAccess } from "./_adminAccessCore.js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -32,13 +32,22 @@ export default async function handler(request, response) {
     return response.status(access.status).json({ error: access.error });
   }
 
-  const actor = access.actor;
+  if (!hasRequiredRole(access.actor, ["administrador"])) {
+    return response.status(403).json({ error: "Sem permissão para visualizar logs do sistema." });
+  }
 
-  return response.status(200).json({
-    authorized: true,
-    email: actor.email,
-    nome: actor.nome,
-    role: actor.role,
-    isRoot: actor.isRoot,
-  });
+  const limitParam = Number(request.query?.limit || 80);
+  const limit = Number.isFinite(limitParam) ? Math.max(10, Math.min(200, Math.trunc(limitParam))) : 80;
+
+  const { data, error } = await admin
+    .from("audit_logs")
+    .select("id, actor_user_id, actor_email, actor_nome, actor_role, action, table_name, record_id, ip_address, changes, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    return response.status(500).json({ error: "Não foi possível carregar os logs de auditoria." });
+  }
+
+  return response.status(200).json({ logs: data || [] });
 }

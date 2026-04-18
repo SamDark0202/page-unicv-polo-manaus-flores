@@ -10,6 +10,14 @@ import { BriefcaseBusiness, Coins, UsersRound } from "lucide-react";
 
 type PartnerHubTab = "registry" | "crm" | "commissions";
 
+type PartnerHubPermissions = {
+  canManagePartners: boolean;
+  canEditCrm: boolean;
+  canDeleteLeads: boolean;
+  readOnlyOperational: boolean;
+  hideCommissions?: boolean;
+};
+
 const tabMeta: Record<PartnerHubTab, { label: string; description: string }> = {
   registry: {
     label: "Parceiros",
@@ -25,9 +33,10 @@ const tabMeta: Record<PartnerHubTab, { label: string; description: string }> = {
   },
 };
 
-export default function PartnerHub() {
+export default function PartnerHub({ permissions }: { permissions: PartnerHubPermissions }) {
   const [tab, setTab] = useSessionStorageState<PartnerHubTab>("controle.partnerHub.tab", "registry");
-  const activeMeta = useMemo(() => tabMeta[tab], [tab]);
+  const activeTab = permissions.hideCommissions && tab === "commissions" ? "registry" : tab;
+  const activeMeta = useMemo(() => tabMeta[activeTab], [activeTab]);
 
   return (
     <div className="space-y-6">
@@ -44,7 +53,7 @@ export default function PartnerHub() {
               </p>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[420px]">
+            <div className={`grid gap-3 sm:grid-cols-${permissions.hideCommissions ? "2" : "3"} lg:min-w-[420px]`}>
               <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
                 <UsersRound className="h-5 w-5 text-white/85" />
                 <p className="mt-3 text-xs uppercase tracking-[0.18em] text-white/60">Rede</p>
@@ -55,17 +64,19 @@ export default function PartnerHub() {
                 <p className="mt-3 text-xs uppercase tracking-[0.18em] text-white/60">CRM</p>
                 <p className="mt-1 text-sm font-semibold text-white">Pipeline por etapa</p>
               </div>
-              <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
-                <Coins className="h-5 w-5 text-white/85" />
-                <p className="mt-3 text-xs uppercase tracking-[0.18em] text-white/60">Financeiro</p>
-                <p className="mt-1 text-sm font-semibold text-white">Pagamentos e lançamentos</p>
-              </div>
+              {!permissions.hideCommissions && (
+                <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
+                  <Coins className="h-5 w-5 text-white/85" />
+                  <p className="mt-3 text-xs uppercase tracking-[0.18em] text-white/60">Financeiro</p>
+                  <p className="mt-1 text-sm font-semibold text-white">Pagamentos e lançamentos</p>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Tabs value={tab} onValueChange={(value) => setTab(value as PartnerHubTab)} className="space-y-5">
+      <Tabs value={activeTab} onValueChange={(value) => setTab(value as PartnerHubTab)} className="space-y-5">
         <div className="flex flex-col gap-4 rounded-[28px] border bg-card/85 p-4 shadow-soft supports-[backdrop-filter]:backdrop-blur sm:p-5">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">Área ativa</p>
@@ -76,21 +87,28 @@ export default function PartnerHub() {
           <TabsList className="h-auto flex-wrap justify-start gap-2 rounded-[20px] bg-muted/50 p-1.5">
             <TabsTrigger value="registry" className="rounded-2xl px-4 py-2.5">Parceiros</TabsTrigger>
             <TabsTrigger value="crm" className="rounded-2xl px-4 py-2.5">CRM de Indicações</TabsTrigger>
-            <TabsTrigger value="commissions" className="rounded-2xl px-4 py-2.5">Comissões</TabsTrigger>
+            {!permissions.hideCommissions && (
+              <TabsTrigger value="commissions" className="rounded-2xl px-4 py-2.5">Comissões</TabsTrigger>
+            )}
           </TabsList>
         </div>
 
         <TabsContent value="registry" className="mt-0">
-          <PartnerManager />
+          <PartnerManager readOnly={!permissions.canManagePartners} />
         </TabsContent>
 
         <TabsContent value="crm" className="mt-0">
-          <PartnerCrmSection />
+          <PartnerCrmSection
+            canEdit={permissions.canEditCrm}
+            canDeleteLead={permissions.canDeleteLeads}
+          />
         </TabsContent>
 
-        <TabsContent value="commissions" className="mt-0">
-          <PartnerCommissionsSection />
-        </TabsContent>
+        {!permissions.hideCommissions && (
+          <TabsContent value="commissions" className="mt-0">
+            <PartnerCommissionsSection readOnly={!permissions.canManagePartners || permissions.readOnlyOperational} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

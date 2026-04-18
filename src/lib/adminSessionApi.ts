@@ -3,6 +3,9 @@ import { adminSupabase } from "@/lib/supabaseClient";
 export type AdminSessionPayload = {
   authorized: true;
   email: string;
+  nome: string;
+  role: "redator" | "analista" | "vendedor" | "administrador";
+  isRoot: boolean;
 };
 
 export async function verifyAdminSession() {

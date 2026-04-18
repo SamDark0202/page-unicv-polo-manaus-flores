@@ -40,7 +40,7 @@ function formatDate(iso: string | null | undefined): string {
   }
 }
 
-export default function PartnerCommissionsSection() {
+export default function PartnerCommissionsSection({ readOnly = false }: { readOnly?: boolean }) {
   const { toast } = useToast();
 
   const [partners, setPartners] = useState<AdminPartnerRecord[]>([]);
@@ -347,6 +347,10 @@ export default function PartnerCommissionsSection() {
                       <div className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-2 text-sm font-medium text-green-700">
                         <CheckCircle2 className="h-4 w-4" />
                         Mês quitado
+                      </div>
+                    ) : readOnly ? (
+                      <div className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-2 text-sm font-medium text-muted-foreground">
+                        Somente visualização
                       </div>
                     ) : (
                       <Button size="sm" onClick={() => handleMarkAsPaid(group)} disabled={isPayingNow}>

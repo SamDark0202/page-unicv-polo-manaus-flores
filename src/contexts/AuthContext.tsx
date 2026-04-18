@@ -62,7 +62,7 @@ function AdminAuthProviderInner({ children }: { children: React.ReactNode }) {
   }
 
   async function resetPassword(email: string) {
-    const redirectTo = `${window.location.origin}/parcerias/definir-senha`;
+    const redirectTo = `${window.location.origin}/controle/definir-senha`;
     const { error } = await adminSupabase.auth.resetPasswordForEmail(email, { redirectTo });
     if (error) throw error;
   }

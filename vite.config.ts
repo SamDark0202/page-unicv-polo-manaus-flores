@@ -61,6 +61,72 @@ export default defineConfig(({ mode }) => {
         },
       })
     : null;
+
+  async function resolveLocalActor(req: import("node:http").IncomingMessage) {
+    if (!localSupabaseAdmin) {
+      return { ok: false, status: 500, error: "Supabase local não configurado (SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY)." };
+    }
+
+    const token = extractBearerToken(req as unknown as { headers: Record<string, string> });
+    if (!token) {
+      return { ok: false, status: 401, error: "Token de autenticação ausente." };
+    }
+
+    const { data: userData, error: userError } = await localSupabaseAdmin.auth.getUser(token);
+    if (userError || !userData?.user?.email) {
+      return { ok: false, status: 401, error: "Token inválido para área administrativa." };
+    }
+
+    if (ALLOWED_ADMIN_EMAILS.size === 0) {
+      return { ok: false, status: 500, error: "ADMIN_ALLOWED_EMAILS não configurado no ambiente local." };
+    }
+
+    const email = String(userData.user.email).toLowerCase();
+    if (ALLOWED_ADMIN_EMAILS.has(email)) {
+      return {
+        ok: true,
+        actor: {
+          userId: userData.user.id,
+          email,
+          nome: userData.user.user_metadata?.full_name || userData.user.user_metadata?.name || email,
+          role: "administrador",
+          isRoot: true,
+        },
+      };
+    }
+
+    const { data: internalUser, error: internalError } = await localSupabaseAdmin
+      .from("internal_users")
+      .select("id, auth_user_id, email, nome, role, status")
+      .or(`auth_user_id.eq.${userData.user.id},email.eq.${email}`)
+      .limit(1)
+      .maybeSingle();
+
+    if (internalError || !internalUser?.id) {
+      return { ok: false, status: 403, error: "Esta conta não possui acesso ao painel administrativo." };
+    }
+
+    if (String(internalUser.status || "ativo").toLowerCase() !== "ativo") {
+      return { ok: false, status: 403, error: "Usuário interno inativo para acesso administrativo." };
+    }
+
+    return {
+      ok: true,
+      actor: {
+        userId: userData.user.id,
+        email,
+        nome: internalUser.nome || email,
+        role: internalUser.role,
+        isRoot: false,
+      },
+    };
+  }
+
+  function localHasRole(role: string, isRoot: boolean, allowed: string[]) {
+    if (isRoot) return true;
+    return allowed.includes(role);
+  }
+
   return ({
   server: {
     host: "::",
@@ -311,26 +377,17 @@ export default defineConfig(({ mode }) => {
             });
           }
 
-          const token = extractBearerToken(req as unknown as { headers: Record<string, string> });
-          if (!token) {
-            return sendJson(res, 401, { error: "Token de autenticação ausente." });
+          const access = await resolveLocalActor(req);
+          if (!access.ok) {
+            return sendJson(res, access.status, { error: access.error });
           }
 
-          const { data: userData, error: userError } = await localSupabaseAdmin.auth.getUser(token);
-          if (userError || !userData?.user?.email) {
-            return sendJson(res, 401, { error: "Token inválido para área administrativa." });
-          }
-
-          if (ALLOWED_ADMIN_EMAILS.size === 0) {
-            return sendJson(res, 500, { error: "ADMIN_ALLOWED_EMAILS não configurado no ambiente local." });
-          }
-
-          const userEmail = userData.user.email.toLowerCase();
-          if (!ALLOWED_ADMIN_EMAILS.has(userEmail)) {
-            return sendJson(res, 403, { error: "Usuário sem permissão para gestão de parceiros." });
-          }
+          const actor = access.actor;
 
           if (req.method === "GET") {
+            if (!localHasRole(actor.role, actor.isRoot, ["administrador", "analista", "vendedor"])) {
+              return sendJson(res, 403, { error: "Usuário sem permissão para visualizar parceiros." });
+            }
             const host = req.headers.host || "localhost";
             const searchParams = new URL(req.url, `http://${host}`).searchParams;
             const filters = buildPartnerFilters({
@@ -573,26 +630,17 @@ export default defineConfig(({ mode }) => {
             });
           }
 
-          const token = extractBearerToken(req as unknown as { headers: Record<string, string> });
-          if (!token) {
-            return sendJson(res, 401, { error: "Token de autenticação ausente." });
+          const access = await resolveLocalActor(req);
+          if (!access.ok) {
+            return sendJson(res, access.status, { error: access.error });
           }
 
-          const { data: userData, error: userError } = await localSupabaseAdmin.auth.getUser(token);
-          if (userError || !userData?.user?.email) {
-            return sendJson(res, 401, { error: "Token inválido para área administrativa." });
-          }
-
-          if (ALLOWED_ADMIN_EMAILS.size === 0) {
-            return sendJson(res, 500, { error: "ADMIN_ALLOWED_EMAILS não configurado no ambiente local." });
-          }
-
-          const userEmail = userData.user.email.toLowerCase();
-          if (!ALLOWED_ADMIN_EMAILS.has(userEmail)) {
-            return sendJson(res, 403, { error: "Usuário sem permissão para CRM de indicações." });
-          }
+          const actor = access.actor;
 
           if (req.method === "GET") {
+            if (!localHasRole(actor.role, actor.isRoot, ["administrador", "analista", "vendedor"])) {
+              return sendJson(res, 403, { error: "Usuário sem permissão para visualizar o CRM de indicações." });
+            }
             const host = req.headers.host || "localhost";
             const searchParams = new URL(req.url, `http://${host}`).searchParams;
             const filters = buildIndicationFilters({
@@ -647,6 +695,9 @@ export default defineConfig(({ mode }) => {
           }
 
           if (req.method === "POST") {
+            if (!localHasRole(actor.role, actor.isRoot, ["administrador"])) {
+              return sendJson(res, 403, { error: "Usuário sem permissão para criar parceiros." });
+            }
             const body = await readJsonBody(req);
             const { issues, normalized } = validateAdminIndicationCreate(body);
             if (issues.length > 0) {
@@ -677,6 +728,9 @@ export default defineConfig(({ mode }) => {
           }
 
           if (req.method === "PUT") {
+            if (!localHasRole(actor.role, actor.isRoot, ["administrador"])) {
+              return sendJson(res, 403, { error: "Usuário sem permissão para editar parceiros." });
+            }
             const body = await readJsonBody(req);
             const { issues, normalized } = validateAdminIndicationUpdate(body);
             if (issues.length > 0) {
@@ -741,6 +795,9 @@ export default defineConfig(({ mode }) => {
           }
 
           if (req.method === "DELETE") {
+            if (!localHasRole(actor.role, actor.isRoot, ["administrador"])) {
+              return sendJson(res, 403, { error: "Usuário sem permissão para excluir parceiros." });
+            }
             const body = await readJsonBody(req);
             const { issues, normalized } = validateAdminIndicationDelete(body);
             if (issues.length > 0) {
@@ -793,26 +850,312 @@ export default defineConfig(({ mode }) => {
             return sendJson(res, 405, { error: "Method Not Allowed" });
           }
 
-          const token = extractBearerToken(req as unknown as { headers: Record<string, string> });
-          if (!token) {
-            return sendJson(res, 401, { error: "Token de autenticação ausente." });
+          const access = await resolveLocalActor(req);
+          if (!access.ok) {
+            return sendJson(res, access.status, { error: access.error });
           }
 
-          const { data: userData, error: userError } = await localSupabaseAdmin.auth.getUser(token);
-          if (userError || !userData?.user?.email) {
-            return sendJson(res, 401, { error: "Token inválido para área administrativa." });
+          const actor = access.actor;
+
+          return sendJson(res, 200, {
+            authorized: true,
+            email: actor.email,
+            nome: actor.nome,
+            role: actor.role,
+            isRoot: actor.isRoot,
+          });
+        });
+      },
+    },
+    {
+      name: "local-admin-users",
+      apply: "serve",
+      configureServer(server) {
+        server.middlewares.use(async (req, res, next) => {
+          if (!req.url || !req.url.startsWith("/api/admin-users")) {
+            return next();
           }
 
-          if (ALLOWED_ADMIN_EMAILS.size === 0) {
-            return sendJson(res, 500, { error: "ADMIN_ALLOWED_EMAILS não configurado no ambiente local." });
+          if (!localSupabaseAdmin) {
+            return sendJson(res, 500, {
+              error: "Supabase local não configurado (SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY).",
+            });
           }
 
-          const userEmail = userData.user.email.toLowerCase();
-          if (!ALLOWED_ADMIN_EMAILS.has(userEmail)) {
-            return sendJson(res, 403, { error: "Esta conta não possui acesso ao painel administrativo." });
+          const access = await resolveLocalActor(req);
+          if (!access.ok) {
+            return sendJson(res, access.status, { error: access.error });
           }
 
-          return sendJson(res, 200, { authorized: true, email: userEmail });
+          const actor = access.actor;
+          if (!localHasRole(actor.role, actor.isRoot, ["administrador"])) {
+            return sendJson(res, 403, { error: "Sem permissão para gestão de usuários internos." });
+          }
+
+          if (req.method === "GET") {
+            const { data, error } = await localSupabaseAdmin
+              .from("internal_users")
+              .select("id, auth_user_id, email, nome, role, status, created_at, updated_at")
+              .order("created_at", { ascending: false });
+
+            if (error) {
+              return sendJson(res, 500, { error: "Não foi possível listar os usuários internos." });
+            }
+
+            return sendJson(res, 200, { users: data || [] });
+          }
+
+          if (req.method === "POST") {
+            const body = await readJsonBody(req);
+
+            if (body?.action === "reset-password") {
+              const id = String(body?.id || "").trim();
+              if (!id) {
+                return sendJson(res, 400, { error: "id é obrigatório para reset de senha." });
+              }
+
+              const { data: target, error: targetError } = await localSupabaseAdmin
+                .from("internal_users")
+                .select("id, email, role")
+                .eq("id", id)
+                .maybeSingle();
+
+              if (targetError || !target?.id || !target?.email) {
+                return sendJson(res, 404, { error: "Usuário interno não encontrado para reset." });
+              }
+
+              if (target.role === "administrador" && !actor.isRoot) {
+                return sendJson(res, 403, { error: "Apenas o root pode resetar senha de administrador." });
+              }
+
+              const originHeader = req.headers.origin;
+              const host = req.headers.host || "localhost:8080";
+              const redirectBase = typeof originHeader === "string" && originHeader.startsWith("http")
+                ? originHeader.replace(/\/$/, "")
+                : `http://${host}`;
+
+              const { error: resetError } = await localSupabaseAdmin.auth.resetPasswordForEmail(String(target.email).toLowerCase(), {
+                redirectTo: `${redirectBase}/controle/definir-senha`,
+              });
+
+              if (resetError) {
+                return sendJson(res, 500, { error: "Não foi possível enviar e-mail de redefinição de senha." });
+              }
+
+              return sendJson(res, 200, { success: true, email: target.email });
+            }
+
+            const email = String(body?.email || "").trim().toLowerCase();
+            const nome = String(body?.nome || "").trim();
+            const role = String(body?.role || "").trim().toLowerCase();
+            const status = String(body?.status || "ativo").trim().toLowerCase() === "inativo" ? "inativo" : "ativo";
+
+            if (!email || !email.includes("@")) {
+              return sendJson(res, 400, { error: "Informe um e-mail válido para o usuário interno." });
+            }
+
+            if (!nome) {
+              return sendJson(res, 400, { error: "Informe o nome do usuário interno." });
+            }
+
+            if (!["redator", "analista", "vendedor", "administrador"].includes(role)) {
+              return sendJson(res, 400, { error: "Role inválida. Use redator, analista, vendedor ou administrador." });
+            }
+
+            if (role === "administrador" && !actor.isRoot) {
+              return sendJson(res, 403, { error: "Apenas o root pode criar outros administradores." });
+            }
+
+            const host = req.headers.host || "localhost:8080";
+            const originHeader = req.headers.origin;
+            const redirectBase = typeof originHeader === "string" && originHeader.startsWith("http")
+              ? originHeader.replace(/\/$/, "")
+              : `http://${host}`;
+            const redirectTo = `${redirectBase}/controle/definir-senha`;
+
+            let mode: "invite" | "recovery" = "invite";
+            let authUserId: string | null = null;
+
+            const { data: inviteData, error: inviteError } = await localSupabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo });
+            if (inviteError) {
+              const text = `${inviteError.message || ""} ${inviteError.code || ""}`.toLowerCase();
+              const already = text.includes("already") || text.includes("registered") || text.includes("exists") || text.includes("email_exists");
+              if (!already) {
+                return sendJson(res, 500, { error: "Não foi possível enviar o convite de acesso ao usuário interno." });
+              }
+
+              mode = "recovery";
+              const { error: resetError } = await localSupabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo });
+              if (resetError) {
+                return sendJson(res, 500, { error: "Não foi possível enviar o e-mail de redefinição de senha ao usuário interno." });
+              }
+            } else if (inviteData?.user?.id) {
+              authUserId = inviteData.user.id;
+            }
+
+            if (!authUserId) {
+              for (let page = 1; page <= 10; page += 1) {
+                const { data: listData, error: listError } = await localSupabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
+                if (listError) break;
+                const users = listData?.users || [];
+                const found = users.find((item) => String(item?.email || "").toLowerCase() === email);
+                if (found?.id) {
+                  authUserId = found.id;
+                  break;
+                }
+                if (users.length < 200) break;
+              }
+            }
+
+            const { data, error } = await localSupabaseAdmin
+              .from("internal_users")
+              .insert({ email, nome, role, status, auth_user_id: authUserId })
+              .select("id, auth_user_id, email, nome, role, status, created_at, updated_at")
+              .single();
+
+            if (error || !data) {
+              return sendJson(res, 500, { error: "Não foi possível criar o usuário interno." });
+            }
+
+            return sendJson(res, 201, {
+              user: data,
+              accessDelivery: {
+                mode,
+                redirectTo,
+              },
+            });
+          }
+
+          if (req.method === "PUT") {
+            const body = await readJsonBody(req);
+            const id = String(body?.id || "").trim();
+            const nome = String(body?.nome || "").trim();
+            const role = String(body?.role || "").trim().toLowerCase();
+            const status = String(body?.status || "ativo").trim().toLowerCase() === "inativo" ? "inativo" : "ativo";
+
+            if (!id || !nome || !["redator", "analista", "vendedor", "administrador"].includes(role)) {
+              return sendJson(res, 400, { error: "Dados inválidos para atualizar usuário interno." });
+            }
+
+            const { data: before, error: beforeError } = await localSupabaseAdmin
+              .from("internal_users")
+              .select("id, role")
+              .eq("id", id)
+              .maybeSingle();
+
+            if (beforeError || !before?.id) {
+              return sendJson(res, 404, { error: "Usuário interno não encontrado." });
+            }
+
+            if ((before.role === "administrador" || role === "administrador") && !actor.isRoot) {
+              return sendJson(res, 403, { error: "Apenas o root pode alterar administradores." });
+            }
+
+            const { data, error } = await localSupabaseAdmin
+              .from("internal_users")
+              .update({ nome, role, status })
+              .eq("id", id)
+              .select("id, auth_user_id, email, nome, role, status, created_at, updated_at")
+              .single();
+
+            if (error || !data) {
+              return sendJson(res, 500, { error: "Não foi possível atualizar o usuário interno." });
+            }
+
+            return sendJson(res, 200, { user: data });
+          }
+
+          if (req.method === "DELETE") {
+            if (!localHasRole(actor.role, actor.isRoot, ["administrador"])) {
+              return sendJson(res, 403, { error: "Usuário sem permissão para excluir usuários internos." });
+            }
+            const body = await readJsonBody(req);
+            const id = String(body?.id || "").trim();
+            if (!id) {
+              return sendJson(res, 400, { error: "id é obrigatório para exclusão." });
+            }
+
+            const { data: target, error: targetError } = await localSupabaseAdmin
+              .from("internal_users")
+              .select("id, email, auth_user_id, role")
+              .eq("id", id)
+              .maybeSingle();
+
+            if (targetError || !target?.id) {
+              return sendJson(res, 404, { error: "Usuário interno não encontrado." });
+            }
+
+            if (target.role === "administrador" && !actor.isRoot) {
+              return sendJson(res, 403, { error: "Apenas o root pode excluir administradores." });
+            }
+
+            if (String(target.email || "").toLowerCase() === actor.email) {
+              return sendJson(res, 400, { error: "Não é permitido excluir o próprio usuário logado." });
+            }
+
+            if (target.auth_user_id) {
+              await localSupabaseAdmin.auth.admin.deleteUser(target.auth_user_id).catch(() => null);
+            }
+
+            const { error } = await localSupabaseAdmin.from("internal_users").delete().eq("id", target.id);
+            if (error) {
+              return sendJson(res, 500, { error: "Não foi possível excluir o usuário interno." });
+            }
+
+            return sendJson(res, 200, { success: true });
+          }
+
+          res.setHeader("Allow", "GET, POST, PUT, DELETE");
+          return sendJson(res, 405, { error: "Method Not Allowed" });
+        });
+      },
+    },
+    {
+      name: "local-admin-audit-logs",
+      apply: "serve",
+      configureServer(server) {
+        server.middlewares.use(async (req, res, next) => {
+          if (!req.url || !req.url.startsWith("/api/admin-audit-logs")) {
+            return next();
+          }
+
+          if (!localSupabaseAdmin) {
+            return sendJson(res, 500, {
+              error: "Supabase local não configurado (SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY).",
+            });
+          }
+
+          if (req.method !== "GET") {
+            res.setHeader("Allow", "GET");
+            return sendJson(res, 405, { error: "Method Not Allowed" });
+          }
+
+          const access = await resolveLocalActor(req);
+          if (!access.ok) {
+            return sendJson(res, access.status, { error: access.error });
+          }
+
+          if (!localHasRole(access.actor.role, access.actor.isRoot, ["administrador"])) {
+            return sendJson(res, 403, { error: "Sem permissão para visualizar logs do sistema." });
+          }
+
+          const rawUrl = req.url || "";
+          const queryPart = rawUrl.includes("?") ? rawUrl.split("?")[1] : "";
+          const params = new URLSearchParams(queryPart);
+          const limitParam = Number(params.get("limit") || "80");
+          const limit = Number.isFinite(limitParam) ? Math.max(10, Math.min(200, Math.trunc(limitParam))) : 80;
+
+          const { data, error } = await localSupabaseAdmin
+            .from("audit_logs")
+            .select("id, actor_user_id, actor_email, actor_nome, actor_role, action, table_name, record_id, ip_address, changes, created_at")
+            .order("created_at", { ascending: false })
+            .limit(limit);
+
+          if (error) {
+            return sendJson(res, 500, { error: "Não foi possível carregar os logs de auditoria." });
+          }
+
+          return sendJson(res, 200, { logs: data || [] });
         });
       },
     },
@@ -831,22 +1174,12 @@ export default defineConfig(({ mode }) => {
             });
           }
 
-          const token = extractBearerToken(req as unknown as { headers: Record<string, string> });
-          if (!token) {
-            return sendJson(res, 401, { error: "Token de autenticação ausente." });
+          const access = await resolveLocalActor(req);
+          if (!access.ok) {
+            return sendJson(res, access.status, { error: access.error });
           }
 
-          const { data: userData, error: userError } = await localSupabaseAdmin.auth.getUser(token);
-          if (userError || !userData?.user?.email) {
-            return sendJson(res, 401, { error: "Token inválido para área administrativa." });
-          }
-
-          if (ALLOWED_ADMIN_EMAILS.size === 0) {
-            return sendJson(res, 500, { error: "ADMIN_ALLOWED_EMAILS não configurado no ambiente local." });
-          }
-
-          const userEmail = userData.user.email.toLowerCase();
-          if (!ALLOWED_ADMIN_EMAILS.has(userEmail)) {
+          if (!localHasRole(access.actor.role, access.actor.isRoot, ["administrador"])) {
             return sendJson(res, 403, { error: "Usuário sem permissão para gestão de parceiros." });
           }
 
@@ -990,24 +1323,12 @@ export default defineConfig(({ mode }) => {
             });
           }
 
-          const token = extractBearerToken(req as unknown as { headers: Record<string, string> });
-          if (!token) {
-            return sendJson(res, 401, { error: "Token de autenticação ausente." });
+          const access = await resolveLocalActor(req);
+          if (!access.ok) {
+            return sendJson(res, access.status, { error: access.error });
           }
 
-          const { data: userData, error: userError } = await localSupabaseAdmin.auth.getUser(token);
-          if (userError || !userData?.user?.email) {
-            return sendJson(res, 401, { error: "Token inválido para área administrativa." });
-          }
-
-          if (ALLOWED_ADMIN_EMAILS.size === 0) {
-            return sendJson(res, 500, { error: "ADMIN_ALLOWED_EMAILS não configurado no ambiente local." });
-          }
-
-          const userEmail = userData.user.email.toLowerCase();
-          if (!ALLOWED_ADMIN_EMAILS.has(userEmail)) {
-            return sendJson(res, 403, { error: "Usuário sem permissão para controle de comissões." });
-          }
+          const actor = access.actor;
 
           const COMMISSION_BASE_SELECT = "id, parceiro_id, indicacao_id, referencia_mes, valor, status_pagamento, pago_em, data_criacao, indicacoes(nome, telefone, email), parceiros(nome, email, link_personalizado)";
           const COMMISSION_EXTENDED_SELECT = `${COMMISSION_BASE_SELECT}, descricao`;
@@ -1120,6 +1441,9 @@ export default defineConfig(({ mode }) => {
           };
 
           if (req.method === "GET") {
+            if (!localHasRole(actor.role, actor.isRoot, ["administrador", "analista", "vendedor"])) {
+              return sendJson(res, 403, { error: "Usuário sem permissão para visualizar comissões." });
+            }
             const host = req.headers.host || "localhost";
             const searchParams = new URL(req.url, `http://${host}`).searchParams;
             const filters = buildCommissionFilters({
@@ -1147,6 +1471,9 @@ export default defineConfig(({ mode }) => {
           }
 
           if (req.method === "PUT") {
+            if (!localHasRole(actor.role, actor.isRoot, ["administrador"])) {
+              return sendJson(res, 403, { error: "Usuário sem permissão para alterar comissões." });
+            }
             const body = await readJsonBody(req);
             const { issues, normalized } = validateMarkAsPaid(body);
             if (issues.length > 0) {
@@ -1170,6 +1497,9 @@ export default defineConfig(({ mode }) => {
           }
 
           if (req.method === "POST") {
+            if (!localHasRole(actor.role, actor.isRoot, ["administrador"])) {
+              return sendJson(res, 403, { error: "Usuário sem permissão para criar comissões." });
+            }
             const body = await readJsonBody(req);
             const { issues, normalized } = validateCreateCommission(body);
             if (issues.length > 0) {

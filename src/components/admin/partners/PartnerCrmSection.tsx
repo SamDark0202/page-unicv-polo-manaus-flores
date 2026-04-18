@@ -142,7 +142,7 @@ function formatCurrency(value: number) {
   });
 }
 
-export default function PartnerCrmSection() {
+export default function PartnerCrmSection({ canEdit = true, canDeleteLead = true }: { canEdit?: boolean; canDeleteLead?: boolean }) {
   const { toast } = useToast();
 
   const [partners, setPartners] = useState<AdminPartnerRecord[]>([]);
@@ -240,6 +240,7 @@ export default function PartnerCrmSection() {
   }
 
   async function saveIndication(id: string) {
+    if (!canEdit) return;
     const draft = drafts[id];
     if (!draft) return;
 
@@ -268,6 +269,7 @@ export default function PartnerCrmSection() {
   }
 
   async function handleCreateLead() {
+    if (!canEdit) return;
     try {
       setCreatingLead(true);
       await createAdminIndication({
@@ -304,6 +306,7 @@ export default function PartnerCrmSection() {
   }
 
   async function handleDeleteLead() {
+    if (!canDeleteLead) return;
     if (!leadPendingDeletion) return;
 
     try {
@@ -438,10 +441,12 @@ export default function PartnerCrmSection() {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button type="button" onClick={() => setCreateOpen(true)} className="h-12 rounded-2xl px-5">
-                <Plus className="h-4 w-4" />
-                Adicionar lead
-              </Button>
+              {canEdit && (
+                <Button type="button" onClick={() => setCreateOpen(true)} className="h-12 rounded-2xl px-5">
+                  <Plus className="h-4 w-4" />
+                  Adicionar lead
+                </Button>
+              )}
               <Button variant="outline" onClick={() => load(selectedId)} disabled={loading} className="h-12 rounded-2xl px-5">
                 <RefreshCcw className="h-4 w-4" />
                 Atualizar CRM
@@ -602,7 +607,7 @@ export default function PartnerCrmSection() {
                 <div className="space-y-4">
                   <div className="space-y-1.5">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Etapa do pipeline</p>
-                    <Select value={activeDraft.status} onValueChange={(value) => updateDraft(activeLead.id, "status", value as PartnerIndicationStatus)}>
+                    <Select value={activeDraft.status} onValueChange={(value) => updateDraft(activeLead.id, "status", value as PartnerIndicationStatus)} disabled={!canEdit}>
                       <SelectTrigger className="h-11 rounded-2xl">
                         <SelectValue />
                       </SelectTrigger>
@@ -623,6 +628,7 @@ export default function PartnerCrmSection() {
                       value={activeDraft.curso_interesse}
                       onChange={(event) => updateDraft(activeLead.id, "curso_interesse", event.target.value)}
                       placeholder="Ex: Tecnólogo em Gestão Comercial"
+                      disabled={!canEdit}
                     />
                   </div>
 
@@ -634,7 +640,7 @@ export default function PartnerCrmSection() {
                         className="h-11 rounded-2xl"
                         value={activeDraft.data_conversao}
                         onChange={(event) => updateDraft(activeLead.id, "data_conversao", event.target.value)}
-                        disabled={activeDraft.status !== "convertido"}
+                        disabled={!canEdit || activeDraft.status !== "convertido"}
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -645,7 +651,7 @@ export default function PartnerCrmSection() {
                         onChange={(event) => updateDraft(activeLead.id, "valor_matricula", event.target.value)}
                         placeholder="0,00"
                         inputMode="decimal"
-                        disabled={activeDraft.status !== "convertido"}
+                        disabled={!canEdit || activeDraft.status !== "convertido"}
                       />
                     </div>
                   </div>
@@ -658,6 +664,7 @@ export default function PartnerCrmSection() {
                       placeholder="Registre contexto, objeções, temperatura e próximos passos"
                       rows={7}
                       className="rounded-2xl"
+                      disabled={!canEdit}
                     />
                   </div>
                 </div>
@@ -668,38 +675,42 @@ export default function PartnerCrmSection() {
                     Ao salvar, o lead é reclassificado e a comissão é sincronizada.
                   </div>
                   <div className="flex flex-col gap-3 sm:flex-row">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setLeadPendingDeletion(activeLead)}
-                      disabled={deletingLeadId === activeLead.id}
-                      className="rounded-2xl px-5 text-destructive hover:text-destructive"
-                    >
-                      {deletingLeadId === activeLead.id ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Excluindo...
-                        </>
-                      ) : (
-                        <>
-                          <Trash2 className="h-4 w-4" />
-                          Excluir lead
-                        </>
-                      )}
-                    </Button>
-                    <Button onClick={() => saveIndication(activeLead.id)} disabled={savingId === activeLead.id} className="rounded-2xl px-5">
-                      {savingId === activeLead.id ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Salvando...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4" />
-                          Salvar alterações
-                        </>
-                      )}
-                    </Button>
+                    {canDeleteLead && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setLeadPendingDeletion(activeLead)}
+                        disabled={deletingLeadId === activeLead.id}
+                        className="rounded-2xl px-5 text-destructive hover:text-destructive"
+                      >
+                        {deletingLeadId === activeLead.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Excluindo...
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="h-4 w-4" />
+                            Excluir lead
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    {canEdit && (
+                      <Button onClick={() => saveIndication(activeLead.id)} disabled={savingId === activeLead.id} className="rounded-2xl px-5">
+                        {savingId === activeLead.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Salvando...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4" />
+                            Salvar alterações
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -708,7 +719,7 @@ export default function PartnerCrmSection() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      <Dialog open={canEdit && createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-[28px]">
           <DialogHeader>
             <DialogTitle>Novo lead manual</DialogTitle>
@@ -803,7 +814,7 @@ export default function PartnerCrmSection() {
       </Dialog>
 
       <AlertDialog
-        open={Boolean(leadPendingDeletion)}
+        open={canDeleteLead && Boolean(leadPendingDeletion)}
         onOpenChange={(open) => {
           if (!open && !deletingLeadId) {
             setLeadPendingDeletion(null);

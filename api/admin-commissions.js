@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { extractBearerToken, resolveAllowedAdminEmails } from "./_adminPartnersCore.js";
+import { hasRequiredRole, resolveAdminAccess } from "./_adminAccessCore.js";
 import {
   buildCommissionFilters,
   validateMarkAsPaid,
@@ -32,30 +32,6 @@ async function parseBody(request) {
 
   const raw = Buffer.concat(chunks).toString("utf8");
   return raw ? JSON.parse(raw) : {};
-}
-
-async function requireAdmin(request, admin) {
-  const token = extractBearerToken(request);
-  if (!token) {
-    return { ok: false, status: 401, error: "Token de autenticação ausente." };
-  }
-
-  const { data: userData, error: userError } = await admin.auth.getUser(token);
-  if (userError || !userData?.user?.email) {
-    return { ok: false, status: 401, error: "Token inválido para área administrativa." };
-  }
-
-  const allowedEmails = resolveAllowedAdminEmails(process.env);
-  if (allowedEmails.size === 0) {
-    return { ok: false, status: 500, error: "ADMIN_ALLOWED_EMAILS não configurado no ambiente." };
-  }
-
-  const email = userData.user.email.toLowerCase();
-  if (!allowedEmails.has(email)) {
-    return { ok: false, status: 403, error: "Usuário sem permissão para controle de comissões." };
-  }
-
-  return { ok: true };
 }
 
 const COMMISSION_BASE_SELECT =
@@ -300,20 +276,31 @@ export default async function handler(request, response) {
     });
   }
 
-  const authResult = await requireAdmin(request, admin);
-  if (!authResult.ok) {
-    return response.status(authResult.status).json({ error: authResult.error });
+  const access = await resolveAdminAccess(request, admin);
+  if (!access.ok) {
+    return response.status(access.status).json({ error: access.error });
   }
 
+  const actor = access.actor;
+
   if (request.method === "GET") {
+    if (!hasRequiredRole(actor, ["administrador", "analista", "vendedor"])) {
+      return response.status(403).json({ error: "Usuário sem permissão para visualizar comissões." });
+    }
     return listCommissions(request, response, admin);
   }
 
   if (request.method === "PUT") {
+    if (!hasRequiredRole(actor, ["administrador"])) {
+      return response.status(403).json({ error: "Usuário sem permissão para alterar comissões." });
+    }
     return markAsPaid(request, response, admin);
   }
 
   if (request.method === "POST") {
+    if (!hasRequiredRole(actor, ["administrador"])) {
+      return response.status(403).json({ error: "Usuário sem permissão para criar comissões." });
+    }
     return createCommission(request, response, admin);
   }
 
