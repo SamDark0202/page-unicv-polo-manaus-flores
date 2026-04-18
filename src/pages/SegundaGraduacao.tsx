@@ -32,7 +32,7 @@ interface GraduationCourse {
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DEFAULT_API_URL = "/api/segunda-graduacao";
+const DEFAULT_API_URL = "/api/cursos?tipo=segunda-graduacao";
 const API_URL = import.meta.env.VITE_SEGUNDA_GRADUACAO_API_URL || DEFAULT_API_URL;
 const WHATSAPP_PHONE = "559220201260";
 const REQUEST_TIMEOUT_MS = 20000;

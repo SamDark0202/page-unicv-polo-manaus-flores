@@ -63,7 +63,7 @@ export default function PartnershipApplicationForm({
 
   async function onSubmit(values: PartnershipFormValues) {
     try {
-      const response = await fetch("/api/partnership-webhook", {
+      const response = await fetch("/api/webhooks?tipo=partnership", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

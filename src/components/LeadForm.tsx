@@ -92,7 +92,7 @@ const LeadForm = ({
 
     // Envia os dados para o webhook
     try {
-      await fetch("/api/lead-webhook", {
+      await fetch("/api/webhooks?tipo=lead", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

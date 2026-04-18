@@ -133,25 +133,18 @@ export default defineConfig(({ mode }) => {
     host: "::",
     port: 8080,
     proxy: {
-      "/api/cursos-tecnicos": {
+      "/api/cursos": {
         target: "https://diariodebordo.unicv.edu.br",
         changeOrigin: true,
         secure: true,
-        rewrite: () => "/cursos-tecnicos/publico",
+        rewrite: (path) => {
+          const url = new URL(path, "http://localhost");
+          const tipo = url.searchParams.get("tipo") || "";
+          if (tipo === "segunda-graduacao") return "/cursos-segunda-graduacao/publico";
+          return "/cursos-tecnicos/publico";
+        },
       },
-      "/api/segunda-graduacao": {
-        target: "https://diariodebordo.unicv.edu.br",
-        changeOrigin: true,
-        secure: true,
-        rewrite: () => "/cursos-segunda-graduacao/publico",
-      },
-// Proxy de pos-graduacao substituído por middleware inline (ver plugin 'local-pos-graduacao' em plugins)
-      "/api/lead-webhook": {
-        target: MAKE_WEBHOOK_URL,
-        changeOrigin: true,
-        secure: true,
-        rewrite: () => "",
-      },
+// lead/indication/partnership-webhook tratados pelo middleware local-webhooks
     },
   },
   build: {
@@ -233,11 +226,11 @@ export default defineConfig(({ mode }) => {
       },
     },
     {
-      name: "local-partnership-webhook",
+      name: "local-webhooks",
       apply: "serve",
       configureServer(server) {
         server.middlewares.use(async (req, res, next) => {
-          if (!req.url || !req.url.startsWith("/api/partnership-webhook")) {
+          if (!req.url || !req.url.startsWith("/api/webhooks")) {
             return next();
           }
 
@@ -246,80 +239,50 @@ export default defineConfig(({ mode }) => {
             return sendJson(res, 405, { error: "Method Not Allowed" });
           }
 
-          if (!MAKE_PARTNERSHIP_WEBHOOK_URL) {
-            return sendJson(res, 500, { error: "Webhook da parceria não configurado no ambiente local." });
-          }
+          const urlObj = new URL(req.url, "http://localhost");
+          const tipo = urlObj.searchParams.get("tipo") || "";
 
           try {
             const body = await readJsonBody(req);
-            const { issues, normalized } = validatePartnershipBody(body);
-            if (issues.length > 0) {
-              return sendJson(res, 400, { error: issues.join(" ") });
+
+            if (tipo === "lead") {
+              if (!MAKE_WEBHOOK_URL) return sendJson(res, 500, { error: "Webhook URL não configurada." });
+              const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              const issues: string[] = [];
+              if (!body.name) issues.push("Campo 'name' é obrigatório.");
+              if (!body.phone) issues.push("Campo 'phone' é obrigatório.");
+              if (!body.email) issues.push("Campo 'email' é obrigatório.");
+              if (body.email && !EMAIL_RE.test(body.email)) issues.push("E-mail inválido.");
+              const phoneDigits = String(body.phone || "").replace(/\D/g, "");
+              if (!/^\d{11}$/.test(phoneDigits)) issues.push("Telefone inválido.");
+              if (issues.length) return sendJson(res, 400, { error: issues.join(", ") });
+              await fetch(MAKE_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: body.name, phone: body.phone, email: body.email }) });
+              return sendJson(res, 200, { success: true });
             }
 
-            const submissionDate = new Date().toISOString();
-            const payload = buildPartnershipPayload(normalized, submissionDate);
-            const webhookResponse = await fetch(MAKE_PARTNERSHIP_WEBHOOK_URL, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(payload),
-            });
-
-            if (!webhookResponse.ok) {
-              return sendJson(res, 502, { error: "Não foi possível encaminhar os dados ao fluxo de contrato." });
+            if (tipo === "indication") {
+              if (!MAKE_INDICATION_WEBHOOK_URL) return sendJson(res, 500, { error: "Webhook do Programa Indique e Ganhe não configurado no ambiente local." });
+              const { issues: vIssues, normalized } = validateIndicationBody(body);
+              if (vIssues.length > 0) return sendJson(res, 400, { error: vIssues.join(" ") });
+              const payload = buildIndicationPayload(normalized, new Date().toISOString());
+              const wr = await fetch(MAKE_INDICATION_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+              if (!wr.ok) return sendJson(res, 502, { error: "Não foi possível encaminhar os dados ao fluxo do programa." });
+              return sendJson(res, 200, { success: true });
             }
 
-            return sendJson(res, 200, { success: true });
+            if (tipo === "partnership") {
+              if (!MAKE_PARTNERSHIP_WEBHOOK_URL) return sendJson(res, 500, { error: "Webhook da parceria não configurado no ambiente local." });
+              const { issues: vIssues, normalized } = validatePartnershipBody(body);
+              if (vIssues.length > 0) return sendJson(res, 400, { error: vIssues.join(" ") });
+              const payload = buildPartnershipPayload(normalized, new Date().toISOString());
+              const wr = await fetch(MAKE_PARTNERSHIP_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+              if (!wr.ok) return sendJson(res, 502, { error: "Não foi possível encaminhar os dados ao fluxo de contrato." });
+              return sendJson(res, 200, { success: true });
+            }
+
+            return sendJson(res, 400, { error: "Parâmetro 'tipo' inválido. Use: lead, indication, partnership" });
           } catch {
-            return sendJson(res, 500, { error: "Falha ao processar o formulário da parceria." });
-          }
-        });
-      },
-    },
-    {
-      name: "local-indication-webhook",
-      apply: "serve",
-      configureServer(server) {
-        server.middlewares.use(async (req, res, next) => {
-          if (!req.url || !req.url.startsWith("/api/indication-webhook")) {
-            return next();
-          }
-
-          if (req.method !== "POST") {
-            res.setHeader("Allow", "POST");
-            return sendJson(res, 405, { error: "Method Not Allowed" });
-          }
-
-          if (!MAKE_INDICATION_WEBHOOK_URL) {
-            return sendJson(res, 500, { error: "Webhook do Programa Indique e Ganhe não configurado no ambiente local." });
-          }
-
-          try {
-            const body = await readJsonBody(req);
-            const { issues, normalized } = validateIndicationBody(body);
-            if (issues.length > 0) {
-              return sendJson(res, 400, { error: issues.join(" ") });
-            }
-
-            const submissionDate = new Date().toISOString();
-            const payload = buildIndicationPayload(normalized, submissionDate);
-            const webhookResponse = await fetch(MAKE_INDICATION_WEBHOOK_URL, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(payload),
-            });
-
-            if (!webhookResponse.ok) {
-              return sendJson(res, 502, { error: "Não foi possível encaminhar os dados ao fluxo do programa." });
-            }
-
-            return sendJson(res, 200, { success: true });
-          } catch {
-            return sendJson(res, 500, { error: "Falha ao processar o formulário do Programa Indique e Ganhe." });
+            return sendJson(res, 500, { error: "Falha ao processar o formulário." });
           }
         });
       },

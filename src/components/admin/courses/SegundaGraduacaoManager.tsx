@@ -18,7 +18,7 @@ interface GraduationCourse {
   secondGradOptions: SecondGradOption[];
 }
 
-const DEFAULT_API_URL = "/api/segunda-graduacao";
+const DEFAULT_API_URL = "/api/cursos?tipo=segunda-graduacao";
 const API_URL = import.meta.env.VITE_SEGUNDA_GRADUACAO_API_URL || DEFAULT_API_URL;
 const UNICV_BASE_URL = "https://diariodebordo.unicv.edu.br";
 

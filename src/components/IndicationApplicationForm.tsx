@@ -64,7 +64,7 @@ export default function IndicationApplicationForm() {
 
   async function onSubmit(values: IndicationFormValues) {
     try {
-      const response = await fetch("/api/indication-webhook", {
+      const response = await fetch("/api/webhooks?tipo=indication", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

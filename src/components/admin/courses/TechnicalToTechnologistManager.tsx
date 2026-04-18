@@ -21,7 +21,7 @@ interface TechnicalCourse {
   compatibleCourses: CompatibleCourse[];
 }
 
-const DEFAULT_API_URL = "/api/cursos-tecnicos";
+const DEFAULT_API_URL = "/api/cursos?tipo=tecnicos";
 const API_URL = import.meta.env.VITE_TECNICO_TECNOLOGO_API_URL || DEFAULT_API_URL;
 
 const normalize = (text: string) =>
