@@ -165,16 +165,20 @@ async function updateIndication(request, response, admin) {
   }
 
   if (error || !data) {
-    return response.status(500).json({ error: "Não foi possível atualizar a indicação." });
+    const detail = error ? `[${error.code || "?"}] ${error.message || "erro desconhecido"}` : "sem dados retornados";
+    console.error("[admin-indications] Falha ao atualizar indicação", normalized.id, detail);
+    return response.status(500).json({ error: `Não foi possível atualizar a indicação. ${detail}` });
   }
 
+  let syncWarning = null;
   try {
     await syncCommissionForIndication(admin, data);
-  } catch {
-    return response.status(500).json({ error: "A indicação foi atualizada, mas a sincronização da comissão falhou." });
+  } catch (syncError) {
+    console.error("[admin-indications] Falha ao sincronizar comissão para indicação", data.id, syncError?.message || syncError);
+    syncWarning = "A indicação foi salva, mas a sincronização automática de comissão falhou. Verifique manualmente as comissões.";
   }
 
-  return response.status(200).json({ indication: data });
+  return response.status(200).json({ indication: data, ...(syncWarning ? { sync_warning: syncWarning } : {}) });
 }
 
 async function deleteIndication(request, response, admin) {

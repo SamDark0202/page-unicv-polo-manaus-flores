@@ -51,7 +51,10 @@ export function usePartnerCommissions(
       } catch (error) {
         if (!cancelled) {
           setCommissions([]);
-          setCommissionsError(error instanceof Error ? error.message : "Erro ao carregar comissões.");
+          const message = error instanceof Error
+            ? error.message
+            : (error as { message?: string })?.message || "Erro ao carregar comissões.";
+          setCommissionsError(message);
         }
       } finally {
         if (!cancelled) {

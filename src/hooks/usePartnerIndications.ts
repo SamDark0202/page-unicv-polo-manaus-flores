@@ -42,7 +42,10 @@ export function usePartnerIndications(
       } catch (error) {
         if (!cancelled) {
           setIndications([]);
-          setIndicationsError(error instanceof Error ? error.message : "Erro ao carregar indicações.");
+          const message = error instanceof Error
+            ? error.message
+            : (error as { message?: string })?.message || "Erro ao carregar indicações.";
+          setIndicationsError(message);
         }
       } finally {
         if (!cancelled) {

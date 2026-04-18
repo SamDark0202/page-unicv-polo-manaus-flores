@@ -91,13 +91,14 @@ export async function updateAdminIndication(values: AdminIndicationUpdatePayload
   const payload = (await response.json().catch(() => ({}))) as {
     indication?: AdminIndicationRecord;
     error?: string;
+    sync_warning?: string;
   };
 
   if (!response.ok || !payload.indication) {
     throw new Error(payload.error || "Não foi possível atualizar a indicação.");
   }
 
-  return payload.indication;
+  return { indication: payload.indication, syncWarning: payload.sync_warning ?? null };
 }
 
 export async function createAdminIndication(values: AdminIndicationCreatePayload) {

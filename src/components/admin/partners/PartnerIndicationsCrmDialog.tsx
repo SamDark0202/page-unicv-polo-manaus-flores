@@ -132,7 +132,7 @@ export default function PartnerIndicationsCrmDialog({
 
     try {
       setSavingId(id);
-      await updateAdminIndication({
+      const { syncWarning } = await updateAdminIndication({
         id,
         status: draft.status,
         observacao: draft.observacao,
@@ -145,6 +145,9 @@ export default function PartnerIndicationsCrmDialog({
         title: "Indicação atualizada",
         description: "Status e dados de conversão salvos com sucesso.",
       });
+      if (syncWarning) {
+        toast({ title: "Aviso de comissão", description: syncWarning, variant: "destructive" });
+      }
 
       await load();
       onUpdated?.();

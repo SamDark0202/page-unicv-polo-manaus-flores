@@ -246,7 +246,7 @@ export default function PartnerCrmSection({ canEdit = true, canDeleteLead = true
 
     try {
       setSavingId(id);
-      await updateAdminIndication({
+      const { syncWarning } = await updateAdminIndication({
         id,
         status: draft.status,
         observacao: draft.observacao,
@@ -256,6 +256,9 @@ export default function PartnerCrmSection({ canEdit = true, canDeleteLead = true
       });
 
       toast({ title: "Lead atualizado", description: "As informações do CRM foram salvas com sucesso." });
+      if (syncWarning) {
+        toast({ title: "Aviso de comissão", description: syncWarning, variant: "destructive" });
+      }
       await load(selectedId);
     } catch (error) {
       toast({

@@ -22,6 +22,7 @@ import { syncCommissionForIndication } from "./api/_indicationCommissionSync.js"
 import { buildPartnershipPayload, validatePartnershipBody } from "./api/_partnershipWebhookCore.js";
 import { buildIndicationPayload, validateIndicationBody } from "./api/_indicationWebhookCore.js";
 import { buildPartnerPublicLeadPayload, validatePartnerPublicLeadBody } from "./api/_partnerPublicLeadCore.js";
+import posGraduacaoHandler from "./api/pos-graduacao.js";
 
 async function readJsonBody(req: import("node:http").IncomingMessage) {
   const chunks: Buffer[] = [];
@@ -144,6 +145,7 @@ export default defineConfig(({ mode }) => {
         secure: true,
         rewrite: () => "/cursos-segunda-graduacao/publico",
       },
+// Proxy de pos-graduacao substituído por middleware inline (ver plugin 'local-pos-graduacao' em plugins)
       "/api/lead-webhook": {
         target: MAKE_WEBHOOK_URL,
         changeOrigin: true,
@@ -188,6 +190,48 @@ export default defineConfig(({ mode }) => {
   },
   plugins: [
     react(),
+    {
+      name: "local-pos-graduacao",
+      apply: "serve",
+      configureServer(server) {
+        server.middlewares.use(async (req, res, next) => {
+          if (!req.url || !req.url.startsWith("/api/pos-graduacao")) {
+            return next();
+          }
+
+          if (req.method !== "GET") {
+            res.statusCode = 405;
+            res.setHeader("Allow", "GET");
+            res.setHeader("Content-Type", "application/json");
+            res.end(JSON.stringify({ error: "Method Not Allowed" }));
+            return;
+          }
+
+          let pendingStatus = 200;
+          const extraHeaders: Record<string, string> = {};
+
+          const vercelRes = {
+            status(code: number) { pendingStatus = code; return vercelRes; },
+            setHeader(name: string, value: string) { extraHeaders[name] = value; },
+            json(data: unknown) {
+              res.statusCode = pendingStatus;
+              res.setHeader("Content-Type", "application/json; charset=utf-8");
+              for (const [k, v] of Object.entries(extraHeaders)) {
+                res.setHeader(k, v);
+              }
+              res.end(JSON.stringify(data));
+            },
+          };
+
+          try {
+            await posGraduacaoHandler(req, vercelRes);
+          } catch (err) {
+            const message = err instanceof Error ? err.message : "Erro interno";
+            sendJson(res, 500, { error: message });
+          }
+        });
+      },
+    },
     {
       name: "local-partnership-webhook",
       apply: "serve",
@@ -695,8 +739,8 @@ export default defineConfig(({ mode }) => {
           }
 
           if (req.method === "POST") {
-            if (!localHasRole(actor.role, actor.isRoot, ["administrador"])) {
-              return sendJson(res, 403, { error: "Usuário sem permissão para criar parceiros." });
+            if (!localHasRole(actor.role, actor.isRoot, ["administrador", "vendedor"])) {
+              return sendJson(res, 403, { error: "Usuário sem permissão para criar leads no CRM." });
             }
             const body = await readJsonBody(req);
             const { issues, normalized } = validateAdminIndicationCreate(body);
@@ -728,8 +772,8 @@ export default defineConfig(({ mode }) => {
           }
 
           if (req.method === "PUT") {
-            if (!localHasRole(actor.role, actor.isRoot, ["administrador"])) {
-              return sendJson(res, 403, { error: "Usuário sem permissão para editar parceiros." });
+            if (!localHasRole(actor.role, actor.isRoot, ["administrador", "vendedor"])) {
+              return sendJson(res, 403, { error: "Usuário sem permissão para editar leads no CRM." });
             }
             const body = await readJsonBody(req);
             const { issues, normalized } = validateAdminIndicationUpdate(body);
@@ -785,13 +829,16 @@ export default defineConfig(({ mode }) => {
               return sendJson(res, 500, { error: "Não foi possível atualizar a indicação." });
             }
 
+            let syncWarning: string | null = null;
             try {
               await syncCommissionForIndication(localSupabaseAdmin, data);
-            } catch {
-              return sendJson(res, 500, { error: "A indicação foi atualizada, mas a sincronização da comissão falhou." });
+            } catch (syncError: unknown) {
+              const msg = syncError instanceof Error ? syncError.message : String(syncError);
+              console.error("[local admin-indications] Falha ao sincronizar comissão:", msg);
+              syncWarning = "A indicação foi salva, mas a sincronização automática de comissão falhou.";
             }
 
-            return sendJson(res, 200, { indication: data });
+            return sendJson(res, 200, { indication: data, ...(syncWarning ? { sync_warning: syncWarning } : {}) });
           }
 
           if (req.method === "DELETE") {

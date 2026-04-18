@@ -34,7 +34,10 @@ export function usePartnerProfile(user: User | null): UsePartnerProfileResult {
         }
       } catch (error) {
         if (!cancelled) {
-          setProfileError(error instanceof Error ? error.message : "Erro ao carregar perfil do parceiro.");
+          const message = error instanceof Error
+            ? error.message
+            : (error as { message?: string })?.message || "Erro ao carregar perfil do parceiro.";
+          setProfileError(message);
           setPartnerProfile(null);
         }
       } finally {

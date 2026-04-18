@@ -7,7 +7,7 @@ export function RadioTopBar() {
         height="61"
         frameBorder="0"
         scrolling="no"
-        allowTransparency={true}
+        allowtransparency="true"
         title="Rádio Unicive"
       />
     </div>

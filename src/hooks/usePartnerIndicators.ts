@@ -40,7 +40,10 @@ export function usePartnerIndicators(parceiroId: string | null, reloadKey = 0): 
         }
       } catch (error) {
         if (!cancelled) {
-          setIndicatorsError(error instanceof Error ? error.message : "Erro ao carregar indicadores.");
+          const message = error instanceof Error
+            ? error.message
+            : (error as { message?: string })?.message || "Erro ao carregar indicadores.";
+          setIndicatorsError(message);
           setIndicators(EMPTY_INDICATORS);
         }
       } finally {

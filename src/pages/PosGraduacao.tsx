@@ -1,437 +1,261 @@
+import { useEffect, useMemo, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadForm from "@/components/LeadForm";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Award, Clock, Star, TrendingUp, CheckCircle, BookOpen, Users, Target } from "lucide-react";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Award, BookOpen, CheckCircle, Clock, Loader2, MessageCircle, Search, Star, Target, TrendingUp } from "lucide-react";
 import { usePostPlusCarouselQuery } from "@/hooks/usePostPlusCarousel";
 import { toSupabaseRenderImageUrl } from "@/lib/supabaseImage";
 import { trackCardClick } from "@/lib/tracker";
 
+type PostGraduateCourse = {
+  id: string;
+  name: string;
+  url: string;
+  image_url: string;
+  duration_hours: string;
+  old_price: string;
+  current_price: string;
+  installment_price: string;
+  level: string;
+};
+
+type PostGraduateApiResponse = {
+  updated_at: string;
+  total_pages: number;
+  total_courses: number;
+  courses: PostGraduateCourse[];
+};
+
+const DEFAULT_API_URL = "/api/pos-graduacao";
+const API_URL = import.meta.env.VITE_POS_GRADUACAO_API_URL || DEFAULT_API_URL;
+const API_FALLBACK_URL = "https://www.unicivepoloam.com.br/api/pos-graduacao";
+const WHATSAPP_PHONE = "559220201260";
+const REQUEST_TIMEOUT_MS = 25000;
+const MAX_FETCH_RETRIES = 4;
+const RETRY_BASE_DELAY_MS = 1200;
+const PAGE_SIZE = 12;
+
+class ApiFetchError extends Error {
+  status?: number;
+  code?: string;
+
+  constructor(message: string, status?: number, code?: string) {
+    super(message);
+    this.name = "ApiFetchError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
+const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+
+const getBackoffDelay = (attempt: number) => RETRY_BASE_DELAY_MS * 2 ** (attempt - 1);
+
+const shouldRetryFetch = (error: unknown) => {
+  if (!(error instanceof ApiFetchError)) return true;
+  if (error.code === "TIMEOUT") return true;
+
+  if (typeof error.status === "number") {
+    if (error.status >= 500) return true;
+    if (error.status === 429 || error.status === 408) return true;
+    return false;
+  }
+
+  return true;
+};
+
+const normalize = (text: string) =>
+  (text || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+const formatPrice = (value: string) => {
+  const clean = (value || "").replace(/\./g, "").replace(",", ".").trim();
+  const numberValue = Number(clean);
+  if (!Number.isNaN(numberValue) && numberValue > 0) {
+    return numberValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+  return value || "-";
+};
+
+const formatDuration = (value: string) => {
+  const text = (value || "").trim();
+  if (!text) return "Carga horária sob consulta";
+  return `${text} horas`;
+};
+
+const toWhatsappLink = (courseName: string) => {
+  const message = `Olá! Tenho interesse no curso de Pós-Graduação em ${courseName}. Pode me ajudar com valores e matrícula?`;
+  return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`;
+};
+
+const parseApiPayload = (raw: string): PostGraduateApiResponse => {
+  try {
+    return JSON.parse(raw) as PostGraduateApiResponse;
+  } catch {
+    throw new ApiFetchError("Resposta inválida da API de pós-graduação.");
+  }
+};
+
+function PostGraduateSkeleton() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <Card key={index} className="overflow-hidden">
+          <div className="h-44 animate-pulse bg-muted" />
+          <CardContent className="p-5 space-y-3">
+            <div className="h-4 w-4/5 rounded bg-muted animate-pulse" />
+            <div className="h-4 w-2/3 rounded bg-muted animate-pulse" />
+            <div className="h-10 rounded bg-muted animate-pulse" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+const CATEGORIES: { label: string; keywords: string[] }[] = [
+  { label: "Agronegócio", keywords: ["agronegócio", "agronegocio", "agricultura", "agrometeorologia", "agro"] },
+  { label: "Comunicação e Design", keywords: ["comunicação", "comunicacao", "design", "mídia", "midia", "jornalismo", "publicidade", "marketing"] },
+  { label: "Direito", keywords: ["direito", "advocacia", "jurídico", "juridico", "tributário", "tributario", "constitucional", "penal"] },
+  { label: "Educação", keywords: ["educação", "educacao", "pedagogia", "docencia", "docência", "ensino", "alfabetização", "alfabetizacao", "letramento", "metodologia"] },
+  { label: "Engenharia", keywords: ["engenharia", "engenheiro", "civil", "produção", "producao", "estrutura", "construção", "construcao"] },
+  { label: "Gestão Contábil e Financeira", keywords: ["contábil", "contabil", "contabilidade", "financ", "tribut", "auditoria", "fiscal", "tributos"] },
+  { label: "Gestão Pública", keywords: ["pública", "publica", "municipal", "governo", "estratégica", "estrategica", "gestão p", "gestao p", "administração pública", "administracao publica"] },
+  { label: "Medicina Veterinária", keywords: ["veterinár", "veterinar", "animal", "zoonose", "zootecnia"] },
+  { label: "Negócios", keywords: ["negócios", "negocios", "mba", "gestão", "gestao", "empreende", "liderança", "lideranca", "logística", "logistica", "comercial", "varejo"] },
+  { label: "Saúde", keywords: ["saúde", "saude", "enferma", "médico", "medico", "hospitalar", "clínic", "clinic", "nutrição", "nutricao", "farmácia", "farmacia", "psicolog", "odontolog", "fisioterapia"] },
+  { label: "Tecnologia", keywords: ["tecnologia", "ti ", "t.i.", "sistemas", "informática", "informatica", "software", "dados", "inteligência", "inteligencia", "digital", "cyber", "segurança da informação"] },
+];
+
+const matchesCategory = (courseName: string, cat: { keywords: string[] }) => {
+  const n = normalize(courseName);
+  return cat.keywords.some((kw) => n.includes(normalize(kw)));
+};
+
 const PosGraduacao = () => {
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState("Todas");
+  const [courses, setCourses] = useState<PostGraduateCourse[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fetchAttempt, setFetchAttempt] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const toggleCategory = (label: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(label) ? prev.filter((c) => c !== label) : [...prev, label]
+    );
+    setCurrentPage(1);
+  };
+
   const { data: carouselItems = [] } = usePostPlusCarouselQuery({ activeOnly: true });
 
-  const areas = [
-    {
-      categoria: "Agronegócio",
-      cursos: [
-        "Administração e Agronegócio",
-        "Agricultura e Agronegócio", 
-        "Agricultura e Sustentabilidade",
-        "Agrometeorologia e Climatologia",
-        "Agronegócio",
-        "Certificação Ambiental e Consultoria",
-        "Direito Ambiental",
-        "Engenharia Agronômica: Ênfase em Manejo de Pragas e Agricultura",
-        "Engenharia Ambiental e Saneamento Básico",
-        "Fertilidade, Manejo dos Solos e Nutrição de Plantas",
-        "Gestão Ambiental e Sustentabilidade",
-        "Gestão de Projetos e Suprimentos (Ênfase em Agronegócio)",
-        "Gestão e Economia do Agronegócio",
-        "Legislação, Perícia e Auditoria Ambiental",
-        "Negócios Agroalimentares com Foco em Produção Animal",
-        "Recuperação Ambiental de Áreas Degradadas e Contaminadas",
-        "Recuperação de Áreas e Licenciamento Ambiental",
-        "Sustentabilidade e Meio Ambiente",
-        "Zoologia"
-      ]
-    },
-    {
-      categoria: "Comunicação e Design",
-      cursos: [
-        "Branding e Relações Públicas",
-        "Desenho Industrial",
-        "Design de Produtos", 
-        "Design Thinking, Criatividade e Inovação",
-        "Direito Eleitoral, Governança e Marketing Político",
-        "Docência na Comunicação",
-        "Engenharia e Desenvolvimento de Produto",
-        "Gestão da Comunicação e Mídias Digitais",
-        "Gestão da Comunicação Organizacional e Jornalismo",
-        "Gestão de Marketing e E-Commerce",
-        "Marketing Digital",
-        "MBA em Comunicação Corporativa",
-        "MBA em Empreendedorismo, Marketing e Finanças",
-        "Novos Produtos e Gestão de Projetos Produtivos"
-      ]
-    },
-    {
-      categoria: "Direito",
-      cursos: [
-        "Advocacia no Direito Privado",
-        "Arbitragem, Conciliação e Mediação",
-        "Auditoria e Direito no Setor Público",
-        "Biodireito",
-        "Conciliação e Mediação",
-        "Direito Administrativo",
-        "Direito Administrativo e Gestão Orçamentária e Financeira no Setor Público",
-        "Direito Administrativo e Gestão Pública",
-        "Direito Aduaneiro",
-        "Direito Ambiental",
-        "Direito Aplicado ao Agronegócio",
-        "Direito Constitucional",
-        "Direito da Criança e do Adolescente",
-        "Direito das Famílias e Sucessões",
-        "Direito do Consumidor",
-        "Direito do Trabalho",
-        "Direito e Serviço Social no Judiciário",
-        "Direito Empresarial",
-        "Direito Financeiro",
-        "Direito Médico e Hospitalar",
-        "Direito Notarial e Registral",
-        "Direito Penal e Processual Penal",
-        "Direito Previdenciário e Saúde do Trabalhador",
-        "Direito Previdenciário RGPS: A Nova Previdência",
-        "Direito Processual Civil",
-        "Direito Público",
-        "Direito Tributário",
-        "Direitos Difusos e Coletivos",
-        "Direitos Humanos",
-        "Docência em Direito Civil",
-        "Docência em Direito Penal",
-        "Docência em Direito Processual Civil",
-        "Gestão Patrimonial e Direito no Setor Público",
-        "Investigação Criminal e Psicologia Forense",
-        "Licitações e Contratos – Lei 14.133/2021",
-        "Perícia Criminal",
-        "Psicologia Jurídica",
-        "Segurança Pública"
-      ]
-    },
-    {
-      categoria: "Educação",
-      cursos: [
-        "A Moderna Educação: Metodologias, Tendências e Foco no Aluno",
-        "ABA Aplicada ao Transtorno do Espectro Autista (TEA)",
-        "Administração, Supervisão e Orientação Educacional",
-        "Alfabetização, Letramento e a Psicopedagogia Institucional",
-        "Andragogia: Formação de Jovens e Adultos",
-        "Arte e Educação",
-        "Atendimento Educacional Especializado (AEE)",
-        "Atendimento Educacional Especializado (AEE) e a Educação Inclusiva",
-        "Ciência e a Pesquisa Científica no Ensino Superior",
-        "Ciências da Religião",
-        "Coordenação Pedagógica",
-        "Coordenação Pedagógica e Planejamento Educacional",
-        "Coordenação Pedagógica e Supervisão Escolar",
-        "Criança Digital na Aprendizagem",
-        "Design e Tecnologia no Ensino Básico",
-        "Design Instrucional",
-        "Direito Educacional",
-        "Docência e Gestão no Ensino Superior",
-        "Docência no Ensino de Educação Física",
-        "Docência no Ensino de Filosofia",
-        "Docência no Ensino Religioso",
-        "Docência no Ensino Superior em Saúde",
-        "Educação Ambiental e Sustentabilidade",
-        "Educação de Jovens e Adultos – EJA",
-        "Educação Empreendedora",
-        "Educação Especial",
-        "Educação Especial com Ênfase em Deficiência Intelectual, Física e Psicomotora",
-        "Educação Especial com Ênfase em Transtornos Globais de Desenvolvimento (TGD) e Altas Habilidades",
-        "Educação Especial e Inclusiva",
-        "Educação Especial e Psicomotricidade",
-        "Educação Financeira",
-        "Educação Física e a Psicomotricidade com Ênfase na Educação Inclusiva",
-        "Educação Física Escolar",
-        "Educação Física para Diabéticos e Doenças Crônicas",
-        "Educação Infantil",
-        "Educação Infantil, Educação Especial e Transtornos Globais",
-        "Educação, Ludicidade e Desenvolvimento Infantil",
-        "Educação Social e Cidadania",
-        "Escola de Gestores: Formação Prática da Gestão Escolar",
-        "Espanhol",
-        "Especialização Base Nacional Comum Curricular (BNCC): Formação Docente",
-        "Especialização Base Nacional Comum Curricular (BNCC): Gestão Educacional",
-        "Especialização em Educação Infantil de 0 a 6 Anos"
-      ]
-    },
-    {
-      categoria: "Engenharia",
-      cursos: [
-        "Arquitetura da Paisagem",
-        "Arquitetura e Cidades",
-        "Arquitetura e Design de Interiores",
-        "Ciência e Engenharia dos Materiais",
-        "Construção Civil Residenciais, Industriais e Especiais",
-        "Construção Civil: Residencial e Industrial",
-        "Design de Produtos",
-        "Desenho Industrial",
-        "Desenvolvimento de Jogos Digitais",
-        "Energias Renováveis",
-        "Engenharia Agronômica: Ênfase em Manejo de Pragas e Agricultura",
-        "Engenharia Ambiental",
-        "Engenharia Ambiental e Saneamento Básico",
-        "Engenharia Civil e Arquitetura Sustentável",
-        "Engenharia de Alimentos",
-        "Engenharia de Conforto Térmico Ambiental",
-        "Engenharia de Controle e Automação Industrial",
-        "Engenharia de Estruturas e Concreto",
-        "Engenharia de Infraestrutura em Meios de Transporte",
-        "Engenharia de Materiais",
-        "Engenharia de Materiais com Ênfase em Corrosão",
-        "Engenharia de Mobilidade Urbana Smart Cities",
-        "Engenharia de Obras",
-        "Engenharia de Operações e Logística",
-        "Engenharia de Polímeros",
-        "Engenharia de Produção",
-        "Engenharia de Produção com Ênfase na Construção Civil",
-        "Engenharia de Qualidade",
-        "Engenharia de Segurança Contra Incêndio, Pânico e Eletricidade",
-        "Engenharia de Segurança do Trabalho",
-        "Engenharia de Software",
-        "Engenharia de Tráfego",
-        "Engenharia e Desenvolvimento de Produto",
-        "Engenharia e Gerenciamento da Manutenção",
-        "Engenharia e Gestão Hospitalar",
-        "Engenharia Elétrica",
-        "Engenharia Elétrica com Ênfase em Instalações Industriais",
-        "Engenharia Elétrica com Ênfase em Instalações Residenciais",
-        "Engenharia Farmacêutica",
-        "Engenharia Genética",
-        "Engenharia Geotécnica",
-        "Engenharia Metalúrgica: Processos de Fabricação",
-        "Engenharia Química",
-        "Engenharia Termodinâmica",
-        "Gerenciamento de Projetos para Engenheiros",
-        "Inteligência Artificial e Big Data",
-        "Inteligência Artificial e Machine Learning",
-        "Lean Manufacturing",
-        "Paisagismo e Iluminação",
-        "Proteção de Sistemas Elétricos"
-      ]
-    },
-    {
-      categoria: "Gestão Contábil e Financeira",
-      cursos: [
-        "Administração Financeira e Negociação",
-        "Agronegócio: Gestão e Contabilidade",
-        "Análise de Custos e Orçamento Empresarial",
-        "Análise de Custos e Planejamento Estratégico",
-        "Auditoria em Organizações do Setor Público",
-        "Auditoria, Compliance e Gestão de Riscos",
-        "Auditoria e Controladoria",
-        "Auditoria e Finanças",
-        "Auditoria e Perícia Contábil",
-        "Consultoria e Orçamento Empresarial",
-        "Consultoria Tributária",
-        "Contabilidade e Controladoria no Setor Público",
-        "Contabilidade e Governança Corporativa",
-        "Contabilidade Pública",
-        "Contabilidade Pública e Auditoria",
-        "Contabilidade Tributária",
-        "Contabilidade, Auditoria e Perícia",
-        "Contabilidade, Orçamento e Auditoria no Setor Público",
-        "Controladoria e Auditoria no Setor Público",
-        "Controladoria e Finanças",
-        "Educação Financeira",
-        "Finanças e Análise de Custos Empresariais",
-        "Gestão Contábil e Financeira",
-        "Gestão Contábil e Tributária",
-        "Gestão da Contabilidade e Planejamento Empresarial",
-        "Gestão de Custos e Formação de Preços",
-        "Legislação, Perícia e Auditoria Ambiental",
-        "MBA em Administração Financeira e Orçamentária",
-        "MBA em Administração, Contabilidade e Finanças",
-        "MBA em Economia e Finanças",
-        "MBA em Finanças Corporativas",
-        "MBA em Finanças Corporativas e Negociação",
-        "MBA em Finanças e Mercado",
-        "MBA em Gestão Financeira",
-        "MBA em Gestão Tributária",
-        "MBA Executivo em Gestão de Investimentos",
-        "Matemática Financeira e Estatística"
-      ]
-    },
-    {
-      categoria: "Gestão Pública",
-      cursos: [
-        "Administração de Recursos Humanos no Setor Público",
-        "Administração Pública",
-        "Administração Pública e Gestão de Pessoas",
-        "Administração Pública e Gestão Estratégica",
-        "Auditoria e Direito no Setor Público",
-        "Auditoria em Organizações do Setor Público",
-        "Contabilidade e Controladoria no Setor Público",
-        "Contabilidade Pública",
-        "Contabilidade Pública e Auditoria",
-        "Contabilidade, Orçamento e Auditoria no Setor Público",
-        "Controladoria e Auditoria no Setor Público",
-        "Gestão de Serviços Públicos",
-        "Gestão Patrimonial e Controladoria no Setor Público",
-        "Gestão Patrimonial e Direito no Setor Público",
-        "Gestão Pública",
-        "Governança e Políticas Públicas",
-        "Governança Pública e Gestão de Pessoas",
-        "Licitações e Contratos – Lei 14.133/2021",
-        "Planejamento e Orçamento Público",
-        "Direito Público",
-        "Gestão da Informação, Inovação e Governança Pública",
-        "Gestão da Informação, Inovação e Marketing no Setor Público",
-        "Gestão da Informação, Inovação e Pessoas no Setor Público",
-        "Gestão de Pessoas e Marketing no Setor Público",
-        "Gestão Financeira e Orçamentária em Organizações Públicas"
-      ]
-    },
-    {
-      categoria: "Medicina Veterinária",
-      cursos: [
-        "Controle de Qualidade e Segurança de Alimentos",
-        "Produção Animal"
-      ]
-    },
-    {
-      categoria: "Negócios",
-      cursos: [
-        "MBA em Logística e Supply Chain Management",
-        "MBA em Marketing e Vendas",
-        "MBA Executivo em Gestão de Investimentos",
-        "PCP: Planejamento e Controle de Produção",
-        "Planejamento e Orçamento Público",
-        "Recursos Humanos e Finanças",
-        "Varejo e Negócios Digitais",
-        "MBA em Gestão de Pessoas e Psicologia Organizacional",
-        "MBA em Gestão de Pessoas, Liderança e Coaching",
-        "MBA em Gestão de Processos",
-        "MBA em Gestão de Recursos Humanos",
-        "MBA em Gestão Empresarial",
-        "MBA em Gestão Empresarial e Logística",
-        "MBA em Gestão Estratégica de Compras",
-        "MBA em Gestão Financeira",
-        "MBA em Liderança, Inovação e Gestão"
-      ]
-    },
-    {
-      categoria: "Saúde",
-      cursos: [
-        "Administração Hospitalar",
-        "Análises Clínicas e Microbiologia",
-        "Análises Clínicas e Toxicológicas",
-        "Anatomia e Patologias Associadas",
-        "Atividade Física em Grupos Especiais",
-        "Auditoria em Saúde",
-        "Avaliação Física, Esportiva e Funcional",
-        "Biologia Molecular, Genética Avançada e Biotecnologia",
-        "Biomedicina Estética",
-        "CCIH – Controle de Infecção Hospitalar",
-        "Cinesiologia, Biomecânica e Treinamento Físico",
-        "Citologia Clínica",
-        "Cuidados Básicos em Centro Cirúrgico",
-        "Cuidados Cirúrgicos, Central de Material e Esterilização (CME)",
-        "Dermatologia Estética",
-        "Direito Médico e Hospitalar",
-        "Docência no Ensino Superior em Saúde",
-        "Educação Física para Diabéticos e Doenças Crônicas",
-        "Educação Permanente em Saúde",
-        "Enfermagem do Trabalho",
-        "Enfermagem, Urgência e Emergência",
-        "Engenharia e Gestão Hospitalar",
-        "Estética e Cosmetologia",
-        "Estudos em Epidemiologia",
-        "Farmácia Clínica e Atenção Farmacêutica",
-        "Farmácia Clínica e Serviços Farmacêuticos",
-        "Farmácia Hospitalar",
-        "Fisiologia do Exercício",
-        "Fisioterapia Dermatofuncional",
-        "Fisioterapia Hospitalar",
-        "Fisioterapia Neurológica Adulta",
-        "Fisioterapia Respiratória",
-        "Fisioterapia Traumato-Ortopédica e Desportiva",
-        "Genética Humana",
-        "Gestão da Produção de Alimentos",
-        "Gestão da Saúde",
-        "Gestão de Clínicas, Consultórios e Hospitais",
-        "Gestão de Qualidade Hospitalar",
-        "Gestão de Unidades de Alimentação e Nutrição – UAN",
-        "Gestão em Saúde da Família",
-        "Gestão em Saúde Mental",
-        "Gestão em Saúde Pública",
-        "Gestão Estratégica em Saúde Pública e Coletiva",
-        "Hemoterapia",
-        "Imunologia e Microbiologia",
-        "Instrumentalidade do Serviço Social",
-        "Intervenção Psicossocial no Contexto Multidisciplinar",
-        "MBA em Gestão em Saúde",
-        "Medicina do Trabalho",
-        "Neurociência, Aprendizagem e Toxicologia Neural",
-        "Neuropsicopedagogia na Saúde",
-        "Nutrição Clínica",
-        "Nutrição com Ênfase em Obesidade e Emagrecimento",
-        "Nutrição Comportamental",
-        "Nutrição Esportiva",
-        "Nutrição Hospitalar e Clínica",
-        "Nutrição Infantil",
-        "Nutrição Materno Infantil",
-        "Odontologia Hospitalar",
-        "Odontologia no Trabalho",
-        "Oncologia",
-        "Primeiros Socorros e Intercorrências Aplicados à Estética",
-        "Psicologia da Educação",
-        "Psicologia do Desenvolvimento Infantil",
-        "Psicologia e Desenvolvimento da Aprendizagem",
-        "Psicologia Hospitalar",
-        "Psicologia Jurídica",
-        "Psicologia na Saúde Mental",
-        "Psicologia Organizacional",
-        "Psicomotricidade na Saúde",
-        "Psicopatologia",
-        "Saúde Coletiva",
-        "Saúde Coletiva e Comunitária",
-        "Saúde Coletiva e Educação em Saúde Bucal",
-        "Saúde da Mulher",
-        "Saúde do Idoso",
-        "Saúde do Trabalhador",
-        "Saúde Pública com Ênfase em Saúde da Família",
-        "Segurança do Paciente e Gestão de Qualidade",
-        "Serviço Social e Saúde Pública",
-        "Serviço Social Hospitalar",
-        "UTI: Unidade de Terapia Intensiva",
-        "Vigilância em Saúde",
-        "Vigilância Sanitária",
-        "Vigilância Sanitária e Qualidade de Alimentos",
-        "Zoonoses e Saúde Pública"
-      ]
-    },
-    {
-      categoria: "Tecnologia",
-      cursos: [
-        "Análise de Sistemas",
-        "Aprendizagem de Máquina",
-        "Arquitetura de Servidores",
-        "Arquitetura e Gestão de Infraestrutura em TI",
-        "Banco de Dados",
-        "Business Intelligence",
-        "Ciência de Dados e Big Data",
-        "Ciências de Dados",
-        "Desenvolvimento de Aplicações para Dispositivos Móveis",
-        "Desenvolvimento de Jogos Digitais",
-        "Desenvolvimento de Sistemas com C#",
-        "Desenvolvimento de Sistemas Orientado a Objetos",
-        "Desenvolvimento de Sistemas Web com PHP",
-        "Engenharia de Software",
-        "Gerenciamento de Projetos",
-        "Gestão Ágil de Projetos",
-        "Gestão de Projetos",
-        "Gestão e Qualidade de Software",
-        "Gestão Estratégica da Tecnologia da Informação",
-        "Inteligência Artificial",
-        "Inteligência Artificial e Big Data",
-        "Inteligência Artificial e Machine Learning",
-        "MBA em Gestão da Tecnologia da Informação",
-        "Programação Back-End",
-        "Projeto e Desempenho de Redes",
-        "Redes Sem Fio e Comunicação Móvel",
-        "Segurança da Informação",
-        "Segurança de Redes de Computadores",
-        "Tecnologias e Inovações Web",
-        "Transformação Digital"
-      ]
+  const filteredCourses = useMemo(() => {
+    const query = normalize(searchTerm.trim());
+    return courses.filter((course) => {
+      const matchesSearch = !query || normalize(course.name).includes(query);
+      const matchesCat =
+        selectedCategories.length === 0 ||
+        selectedCategories.some((label) => {
+          const cat = CATEGORIES.find((c) => c.label === label);
+          return cat ? matchesCategory(course.name, cat) : false;
+        });
+      return matchesSearch && matchesCat;
+    });
+  }, [courses, searchTerm, selectedCategories]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCourses.length / PAGE_SIZE));
+  const visibleCourses = useMemo(
+    () => filteredCourses.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filteredCourses, currentPage]
+  );
+
+  const fetchCourses = async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    setFetchAttempt(1);
+
+    let lastError: unknown = null;
+
+    for (let attempt = 1; attempt <= MAX_FETCH_RETRIES; attempt += 1) {
+      setFetchAttempt(attempt);
+
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+      try {
+        const shouldTryFallback =
+          attempt > 1 &&
+          !!API_FALLBACK_URL &&
+          API_FALLBACK_URL !== API_URL;
+
+        const endpoint = shouldTryFallback ? API_FALLBACK_URL : API_URL;
+
+        const response = await fetch(endpoint, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new ApiFetchError(`Falha ao carregar cursos (HTTP ${response.status})`, response.status);
+        }
+
+        const body = await response.text();
+        const payload = parseApiPayload(body);
+        const parsed = Array.isArray(payload?.courses) ? payload.courses : [];
+
+        setCourses(parsed);
+        setCurrentPage(1);
+
+        if (parsed.length === 0) {
+          setErrorMessage("Nenhum curso de pós-graduação disponível no momento.");
+        }
+
+        setIsLoading(false);
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          lastError = new ApiFetchError("Tempo de resposta da API excedido.", undefined, "TIMEOUT");
+        } else {
+          lastError = error;
+        }
+
+        if (attempt < MAX_FETCH_RETRIES && shouldRetryFetch(lastError)) {
+          await wait(getBackoffDelay(attempt));
+          continue;
+        }
+
+        break;
+      } finally {
+        window.clearTimeout(timeoutId);
+      }
     }
-  ];
+
+    const message =
+      lastError instanceof Error
+        ? `${lastError.message} Tentamos automaticamente ${MAX_FETCH_RETRIES} vezes.`
+        : `Erro inesperado ao consultar cursos. Tentamos automaticamente ${MAX_FETCH_RETRIES} vezes.`;
+
+    setErrorMessage(message);
+    setCourses([]);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const beneficios = [
     "Especialização em área específica",
@@ -439,84 +263,72 @@ const PosGraduacao = () => {
     "Crescimento na carreira",
     "Aumento salarial",
     "Atualização profissional",
-    "Diferencial competitivo"
+    "Diferencial competitivo",
   ];
-
-  const categorias = ["Todas", ...areas.map(area => area.categoria)];
-  const areasFiltradas = categoriaSelecionada === "Todas" ? areas : areas.filter(area => area.categoria === categoriaSelecionada);
-  const postPlusCarouselItems = carouselItems;
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* Hero Section */}
       <section className="bg-gradient-hero text-white py-16 lg:py-24">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-4xl mx-auto">
             <Badge variant="secondary" className="mb-4 bg-accent text-accent-foreground">
               Modalidade EAD
             </Badge>
-            <h1 className="text-4xl lg:text-6xl font-bold mb-6">
-              Pós-Graduação
-            </h1>
+            <h1 className="text-4xl lg:text-6xl font-bold mb-6">Pós-Graduação</h1>
             <p className="text-xl lg:text-2xl text-blue-100 mb-8">
-              Especialize-se e acelere sua carreira profissional. 
-              <strong> 200+ especializações disponíveis</strong> com duração de 4 a 12 meses.
+              Especialize-se e acelere sua carreira profissional.
+              <strong> Escolha sua especialização e fale com nosso time em um clique.</strong>
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="text-center">
-                <div className="text-3xl font-bold mb-2">200+</div>
+                <div className="text-3xl font-bold mb-2">{courses.length > 0 ? `${courses.length}+` : "200+"}</div>
                 <div className="text-sm opacity-90">Especializações</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold mb-2">4-12</div>
-                <div className="text-sm opacity-90">Meses de Duração</div>
+                <div className="text-3xl font-bold mb-2">360h+</div>
+                <div className="text-sm opacity-90">Carga horária</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold mb-2">11</div>
-                <div className="text-sm opacity-90">Áreas de Conhecimento</div>
+                <div className="text-3xl font-bold mb-2">EAD</div>
+                <div className="text-sm opacity-90">Flexível para sua rotina</div>
               </div>
             </div>
             <Button variant="hero" size="lg" asChild>
-              <a href="#contato">Quero me Especializar</a>
+              <a href="#cursos-pos">Quero me Especializar</a>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Benefits Section */}
       <section className="py-16 bg-gradient-subtle">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-6 ">
-              Por que fazer uma Pós-Graduação?
-            </h2>
+            <h2 className="text-3xl lg:text-4xl font-bold mb-6">Por que fazer uma Pós-Graduação?</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              A pós-graduação é o caminho para se destacar no mercado de trabalho 
-              e conquistar melhores oportunidades profissionais.
+              A pós-graduação é o caminho para se destacar no mercado de trabalho e conquistar melhores oportunidades.
             </p>
           </div>
 
-            {/* Video Highlight */}
-            <div className="mt-12 flex justify-center">
+          <div className="mt-12 flex justify-center">
             <div className="relative aspect-video w-3/4 rounded-xl overflow-hidden shadow-md">
               <iframe
-              width="560"
-              height="315"
-              src="https://www.youtube-nocookie.com/embed/HOQDYtVpCFg?si=X4Rw2deuXXa84d-D&amp;controls=0"
-              title="YouTube video player"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-              className="w-full h-full"
+                width="560"
+                height="315"
+                src="https://www.youtube-nocookie.com/embed/HOQDYtVpCFg?si=X4Rw2deuXXa84d-D&amp;controls=0"
+                title="YouTube video player"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+                className="w-full h-full"
               />
             </div>
-            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 mt-12">
-            {beneficios.map((beneficio, index) => (
-              <Card key={index} className="text-center shadow-soft hover:shadow-elevated transition-all duration-300">
+            {beneficios.map((beneficio) => (
+              <Card key={beneficio} className="text-center shadow-soft hover:shadow-elevated transition-all duration-300">
                 <CardContent className="p-6">
                   <TrendingUp className="h-8 w-8 text-accent mx-auto mb-3" />
                   <p className="font-medium">{beneficio}</p>
@@ -525,15 +337,12 @@ const PosGraduacao = () => {
             ))}
           </div>
 
-          {/* Stats */}
           <Card className="bg-gradient-primary text-primary-foreground shadow-floating">
             <CardContent className="p-8 lg:p-12">
               <div className="text-center mb-8">
                 <Award className="h-12 w-12 mx-auto mb-4" />
                 <h3 className="text-3xl font-bold mb-4">Impacto da Pós-Graduação</h3>
-                <p className="text-xl text-primary-foreground/90">
-                  Dados do mercado sobre profissionais especializados
-                </p>
+                <p className="text-xl text-primary-foreground/90">Dados do mercado sobre profissionais especializados</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="text-center">
@@ -554,158 +363,286 @@ const PosGraduacao = () => {
         </div>
       </section>
 
-      {/* Areas Section */}
-      <section className="py-16">
+      <section id="cursos-pos" className="py-16">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-              Áreas de Especialização
-            </h2>
-            <p className="text-xl text-muted-foreground mb-4">
-              Mais de 200 especializações distribuídas em 11 grandes áreas do conhecimento
+          <div className="text-center mb-10">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Catálogo de Especializações</h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">Encontre a pós ideal para seu momento profissional e fale direto com nosso atendimento no WhatsApp para saber mais sobre o curso desejado.
+              
             </p>
-            <div className="max-w-xl mx-auto">
-              <select
-                value={categoriaSelecionada}
-                onChange={(e) => setCategoriaSelecionada(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              >
-                {categorias.map((cat, i) => (
-                  <option key={i} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
           </div>
 
-          <div className="space-y-8">
-            {areasFiltradas.map((area, index) => (
-              <Card key={index} className="shadow-soft hover:shadow-elevated transition-all duration-300">
-                <CardHeader>
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-gradient-primary p-3 rounded-lg">
-                      <BookOpen className="h-6 w-6 text-primary-foreground" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-2xl">{area.categoria}</CardTitle>
-                      <CardDescription>
-                        {area.cursos.length} especializações disponíveis
-                      </CardDescription>
-                    </div>
+          <div className="flex flex-col lg:flex-row gap-6 mb-8">
+            {/* Painel de categorias */}
+            <Card className="lg:w-64 shrink-0 shadow-soft border-primary/20 h-fit">
+              <CardContent className="p-5">
+                <p className="text-sm font-semibold mb-4">Encontre o Curso</p>
+                <div className="space-y-2">
+                  {CATEGORIES.map((cat) => {
+                    const checked = selectedCategories.includes(cat.label);
+                    return (
+                      <label
+                        key={cat.label}
+                        className="flex items-center gap-3 cursor-pointer group"
+                      >
+                        <span
+                          className={`h-5 w-5 shrink-0 rounded border-2 flex items-center justify-center transition-colors ${
+                            checked
+                              ? "bg-primary border-primary"
+                              : "border-muted-foreground/40 group-hover:border-primary/60"
+                          }`}
+                          onClick={() => toggleCategory(cat.label)}
+                        >
+                          {checked && (
+                            <svg viewBox="0 0 10 8" className="h-3 w-3 text-white fill-current">
+                              <path d="M1 4l2.5 2.5L9 1" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          )}
+                        </span>
+                        <span
+                          className={`text-sm ${checked ? "font-medium text-foreground" : "text-muted-foreground"}`}
+                          onClick={() => toggleCategory(cat.label)}
+                        >
+                          {cat.label}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {selectedCategories.length > 0 && (
+                  <button
+                    className="mt-4 text-xs text-primary underline underline-offset-2"
+                    onClick={() => { setSelectedCategories([]); setCurrentPage(1); }}
+                  >
+                    Limpar filtros
+                  </button>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Coluna direita: busca + grid */}
+            <div className="flex-1 min-w-0">
+              <Card className="mb-6 shadow-soft border-primary/20">
+                <CardContent className="p-5">
+                  <label htmlFor="pos-search" className="text-sm font-medium text-muted-foreground mb-2 block">
+                    Buscar curso por nome
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="pos-search"
+                      value={searchTerm}
+                      onChange={(event) => setSearchTerm(event.target.value)}
+                      placeholder="Ex.: Administração Hospitalar, Direito Tributário, Inteligência Artificial..."
+                      className="pl-10"
+                    />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
-                    {area.cursos.slice(0, 12).map((curso, cursoIndex) => (
-                      <div key={cursoIndex} className="flex items-center space-x-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-accent flex-shrink-0" />
-                        <span className="text-muted-foreground">{curso}</span>
-                      </div>
-                    ))}
-                    {area.cursos.length > 12 && (
-                      <div className="text-sm text-primary font-medium">
-                        + {area.cursos.length - 12} outras especializações
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex justify-end">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => {
-                        const message = `Olá! Tenho interesse em Pós-graduação na área de ${area.categoria} e gostaria de saber mais sobre como garatir uma bolsa de desconto!`;
-                        const whatsappUrl = `https://wa.me/559220201260?text=${encodeURIComponent(message)}`;
-                        window.open(whatsappUrl, '_blank');
-                      }}
-                      className="text-xs"
-                    >
-                      Ver especializações
-                    </Button>
-                  </div>
+                  {filteredCourses.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {filteredCourses.length} curso{filteredCourses.length !== 1 ? "s" : ""} encontrado{filteredCourses.length !== 1 ? "s" : ""}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
-            ))}
-          </div>
 
-          {/* MBA Highlight */}
-          <Card className="bg-[#02683E] text-accent-foreground shadow-floating mt-12">
-            <CardContent className="p-8 lg:p-12">
-              <div className="text-center">
-                <Target className="h-12 w-12 mx-auto mb-4" />
-                <h3 className="text-3xl font-bold mb-4">MBA - Master in Business Administration</h3>
-                <p className="text-xl text-accent-foreground/90 mb-6">
-                  Especializações voltadas para gestão empresarial e liderança
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                  <div className="text-center">
-                    <div className="font-bold">Gestão Empresarial</div>
-                    <div className="text-sm opacity-90">Liderança e estratégia</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-bold">Finanças</div>
-                    <div className="text-sm opacity-90">Mercado financeiro</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-bold">Marketing</div>
-                    <div className="text-sm opacity-90">Vendas e comunicação</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-bold">Tecnologia</div>
-                    <div className="text-sm opacity-90">Gestão de TI</div>
-                  </div>
+              {isLoading && (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 p-4">
+                <div className="flex items-center gap-2 text-primary font-semibold">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Carregando catálogo de pós-graduação...
                 </div>
-                <Button variant="secondary" size="lg" asChild>
-                  <a href="#contato">Conhecer MBAs Disponíveis</a>
-                </Button>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Aguarde um momento. Estamos trazendo os cursos disponíveis e atualizando os valores.
+                </p>
+                <p className="text-xs text-muted-foreground/90 mt-1">
+                  Tentativa {fetchAttempt} de {MAX_FETCH_RETRIES}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+              <PostGraduateSkeleton />
+            </div>
+          )}
 
-  
+          {!isLoading && errorMessage && (
+            <Card className="border-destructive/30 bg-destructive/5">
+              <CardContent className="p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="font-semibold text-destructive">Não foi possível carregar os cursos</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{errorMessage}</p>
+                </div>
+                <Button variant="outline" onClick={fetchCourses}>Tentar novamente</Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {!isLoading && !errorMessage && filteredCourses.length === 0 && (
+            <Card className="border-dashed">
+              <CardContent className="p-8 text-center">
+                <BookOpen className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                <h3 className="font-semibold mb-1">Nenhum curso encontrado</h3>
+                <p className="text-sm text-muted-foreground">Tente outro termo de busca para encontrar sua especialização.</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {!isLoading && !errorMessage && filteredCourses.length > 0 && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {visibleCourses.map((course) => {
+                  const whatsappUrl = toWhatsappLink(course.name);
+
+                  return (
+                    <Card key={`${course.id}-${course.name}`} className="overflow-hidden border-primary/10 hover:shadow-elevated transition-all duration-300 group">
+                      <div className="relative h-48 overflow-hidden bg-muted">
+                        {course.image_url ? (
+                          <img
+                            src={course.image_url}
+                            alt={course.name}
+                            loading="lazy"
+                            decoding="async"
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="h-full w-full bg-gradient-subtle flex items-center justify-center">
+                            <BookOpen className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                        )}
+                        <Badge className="absolute top-3 left-3 bg-black/75 text-white border-0">{course.level || "Pós-Graduação"}</Badge>
+                      </div>
+
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg leading-tight min-h-[3.5rem]">{course.name}</CardTitle>
+                        <CardDescription className="flex items-center gap-1 text-sm">
+                          <Clock className="h-4 w-4" />
+                          {formatDuration(course.duration_hours)}
+                        </CardDescription>
+                      </CardHeader>
+
+                      <CardContent className="pt-0 space-y-4">
+                        <div className="rounded-lg border bg-muted/30 p-3 space-y-1">
+                          <p className="text-xs text-muted-foreground">Investimento</p>
+                          {course.old_price ? (
+                            <p className="text-xs text-muted-foreground line-through">De {formatPrice(course.old_price)}</p>
+                          ) : null}
+                          <p className="text-base font-bold text-primary">Por {formatPrice(course.current_price)}</p>
+                          {course.installment_price ? (
+                            <p className="text-xs text-muted-foreground">1 + 12x de {formatPrice(course.installment_price)}</p>
+                          ) : null}
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-2">
+                          <Button
+                            className="w-full"
+                            asChild
+                            onClick={() => {
+                              trackCardClick(course.name, {
+                                source: "pos_graduacao_whatsapp",
+                                course_id: course.id,
+                                course_name: course.name,
+                                destination_url: whatsappUrl,
+                              });
+                            }}
+                          >
+                            <a href={whatsappUrl} target="_blank" rel="noreferrer">
+                              <MessageCircle className="h-4 w-4 mr-2" />
+                              Falar no WhatsApp
+                            </a>
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {totalPages > 1 && (
+                <div className="mt-8 flex items-center justify-center gap-1 flex-wrap">
+                  <span className="text-sm text-muted-foreground mr-3">
+                    Página {currentPage} de {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => { setCurrentPage((p) => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  >
+                    &lsaquo;
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                    .reduce<(number | 'ellipsis')[]>((acc, p, idx, arr) => {
+                      if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('ellipsis');
+                      acc.push(p);
+                      return acc;
+                    }, [])
+                    .map((item, idx) =>
+                      item === 'ellipsis' ? (
+                        <span key={`ellipsis-${idx}`} className="px-2 text-muted-foreground">...</span>
+                      ) : (
+                        <Button
+                          key={item}
+                          variant={item === currentPage ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => { setCurrentPage(item as number); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        >
+                          {item}
+                        </Button>
+                      )
+                    )
+                  }
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => { setCurrentPage((p) => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  >
+                    &rsaquo;
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+            </div>{/* fim coluna direita */}
+          </div>{/* fim flex */}
         </div>
       </section>
 
-      {/* Post Plus Carousel Section */}
-      {postPlusCarouselItems.length > 0 && (
+      {carouselItems.length > 0 && (
         <section className="relative py-20 overflow-hidden bg-gradient-to-br from-[#02683E] via-[#024a2d] to-black">
-          {/* Efeito de textura sutil */}
-          <div className="absolute inset-0 opacity-5" style={{ 
-            backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', 
-            backgroundSize: '48px 48px' 
-          }}></div>
-          
+          <div
+            className="absolute inset-0 opacity-5"
+            style={{
+              backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)",
+              backgroundSize: "48px 48px",
+            }}
+          />
+
           <div className="container mx-auto px-4 relative z-10">
-            {/* Header da seção */}
             <div className="text-center mb-16 space-y-6">
               <div className="flex justify-center animate-pulse">
                 <Badge className="px-6 py-2.5 text-sm font-bold bg-gradient-to-r from-[#ce9e0d] via-[#f4d03f] to-[#ce9e0d] text-black border-0 shadow-2xl">
-                  <Star className="h-4 w-4 mr-2 fill-current" /> 
+                  <Star className="h-4 w-4 mr-2 fill-current" />
                   EXCLUSIVO Unicive
                 </Badge>
               </div>
-              
+
               <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-white">
                 Cursos <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ce9e0d] to-[#f4d03f]">Pós+</span>
               </h2>
-              
+
               <p className="text-lg lg:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
                 Programas de alto nível com proposta acadêmica diferenciada e posicionamento premium para sua carreira.
               </p>
             </div>
 
-            {/* Carrossel */}
-            <Carousel
-              className="w-full max-w-6xl mx-auto"
-              opts={{ loop: postPlusCarouselItems.length > 1, align: "center" }}
-            >
+            <Carousel className="w-full max-w-6xl mx-auto" opts={{ loop: carouselItems.length > 1, align: "center" }}>
               <CarouselContent className="-ml-4">
-                {postPlusCarouselItems.map((item) => (
+                {carouselItems.map((item) => (
                   <CarouselItem key={item.id} className="pl-4">
                     <div className="relative group flex justify-center items-center">
-                      {/* Container com borda gradiente e glow que se ajusta à imagem */}
                       <div className="relative inline-block rounded-2xl bg-gradient-to-br from-[#ce9e0d] via-[#f4d03f] to-[#02683E] p-[3px] shadow-2xl">
-                        {/* Glow effect que respeita border-radius */}
-                        <div className="absolute -inset-[2px] bg-gradient-to-br from-[#ce9e0d]/60 via-[#f4d03f]/40 to-[#02683E]/60 rounded-2xl blur-lg opacity-60 group-hover:opacity-90 group-hover:blur-xl transition-all duration-500 -z-10"></div>
-                        
+                        <div className="absolute -inset-[2px] bg-gradient-to-br from-[#ce9e0d]/60 via-[#f4d03f]/40 to-[#02683E]/60 rounded-2xl blur-lg opacity-60 group-hover:opacity-90 group-hover:blur-xl transition-all duration-500 -z-10" />
+
                         {item.targetUrl ? (
                           <a
                             href={item.targetUrl}
@@ -781,8 +718,7 @@ const PosGraduacao = () => {
                 ))}
               </CarouselContent>
 
-              {/* Controles de navegação */}
-              {postPlusCarouselItems.length > 1 && (
+              {carouselItems.length > 1 && (
                 <>
                   <CarouselPrevious className="left-0 lg:-left-12 bg-gradient-to-br from-[#02683E] to-[#024a2d] border-2 border-[#ce9e0d] hover:border-[#f4d03f] text-white hover:scale-110 transition-all duration-300 shadow-xl" />
                   <CarouselNext className="right-0 lg:-right-12 bg-gradient-to-br from-[#02683E] to-[#024a2d] border-2 border-[#ce9e0d] hover:border-[#f4d03f] text-white hover:scale-110 transition-all duration-300 shadow-xl" />
@@ -793,21 +729,15 @@ const PosGraduacao = () => {
         </section>
       )}
 
-
-      {/* Contact Section */}
       <section id="contato" className="py-16 bg-gradient-subtle">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-              Solicite Mais Informações
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Nossa equipe está pronta para esclarecer suas dúvidas sobre as especializações
-            </p>
+            <h2 className="text-3xl lg:text-4xl font-bold mb-6">Solicite Mais Informações</h2>
+            <p className="text-xl text-muted-foreground">Nossa equipe está pronta para esclarecer suas dúvidas sobre as especializações</p>
           </div>
 
           <div className="max-w-2xl mx-auto">
-            <LeadForm 
+            <LeadForm
               title="Quero saber mais sobre Pós-Graduação"
               description="Preencha o formulário e receba informações detalhadas sobre nossas especializações e condições especiais."
             />

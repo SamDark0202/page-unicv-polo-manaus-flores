@@ -65,7 +65,9 @@ export default function CreatePartnerIndicationDialog({
     } catch (error) {
       toast({
         title: "Erro ao salvar indicação",
-        description: error instanceof Error ? error.message : "Não foi possível salvar a indicação.",
+        description: error instanceof Error
+          ? error.message
+          : (error as { message?: string })?.message || "Não foi possível salvar a indicação.",
         variant: "destructive",
       });
     }

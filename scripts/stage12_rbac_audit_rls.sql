@@ -44,15 +44,37 @@ begin
 end;
 $$;
 
+-- Função separada para indicacoes (que usa atualizado_em, não updated_at)
+create or replace function public.set_indicacoes_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.atualizado_em = now();
+  return new;
+end;
+$$;
+
+-- Recria o trigger de indicacoes apontando para a função correta
+drop trigger if exists indicacoes_set_updated_at on public.indicacoes;
+create trigger indicacoes_set_updated_at
+before update on public.indicacoes
+for each row execute function public.set_indicacoes_updated_at();
+
 drop trigger if exists trg_internal_users_set_updated_at on public.internal_users;
 create trigger trg_internal_users_set_updated_at
 before update on public.internal_users
 for each row execute function public.set_updated_at();
 
+-- SECURITY DEFINER é obrigatório: estas funções consultam internal_users, que tem
+-- RLS policies que chamam internal_actor_role() — causando recursão infinita sem isso.
+-- Com SECURITY DEFINER, a função roda como owner (bypassrls), quebrando a recursão.
 create or replace function public.internal_actor_role()
 returns text
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select iu.role
   from public.internal_users iu
@@ -65,6 +87,8 @@ create or replace function public.can_manage_partners()
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select public.internal_actor_role() = 'administrador';
 $$;
@@ -73,6 +97,8 @@ create or replace function public.can_edit_crm()
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select public.internal_actor_role() in ('administrador', 'vendedor');
 $$;
