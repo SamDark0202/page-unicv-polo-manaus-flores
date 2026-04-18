@@ -56,7 +56,7 @@ export default function LoginGate({ children }: { children: React.ReactNode }) {
     return () => {
       active = false;
     };
-  }, [loading, user]);
+  }, [loading, user?.id]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();

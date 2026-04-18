@@ -33,17 +33,21 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import {
   createAdminPartner,
-  deletePartnerAccess,
   fetchAdminPartners,
+  reassignAndDeletePartner,
+  resetPartnerPassword,
   sendPartnerAccessLink,
   type AdminPartnerRecord,
   updateAdminPartner,
 } from "@/lib/adminPartnerApi";
 import { formatPartnerTypeLabel, type PartnerType } from "@/lib/partnerProfile";
-import { KeyRound, Loader2, Pencil, Plus, RefreshCcw, Search, Trash2, UsersRound } from "lucide-react";
+import { useSessionStorageState } from "@/hooks/useSessionStorageState";
+import { normalizeText } from "@/utils/normalize";
+import { KeyRound, Loader2, Mail, Pencil, Plus, RefreshCcw, Search, Trash2, UsersRound } from "lucide-react";
 
 const schema = z.object({
   nome: z.string().trim().min(2, "Nome obrigatório.").max(160, "Nome muito longo."),
@@ -66,14 +70,15 @@ export default function PartnerManager() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [partners, setPartners] = useState<AdminPartnerRecord[]>([]);
-  const [query, setQuery] = useState("");
-  const [search, setSearch] = useState("");
-  const [tipo, setTipo] = useState<PartnerType | "todos">("todos");
+  const [query, setQuery] = useSessionStorageState<string>("controle.partnerManager.query", "");
+  const [tipo, setTipo] = useSessionStorageState<PartnerType | "todos">("controle.partnerManager.tipo", "todos");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<AdminPartnerRecord | null>(null);
   const [sendingAccessId, setSendingAccessId] = useState<string | null>(null);
-  const [deletingAccessId, setDeletingAccessId] = useState<string | null>(null);
+  const [resettingPasswordId, setResettingPasswordId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [partnerPendingDeletion, setPartnerPendingDeletion] = useState<AdminPartnerRecord | null>(null);
+  const [reassignTargetId, setReassignTargetId] = useState<string>("");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -99,10 +104,24 @@ export default function PartnerManager() {
     );
   }, [partners]);
 
-  async function loadPartners(nextSearch = search, nextTipo = tipo) {
+  const filteredPartners = useMemo(() => {
+    const q = normalizeText(query.trim());
+    return partners.filter((p) => {
+      const matchesTipo = tipo === "todos" || p.tipo === tipo;
+      if (!matchesTipo) return false;
+      if (!q) return true;
+      return (
+        normalizeText(p.nome).includes(q) ||
+        normalizeText(p.email).includes(q) ||
+        normalizeText(p.link_personalizado ?? "").includes(q)
+      );
+    });
+  }, [partners, query, tipo]);
+
+  async function loadPartners() {
     try {
       setLoading(true);
-      const rows = await fetchAdminPartners({ search: nextSearch, tipo: nextTipo });
+      const rows = await fetchAdminPartners();
       setPartners(rows);
     } catch (error) {
       toast({
@@ -194,28 +213,52 @@ export default function PartnerManager() {
     }
   }
 
-  async function handleDeleteAccess() {
-    if (!partnerPendingDeletion) return;
-
+  async function handleResetPassword(partner: AdminPartnerRecord) {
     try {
-      setDeletingAccessId(partnerPendingDeletion.id);
-      const result = await deletePartnerAccess(partnerPendingDeletion.id);
+      setResettingPasswordId(partner.id);
+      await resetPartnerPassword(partner.id);
       toast({
-        title: result.deleted ? "Acesso excluído" : "Nenhum usuário para excluir",
-        description: result.deleted
-          ? `O usuário de acesso de ${partnerPendingDeletion.email} foi removido com sucesso.`
-          : `Nenhum usuário autenticável foi localizado para ${partnerPendingDeletion.email}.`,
+        title: "E-mail de redefinição enviado",
+        description: `Link para redefinir senha enviado para ${partner.email}.`,
       });
-      setPartnerPendingDeletion(null);
-      await loadPartners();
     } catch (error) {
       toast({
-        title: "Falha ao excluir acesso",
-        description: error instanceof Error ? error.message : "Não foi possível excluir o usuário de acesso.",
+        title: "Falha ao redefinir senha",
+        description: error instanceof Error ? error.message : "Não foi possível enviar o e-mail de redefinição.",
         variant: "destructive",
       });
     } finally {
-      setDeletingAccessId(null);
+      setResettingPasswordId(null);
+    }
+  }
+
+  async function handleFullDelete() {
+    if (!partnerPendingDeletion) return;
+
+    try {
+      setDeletingId(partnerPendingDeletion.id);
+      const result = await reassignAndDeletePartner(partnerPendingDeletion.id, reassignTargetId || null);
+      
+      let description = `O parceiro ${partnerPendingDeletion.nome} foi removido do sistema.`;
+      if (result.leadsReassigned && result.leadsReassigned > 0) {
+        description += ` ${result.leadsReassigned} lead(s) foram transferidos.`;
+      }
+      
+      toast({
+        title: "Parceiro excluído",
+        description,
+      });
+      setPartnerPendingDeletion(null);
+      setReassignTargetId("");
+      await loadPartners();
+    } catch (error) {
+      toast({
+        title: "Falha ao excluir parceiro",
+        description: error instanceof Error ? error.message : "Não foi possível excluir o parceiro.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -285,10 +328,7 @@ export default function PartnerManager() {
 
             <Button
               variant="outline"
-              onClick={() => {
-                setSearch(query.trim());
-                loadPartners(query.trim(), tipo);
-              }}
+              onClick={() => loadPartners()}
             >
               <RefreshCcw className="h-4 w-4" />
               Atualizar
@@ -305,12 +345,12 @@ export default function PartnerManager() {
               <div className="flex items-center justify-center rounded-xl border py-10 text-muted-foreground">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Carregando parceiros...
               </div>
-            ) : partners.length === 0 ? (
+            ) : filteredPartners.length === 0 ? (
               <div className="rounded-xl border py-10 text-center text-muted-foreground">
                 Nenhum parceiro encontrado para os filtros informados.
               </div>
             ) : (
-              partners.map((partner) => (
+              filteredPartners.map((partner) => (
                 <div
                   key={partner.id}
                   className="rounded-xl border bg-background/80 p-4 shadow-sm transition hover:border-primary/40"
@@ -349,46 +389,73 @@ export default function PartnerManager() {
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => handleSendAccess(partner)}
-                        disabled={sendingAccessId === partner.id}
-                      >
-                        {sendingAccessId === partner.id ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Enviando acesso...
-                          </>
-                        ) : (
-                          <>
-                            <KeyRound className="h-4 w-4" />
-                            Enviar acesso
-                          </>
-                        )}
-                      </Button>
-                      <Button variant="outline" onClick={() => openEditDialog(partner)}>
-                        <Pencil className="h-4 w-4" />
-                        Editar
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => setPartnerPendingDeletion(partner)}
-                        disabled={deletingAccessId === partner.id}
-                      >
-                        {deletingAccessId === partner.id ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Excluindo acesso...
-                          </>
-                        ) : (
-                          <>
-                            <Trash2 className="h-4 w-4" />
-                            Excluir acesso
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                    <TooltipProvider>
+                      <div className="flex flex-wrap gap-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleSendAccess(partner)}
+                              disabled={sendingAccessId === partner.id}
+                            >
+                              {sendingAccessId === partner.id
+                                ? <Loader2 className="h-4 w-4 animate-spin" />
+                                : <KeyRound className="h-4 w-4" />}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Enviar acesso</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleResetPassword(partner)}
+                              disabled={resettingPasswordId === partner.id}
+                            >
+                              {resettingPasswordId === partner.id
+                                ? <Loader2 className="h-4 w-4 animate-spin" />
+                                : <Mail className="h-4 w-4" />}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Redefinir senha</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => openEditDialog(partner)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Editar</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              onClick={() => {
+                                setPartnerPendingDeletion(partner);
+                                setReassignTargetId("");
+                              }}
+                              disabled={deletingId === partner.id}
+                            >
+                              {deletingId === partner.id
+                                ? <Loader2 className="h-4 w-4 animate-spin" />
+                                : <Trash2 className="h-4 w-4" />}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Excluir parceiro</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TooltipProvider>
                   </div>
                 </div>
               ))
@@ -512,29 +579,64 @@ export default function PartnerManager() {
       <AlertDialog
         open={Boolean(partnerPendingDeletion)}
         onOpenChange={(open) => {
-          if (!open && !deletingAccessId) {
+          if (!open && !deletingId) {
             setPartnerPendingDeletion(null);
+            setReassignTargetId("");
           }
         }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir usuário de acesso</AlertDialogTitle>
-            <AlertDialogDescription>
-              Isso remove o usuário autenticável do parceiro selecionado no Supabase Auth.
-              O cadastro do parceiro continuará existindo, mas ele perderá o acesso ao painel até receber um novo convite.
+            <AlertDialogTitle>Excluir parceiro permanentemente</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  Esta ação remove <strong>{partnerPendingDeletion?.nome}</strong> do sistema e exclui seu acesso no Supabase.
+                  {partnerPendingDeletion?.totalIndicacoes > 0 && (
+                    <> Os leads associados serão transferidos para o parceiro selecionado abaixo.</>
+                  )}
+                </p>
+                {partnerPendingDeletion && partnerPendingDeletion.totalIndicacoes > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground">Transferir leads para:</p>
+                    <Select
+                      value={reassignTargetId}
+                      onValueChange={setReassignTargetId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o parceiro destino" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {partners
+                          .filter((p) => p.id !== partnerPendingDeletion.id)
+                          .map((p) => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.nome} ({p.email})
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    {!reassignTargetId && (
+                      <p className="text-xs text-destructive">
+                        Este parceiro possui {partnerPendingDeletion.totalIndicacoes} lead(s). Selecione um parceiro destino para continuar.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={Boolean(deletingAccessId)}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={Boolean(deletingId)}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={(event) => {
                 event.preventDefault();
-                handleDeleteAccess();
+                handleFullDelete();
               }}
+              disabled={Boolean(deletingId) || ((partnerPendingDeletion?.totalIndicacoes ?? 0) > 0 && !reassignTargetId)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deletingAccessId ? "Excluindo..." : "Confirmar exclusão"}
+              {deletingId ? "Excluindo..." : "Confirmar exclusão"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

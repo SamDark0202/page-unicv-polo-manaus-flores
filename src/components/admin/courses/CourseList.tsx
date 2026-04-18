@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { normalizeText } from "@/utils/normalize";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,17 +62,17 @@ export default function CourseList({ onCreate, onEdit }: Props) {
   const { toast } = useToast();
 
   const filtered = useMemo(() => {
-    const term = query.trim().toLowerCase();
+    const term = normalizeText(query.trim());
     if (!term) return courses;
     return courses.filter((course) =>
       [course.name, course.preview, course.duration].some((value) =>
-        value.toLowerCase().includes(term)
+        normalizeText(value).includes(term)
       )
     );
   }, [courses, query]);
 
   const exportCandidates = useMemo(() => {
-    const term = exportQuery.trim().toLowerCase();
+    const term = normalizeText(exportQuery.trim());
 
     return allCourses.filter((course) => {
       if (exportModality !== "all" && course.modality !== exportModality) return false;
@@ -80,7 +81,7 @@ export default function CourseList({ onCreate, onEdit }: Props) {
       if (!term) return true;
 
       return [course.name, course.preview, course.duration].some((value) =>
-        value.toLowerCase().includes(term)
+        normalizeText(value).includes(term)
       );
     });
   }, [allCourses, exportModality, exportQuery, exportStatus]);

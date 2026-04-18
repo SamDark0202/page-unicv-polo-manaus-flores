@@ -148,3 +148,45 @@ export async function deletePartnerAccess(partnerId: string) {
 
   return payload;
 }
+
+export async function resetPartnerPassword(partnerId: string) {
+  const headers = await getAuthHeaders();
+  const response = await fetch("/api/admin-partner-access", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ partnerId, action: "reset" }),
+  });
+
+  const payload = (await response.json().catch(() => ({}))) as {
+    success?: boolean;
+    email?: string;
+    error?: string;
+  };
+
+  if (!response.ok || !payload.success) {
+    throw new Error(payload.error || "Não foi possível enviar o e-mail de redefinição de senha.");
+  }
+
+  return payload;
+}
+
+export async function reassignAndDeletePartner(partnerId: string, reassignToPartnerId: string | null) {
+  const headers = await getAuthHeaders();
+  const response = await fetch("/api/admin-partners", {
+    method: "DELETE",
+    headers,
+    body: JSON.stringify({ partnerId, reassignToPartnerId }),
+  });
+
+  const payload = (await response.json().catch(() => ({}))) as {
+    success?: boolean;
+    leadsReassigned?: number;
+    error?: string;
+  };
+
+  if (!response.ok || !payload.success) {
+    throw new Error(payload.error || "Não foi possível excluir o parceiro.");
+  }
+
+  return payload;
+}

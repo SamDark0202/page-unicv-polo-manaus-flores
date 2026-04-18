@@ -49,7 +49,7 @@ export function usePartnerProfile(user: User | null): UsePartnerProfileResult {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user?.id]);
 
   return { partnerProfile, loadingProfile, profileError };
 }

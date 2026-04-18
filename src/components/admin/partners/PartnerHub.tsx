@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PartnerCommissionsSection from "@/components/admin/partners/PartnerCommissionsSection";
 import PartnerCrmSection from "@/components/admin/partners/PartnerCrmSection";
 import PartnerManager from "@/components/admin/partners/PartnerManager";
+import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { BriefcaseBusiness, Coins, UsersRound } from "lucide-react";
 
 type PartnerHubTab = "registry" | "crm" | "commissions";
@@ -25,7 +26,7 @@ const tabMeta: Record<PartnerHubTab, { label: string; description: string }> = {
 };
 
 export default function PartnerHub() {
-  const [tab, setTab] = useState<PartnerHubTab>("registry");
+  const [tab, setTab] = useSessionStorageState<PartnerHubTab>("controle.partnerHub.tab", "registry");
   const activeMeta = useMemo(() => tabMeta[tab], [tab]);
 
   return (

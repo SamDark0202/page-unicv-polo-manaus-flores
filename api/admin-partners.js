@@ -196,8 +196,127 @@ async function updatePartner(request, response, admin) {
   return response.status(200).json({ partner: data });
 }
 
+async function deletePartnerFully(request, response, admin) {
+  const body = await parseBody(request);
+  const partnerId = String(body?.partnerId || "").trim();
+  const reassignToPartnerId = String(body?.reassignToPartnerId || "").trim() || null;
+
+  if (!partnerId) {
+    return response.status(400).json({ error: "partnerId é obrigatório." });
+  }
+
+  // Fetch partner to get email and auth_user_id
+  const { data: partner, error: partnerError } = await admin
+    .from("parceiros")
+    .select("id, email, auth_user_id")
+    .eq("id", partnerId)
+    .maybeSingle();
+
+  if (partnerError || !partner?.id) {
+    console.error("Erro ao buscar parceiro:", partnerError);
+    return response.status(404).json({ error: "Parceiro não encontrado." });
+  }
+
+  // Check if partner is admin
+  const email = String(partner.email || "").trim().toLowerCase();
+  const allowedEmails = resolveAllowedAdminEmails(process.env);
+  if (allowedEmails.has(email)) {
+    return response.status(400).json({ error: "Não é permitido excluir um usuário administrativo por esta tela." });
+  }
+
+  // Validate reassign target if provided
+  if (reassignToPartnerId) {
+    if (reassignToPartnerId === partnerId) {
+      return response.status(400).json({ error: "O parceiro destino não pode ser o mesmo que está sendo excluído." });
+    }
+    const { data: targetPartner, error: targetError } = await admin
+      .from("parceiros")
+      .select("id")
+      .eq("id", reassignToPartnerId)
+      .maybeSingle();
+    if (targetError || !targetPartner?.id) {
+      return response.status(404).json({ error: "Parceiro destino não encontrado." });
+    }
+  }
+
+  // Check for leads (before deletion)
+  const { data: leadsCheck, error: leadsCheckError } = await admin
+    .from("indicacoes")
+    .select("id")
+    .eq("parceiro_id", partnerId);
+
+  if (leadsCheckError) {
+    console.error("Erro ao verificar leads:", leadsCheckError);
+    return response.status(500).json({ error: "Falha ao verificar leads do parceiro." });
+  }
+
+  const leadsCount = leadsCheck?.length ?? 0;
+
+  // Reassign leads if needed
+  let leadsReassigned = 0;
+  if (leadsCount > 0 && reassignToPartnerId) {
+    const { data: updatedLeads, error: reassignError } = await admin
+      .from("indicacoes")
+      .update({ parceiro_id: reassignToPartnerId })
+      .eq("parceiro_id", partnerId)
+      .select("id");
+    if (reassignError) {
+      console.error("Erro ao reatribuir leads:", reassignError);
+      return response.status(500).json({ error: "Falha ao reatribuir os leads do parceiro: " + (reassignError?.message || "Erro desconhecido") });
+    }
+    leadsReassigned = updatedLeads?.length ?? 0;
+  } else if (leadsCount > 0 && !reassignToPartnerId) {
+    return response.status(400).json({ error: "O parceiro possui " + leadsCount + " lead(s). Selecione um parceiro destino para transferência." });
+  }
+
+  // Delete partner record from parceiros
+  const { error: deletePartnerError } = await admin
+    .from("parceiros")
+    .delete()
+    .eq("id", partnerId);
+
+  if (deletePartnerError) {
+    console.error("Erro ao deletar parceiro:", deletePartnerError);
+    return response.status(500).json({ error: "Falha ao excluir o cadastro do parceiro: " + (deletePartnerError?.message || "Erro desconhecido") });
+  }
+
+  // Delete auth user if exists
+  let authUserId = partner.auth_user_id || null;
+  if (!authUserId) {
+    // Try to find by email
+    try {
+      for (let page = 1; page <= 5; page++) {
+        const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+        if (error) {
+          console.error("Erro ao listar users, página " + page + ":", error);
+          break;
+        }
+        const users = data?.users || [];
+        const found = users.find((u) => String(u?.email || "").toLowerCase() === email);
+        if (found?.id) { authUserId = found.id; break; }
+        if (users.length < 200) break;
+      }
+    } catch (err) {
+      // Ignore lookup error; partner already deleted
+      console.error("Erro ao procurar usuário auth por email:", err);
+    }
+  }
+
+  if (authUserId) {
+    try {
+      await admin.auth.admin.deleteUser(authUserId);
+    } catch (err) {
+      // Log but don't fail - partner record is already deleted
+      console.error("Erro ao deletar usuário auth " + authUserId + ":", err?.message);
+    }
+  }
+
+  return response.status(200).json({ success: true, leadsReassigned });
+}
+
 export default async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store");
+  console.log("admin-partners handler called, method:", request.method);
 
   const admin = getAdminClient();
   if (!admin) {
@@ -221,6 +340,10 @@ export default async function handler(request, response) {
     return updatePartner(request, response, admin);
   }
 
-  response.setHeader("Allow", "GET, POST, PUT");
+  if (request.method === "DELETE") {
+    return deletePartnerFully(request, response, admin);
+  }
+
+  response.setHeader("Allow", "GET, POST, PUT, DELETE");
   return response.status(405).json({ error: "Method Not Allowed" });
 }

@@ -26,18 +26,30 @@ function createUseScopedAuth(
   };
 }
 
+function updateUserIfIdentityChanged(
+  setUser: React.Dispatch<React.SetStateAction<User | null>>,
+  nextUser: User | null,
+) {
+  setUser((previousUser) => {
+    if (previousUser?.id === nextUser?.id) {
+      return previousUser;
+    }
+    return nextUser;
+  });
+}
+
 function AdminAuthProviderInner({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     adminSupabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+      updateUserIfIdentityChanged(setUser, session?.user ?? null);
       setLoading(false);
     });
 
     const { data: { subscription } } = adminSupabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      updateUserIfIdentityChanged(setUser, session?.user ?? null);
       setLoading(false);
     });
 
@@ -73,12 +85,12 @@ function PartnerAuthProviderInner({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     partnerSupabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+      updateUserIfIdentityChanged(setUser, session?.user ?? null);
       setLoading(false);
     });
 
     const { data: { subscription } } = partnerSupabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      updateUserIfIdentityChanged(setUser, session?.user ?? null);
       setLoading(false);
     });
 

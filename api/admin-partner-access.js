@@ -96,8 +96,8 @@ async function findAuthUserByEmail(admin, email) {
   return null;
 }
 
-async function sendPartnerAccess(request, response, admin) {
-  const body = await parseBody(request);
+async function sendPartnerAccess(request, response, admin, bodyOverride) {
+  const body = bodyOverride ?? await parseBody(request);
   const partnerId = String(body?.partnerId || "").trim();
 
   if (!partnerId) {
@@ -227,6 +227,34 @@ async function deletePartnerAccess(request, response, admin) {
   });
 }
 
+async function resetPartnerPasswordHandler(body, response, admin, request) {
+  const partnerId = String(body?.partnerId || "").trim();
+
+  if (!partnerId) {
+    return response.status(400).json({ error: "partnerId é obrigatório." });
+  }
+
+  const { data: partner, error: partnerError } = await admin
+    .from("parceiros")
+    .select("id, email")
+    .eq("id", partnerId)
+    .maybeSingle();
+
+  if (partnerError || !partner?.id || !partner?.email) {
+    return response.status(404).json({ error: "Parceiro não encontrado." });
+  }
+
+  const email = String(partner.email).trim().toLowerCase();
+  const redirectTo = resolvePartnerRedirectTo(request);
+
+  const { error: resetError } = await admin.auth.resetPasswordForEmail(email, { redirectTo });
+  if (resetError) {
+    return response.status(500).json({ error: "Não foi possível enviar o e-mail de redefinição de senha." });
+  }
+
+  return response.status(200).json({ success: true, email });
+}
+
 export default async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store");
 
@@ -243,15 +271,17 @@ export default async function handler(request, response) {
   }
 
   if (request.method === "POST") {
-    return sendPartnerAccess(request, response, admin);
+    const body = await parseBody(request);
+    if (body?.action === "reset") {
+      return resetPartnerPasswordHandler(body, response, admin, request);
+    }
+    return sendPartnerAccess(request, response, admin, body);
   }
 
   if (request.method === "DELETE") {
     return deletePartnerAccess(request, response, admin);
   }
 
-  if (request.method !== "POST" && request.method !== "DELETE") {
-    response.setHeader("Allow", "POST, DELETE");
-    return response.status(405).json({ error: "Method Not Allowed" });
-  }
+  response.setHeader("Allow", "POST, DELETE");
+  return response.status(405).json({ error: "Method Not Allowed" });
 }

@@ -7,6 +7,7 @@ import ImagePicker from "@/components/admin/ImagePicker";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import { validateDraft, fixLinksColor, type Issue } from "@/utils/seoAudit";
 import { uploadInlineMedia } from "@/lib/supabaseClient";
+import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import DOMPurify from 'dompurify';
 
 type Props = {
@@ -26,6 +27,7 @@ const BRAND_LINK_COLOR = "#ce9e0d";
 
 export default function PostEditor({ index, onBack }: Props) {
   const { posts, upsertPost } = useAdminPosts();
+  const editorStorageKey = `controle.postEditor.${index ?? "novo"}`;
 
   const initial: Draft = useMemo(() => {
     if (index !== null && index >= 0 && index < posts.length) {
@@ -54,7 +56,7 @@ export default function PostEditor({ index, onBack }: Props) {
     };
   }, [index, posts]);
 
-  const [draft, setDraft] = useState<Draft>(initial);
+  const [draft, setDraft] = useSessionStorageState<Draft>(editorStorageKey, initial);
   const [tagInput, setTagInput] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -65,7 +67,7 @@ export default function PostEditor({ index, onBack }: Props) {
     setDraft(initial);
     setErrors([]);
     setShowPreview(false);
-  }, [initial]);
+  }, [initial, setDraft]);
 
   // Revalida a cada alteração relevante
   useEffect(() => {
@@ -130,6 +132,7 @@ export default function PostEditor({ index, onBack }: Props) {
         category: draft.category,
       };
       await upsertPost(index, payload);
+      window.sessionStorage.removeItem(editorStorageKey);
       alert("Post salvo com sucesso no Supabase! 🎉");
       onBack();
     } catch (err: any) {

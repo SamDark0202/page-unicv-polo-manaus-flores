@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { fetchAdminPartners, type AdminPartnerRecord } from "@/lib/adminPartnerApi";
 import {
   fetchAdminCommissions,
@@ -44,12 +45,12 @@ export default function PartnerCommissionsSection() {
 
   const [partners, setPartners] = useState<AdminPartnerRecord[]>([]);
   const [loadingPartners, setLoadingPartners] = useState(true);
-  const [selectedId, setSelectedId] = useState<string>(ALL_PARTNERS_VALUE);
+  const [selectedId, setSelectedId] = useSessionStorageState<string>("controle.partnerCommissions.selectedId", ALL_PARTNERS_VALUE);
 
   const [loading, setLoading] = useState(false);
   const [commissions, setCommissions] = useState<AdminCommissionRecord[]>([]);
-  const [statusFilter, setStatusFilter] = useState<"todos" | "pendente" | "pago">("todos");
-  const [mesFilter, setMesFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useSessionStorageState<"todos" | "pendente" | "pago">("controle.partnerCommissions.statusFilter", "todos");
+  const [mesFilter, setMesFilter] = useSessionStorageState<string>("controle.partnerCommissions.mesFilter", "");
   const [paying, setPaying] = useState<Set<string>>(new Set());
 
   useEffect(() => {

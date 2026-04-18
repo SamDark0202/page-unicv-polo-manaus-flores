@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import LeadForm from "@/components/LeadForm";
 import CourseDetailDialog from "@/components/CourseDetailDialog";
 import { useMemo, useState } from "react";
+import { normalizeText } from "@/utils/normalize";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,12 +20,12 @@ const Licenciatura = () => {
   const fetchError = error instanceof Error ? error.message : null;
 
   const cursosFiltrados = useMemo(() => {
-    const termo = searchTerm.trim().toLowerCase();
+    const termo = normalizeText(searchTerm.trim());
     if (!termo) return courses;
     return courses.filter(
       (curso) =>
-        curso.name.toLowerCase().includes(termo) ||
-        curso.preview.toLowerCase().includes(termo)
+        normalizeText(curso.name).includes(termo) ||
+        normalizeText(curso.preview).includes(termo)
     );
   }, [courses, searchTerm]);
 

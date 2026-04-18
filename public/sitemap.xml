@@ -39,12 +39,6 @@
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
-  <url>
-    <loc>https://www.unicivepoloam.com.br/form-parceria-mt</loc>
-    <lastmod>2026-03-12</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
   <!-- ==================== BACHARELADO (27 CURSOS) ==================== -->
   <url>
     <loc>https://www.unicivepoloam.com.br/bacharelado#administracao</loc>

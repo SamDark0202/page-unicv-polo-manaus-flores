@@ -11,6 +11,7 @@ import PartnerManager from "@/components/admin/partners/PartnerManager";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useThemeMode } from "@/hooks/useThemeMode";
+import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { useAdminAuth } from "@/contexts/AuthContext";
 
 type BlogView = "list" | "editor";
@@ -25,10 +26,10 @@ type SidebarItem = {
 };
 
 export default function Controle() {
-  const [section, setSection] = useState<AdminSection>("blog");
-  const [blogView, setBlogView] = useState<BlogView>("list");
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [section, setSection] = useSessionStorageState<AdminSection>("controle.section", "blog");
+  const [blogView, setBlogView] = useSessionStorageState<BlogView>("controle.blogView", "list");
+  const [editingIndex, setEditingIndex] = useSessionStorageState<number | null>("controle.editingIndex", null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useSessionStorageState<boolean>("controle.sidebarCollapsed", false);
   const [signingOut, setSigningOut] = useState(false);
   const [courseCreateSignal, setCourseCreateSignal] = useState(0);
   const { theme, toggleTheme } = useThemeMode();

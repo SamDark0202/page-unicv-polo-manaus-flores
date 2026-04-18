@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ import {
   updateAdminIndication,
 } from "@/lib/adminIndicationApi";
 import { formatPartnerIndicationStatus, type PartnerIndicationStatus } from "@/lib/partnerIndication";
+import { normalizeText } from "@/utils/normalize";
 import { Loader2, Save, Search } from "lucide-react";
 
 const STATUS_OPTIONS: Array<{ value: PartnerIndicationStatus | "todos"; label: string }> = [
@@ -71,7 +72,7 @@ export default function PartnerIndicationsCrmDialog({
     if (!parceiroId) return;
     try {
       setLoading(true);
-      const rows = await fetchAdminIndications(parceiroId, { status: statusFilter, search: search.trim() });
+      const rows = await fetchAdminIndications(parceiroId);
       setIndications(rows);
       const nextDrafts: DraftMap = {};
       for (const row of rows) {
@@ -94,6 +95,20 @@ export default function PartnerIndicationsCrmDialog({
       setLoading(false);
     }
   }
+
+  const filteredIndications = useMemo(() => {
+    const q = normalizeText(search.trim());
+    return indications.filter((item) => {
+      if (statusFilter !== "todos" && item.status !== statusFilter) return false;
+      if (!q) return true;
+      return (
+        normalizeText(item.nome).includes(q) ||
+        normalizeText(item.telefone).includes(q) ||
+        normalizeText(item.email ?? "").includes(q) ||
+        normalizeText(item.curso_interesse ?? "").includes(q)
+      );
+    });
+  }, [indications, search, statusFilter]);
 
   useEffect(() => {
     if (open && parceiroId) {
@@ -188,12 +203,12 @@ export default function PartnerIndicationsCrmDialog({
             <div className="flex items-center justify-center py-12 text-muted-foreground">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Carregando indicações...
             </div>
-          ) : indications.length === 0 ? (
+          ) : filteredIndications.length === 0 ? (
             <div className="rounded-xl border py-12 text-center text-muted-foreground">
               Nenhuma indicação encontrada para os filtros informados.
             </div>
           ) : (
-            indications.map((item) => {
+            filteredIndications.map((item) => {
               const draft = drafts[item.id];
               if (!draft) return null;
               const converted = draft.status === "convertido";

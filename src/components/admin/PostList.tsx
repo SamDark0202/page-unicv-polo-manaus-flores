@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAdminPosts } from "@/hooks/useAdminPosts";
 import type { Post } from "@/types/post";
+import { normalizeText } from "@/utils/normalize";
 
 export default function PostList({
   onEdit,
@@ -13,12 +14,12 @@ export default function PostList({
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = normalizeText(query.trim());
     if (!q) return posts;
     return posts.filter(p =>
-      (p.title?.toLowerCase() ?? "").includes(q) ||
-      (p.slug?.toLowerCase() ?? "").includes(q) ||
-      (p.author?.toLowerCase() ?? "").includes(q)
+      normalizeText(p.title ?? "").includes(q) ||
+      normalizeText(p.slug ?? "").includes(q) ||
+      normalizeText(p.author ?? "").includes(q)
     );
   }, [query, posts]);
 

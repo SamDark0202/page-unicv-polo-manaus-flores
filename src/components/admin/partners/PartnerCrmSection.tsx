@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { useToast } from "@/hooks/use-toast";
 import { fetchAdminPartners, type AdminPartnerRecord } from "@/lib/adminPartnerApi";
 import {
@@ -70,29 +71,29 @@ const PIPELINE_COLUMNS: Array<{
     status: "novo",
     title: "Entrada",
     description: "Leads captados aguardando primeiro contato.",
-    tone: "text-sky-700",
-    surface: "border-sky-200 bg-sky-50/70",
+    tone: "text-sky-800 dark:text-sky-200",
+    surface: "border-sky-200 bg-sky-50/85 dark:border-sky-500/35 dark:bg-sky-950/35",
   },
   {
     status: "em_negociacao",
     title: "Negociação",
     description: "Atendimentos aquecidos com follow-up em andamento.",
-    tone: "text-amber-700",
-    surface: "border-amber-200 bg-amber-50/70",
+    tone: "text-amber-800 dark:text-amber-200",
+    surface: "border-amber-200 bg-amber-50/85 dark:border-amber-500/35 dark:bg-amber-950/35",
   },
   {
     status: "convertido",
     title: "Convertidos",
     description: "Leads confirmados com potencial de comissão.",
-    tone: "text-emerald-700",
-    surface: "border-emerald-200 bg-emerald-50/70",
+    tone: "text-emerald-800 dark:text-emerald-200",
+    surface: "border-emerald-200 bg-emerald-50/85 dark:border-emerald-500/35 dark:bg-emerald-950/35",
   },
   {
     status: "nao_convertido",
     title: "Perdidos",
     description: "Oportunidades encerradas ou sem avanço.",
-    tone: "text-rose-700",
-    surface: "border-rose-200 bg-rose-50/70",
+    tone: "text-rose-800 dark:text-rose-200",
+    surface: "border-rose-200 bg-rose-50/85 dark:border-rose-500/35 dark:bg-rose-950/35",
   },
 ];
 
@@ -146,20 +147,20 @@ export default function PartnerCrmSection() {
 
   const [partners, setPartners] = useState<AdminPartnerRecord[]>([]);
   const [loadingPartners, setLoadingPartners] = useState(true);
-  const [selectedId, setSelectedId] = useState<string>(ALL_PARTNERS_VALUE);
+  const [selectedId, setSelectedId] = useSessionStorageState<string>("controle.partnerCrm.selectedId", ALL_PARTNERS_VALUE);
 
   const [loading, setLoading] = useState(false);
   const [indications, setIndications] = useState<AdminIndicationRecord[]>([]);
-  const [search, setSearch] = useState("");
-  const [viewFilter, setViewFilter] = useState<"todos" | "abertos" | "fechados">("todos");
-  const [drafts, setDrafts] = useState<DraftMap>({});
+  const [search, setSearch] = useSessionStorageState<string>("controle.partnerCrm.search", "");
+  const [viewFilter, setViewFilter] = useSessionStorageState<"todos" | "abertos" | "fechados">("controle.partnerCrm.viewFilter", "todos");
+  const [drafts, setDrafts] = useSessionStorageState<DraftMap>("controle.partnerCrm.drafts", {});
   const [savingId, setSavingId] = useState<string | null>(null);
-  const [activeLeadId, setActiveLeadId] = useState<string | null>(null);
+  const [activeLeadId, setActiveLeadId] = useSessionStorageState<string | null>("controle.partnerCrm.activeLeadId", null);
   const [createOpen, setCreateOpen] = useState(false);
   const [creatingLead, setCreatingLead] = useState(false);
   const [deletingLeadId, setDeletingLeadId] = useState<string | null>(null);
   const [leadPendingDeletion, setLeadPendingDeletion] = useState<AdminIndicationRecord | null>(null);
-  const [createDraft, setCreateDraft] = useState<CreateLeadDraft>({
+  const [createDraft, setCreateDraft] = useSessionStorageState<CreateLeadDraft>("controle.partnerCrm.createDraft", {
     parceiro_id: "",
     nome: "",
     telefone: "",
@@ -192,7 +193,19 @@ export default function PartnerCrmSection() {
         };
       }
 
-      setDrafts(nextDrafts);
+      setDrafts((previousDrafts) => {
+        const mergedDrafts: DraftMap = { ...nextDrafts };
+
+        for (const [leadId, draft] of Object.entries(previousDrafts)) {
+          if (!mergedDrafts[leadId]) continue;
+          mergedDrafts[leadId] = {
+            ...mergedDrafts[leadId],
+            ...draft,
+          };
+        }
+
+        return mergedDrafts;
+      });
       setActiveLeadId((current) => (current && rows.some((item) => item.id === current) ? current : null));
     } catch (error) {
       toast({
@@ -365,7 +378,7 @@ export default function PartnerCrmSection() {
 
   return (
     <div className="space-y-6">
-      <Card className="rounded-[28px] border-white/60 bg-card/85 shadow-soft supports-[backdrop-filter]:backdrop-blur">
+      <Card className="rounded-[28px] border-white/60 bg-card/95 shadow-soft supports-[backdrop-filter]:backdrop-blur">
         <CardContent className="p-5 sm:p-6">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-end">
             <div className="flex-1 space-y-1.5">
@@ -445,40 +458,40 @@ export default function PartnerCrmSection() {
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <Card className="rounded-[24px] shadow-soft">
+            <Card className="rounded-[24px] border-border/70 bg-card/95 shadow-soft">
               <CardContent className="p-5">
-                <div className="flex items-center gap-2 text-slate-700">
+                <div className="flex items-center gap-2 text-slate-800 dark:text-slate-200">
                   <Users className="h-4 w-4" />
                   <p className="text-xs font-semibold uppercase tracking-[0.18em]">Leads visíveis</p>
                 </div>
-                <p className="mt-3 text-3xl font-bold">{metrics.total}</p>
+                <p className="mt-3 text-3xl font-bold text-foreground">{metrics.total}</p>
               </CardContent>
             </Card>
-            <Card className="rounded-[24px] shadow-soft">
+            <Card className="rounded-[24px] border-border/70 bg-card/95 shadow-soft">
               <CardContent className="p-5">
-                <div className="flex items-center gap-2 text-amber-700">
+                <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
                   <Target className="h-4 w-4" />
                   <p className="text-xs font-semibold uppercase tracking-[0.18em]">Em negociação</p>
                 </div>
-                <p className="mt-3 text-3xl font-bold">{metrics.emNegociacao}</p>
+                <p className="mt-3 text-3xl font-bold text-foreground">{metrics.emNegociacao}</p>
               </CardContent>
             </Card>
-            <Card className="rounded-[24px] shadow-soft">
+            <Card className="rounded-[24px] border-border/70 bg-card/95 shadow-soft">
               <CardContent className="p-5">
-                <div className="flex items-center gap-2 text-emerald-700">
+                <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-200">
                   <BadgeCheck className="h-4 w-4" />
                   <p className="text-xs font-semibold uppercase tracking-[0.18em]">Convertidos</p>
                 </div>
-                <p className="mt-3 text-3xl font-bold">{metrics.convertidos}</p>
+                <p className="mt-3 text-3xl font-bold text-foreground">{metrics.convertidos}</p>
               </CardContent>
             </Card>
-            <Card className="rounded-[24px] shadow-soft">
+            <Card className="rounded-[24px] border-border/70 bg-card/95 shadow-soft">
               <CardContent className="p-5">
                 <div className="flex items-center gap-2 text-primary">
                   <CircleDollarSign className="h-4 w-4" />
                   <p className="text-xs font-semibold uppercase tracking-[0.18em]">Pipeline financeiro</p>
                 </div>
-                <p className="mt-3 text-3xl font-bold">{formatCurrency(metrics.valorPipeline)}</p>
+                <p className="mt-3 text-3xl font-bold text-foreground">{formatCurrency(metrics.valorPipeline)}</p>
               </CardContent>
             </Card>
           </div>
@@ -495,16 +508,16 @@ export default function PartnerCrmSection() {
                     <div className="mb-4 flex items-start justify-between gap-3">
                       <div>
                         <p className={cn("text-sm font-semibold", column.tone)}>{column.title}</p>
-                        <p className="mt-1 text-xs leading-5 text-muted-foreground">{column.description}</p>
+                        <p className="mt-1 text-xs leading-5 text-slate-700/90 dark:text-slate-300/90">{column.description}</p>
                       </div>
-                      <Badge variant="secondary" className="rounded-full px-3 py-1">
+                      <Badge variant="secondary" className="rounded-full px-3 py-1 font-semibold">
                         {column.items.length}
                       </Badge>
                     </div>
 
                     <div className="space-y-3">
                       {column.items.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed bg-background/70 p-4 text-center text-xs text-muted-foreground">
+                        <div className="rounded-2xl border border-dashed border-border/70 bg-card/85 p-4 text-center text-xs text-foreground/75">
                           Nenhum lead nesta etapa.
                         </div>
                       ) : (
@@ -514,18 +527,18 @@ export default function PartnerCrmSection() {
                           return (
                             <div
                               key={item.id}
-                              className="rounded-[22px] border bg-background p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+                              className="rounded-[22px] border border-border/80 bg-card/95 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
                             >
-                              <div className="space-y-3 text-xs text-muted-foreground">
+                              <div className="space-y-3 text-[13px] text-foreground/85">
                                 <div className="min-w-0">
-                                  <p className="truncate text-base font-semibold text-foreground">{item.nome}</p>
+                                  <p className="truncate text-lg font-semibold text-foreground">{item.nome}</p>
                                 </div>
                                 <div>
-                                  <p>Criado em {formatDateLabel(item.data_criacao)}</p>
+                                  <p className="text-foreground/80">Criado em {formatDateLabel(item.data_criacao)}</p>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 text-foreground/80">
                                   <Building2 className="h-3.5 w-3.5" />
-                                  <span className="truncate">{partnerName}</span>
+                                  <span className="truncate font-medium">{partnerName}</span>
                                 </div>
                               </div>
 

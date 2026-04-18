@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BlogCard from '../components/BlogCard';
 import React, { useState, useMemo, useEffect } from 'react';
+import { normalizeText } from "@/utils/normalize";
 import { Helmet } from 'react-helmet';
 import { fetchPosts } from '@/lib/supabaseClient';
 import type { Post } from '@/types/post';
@@ -36,9 +37,10 @@ const Blog = () => {
 
     // Filter by search term
     if (searchTerm) {
+      const q = normalizeText(searchTerm.trim());
       filtered = filtered.filter(post =>
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.content.toLowerCase().includes(searchTerm.toLowerCase())
+        normalizeText(post.title).includes(q) ||
+        normalizeText(post.content).includes(q)
       );
     }
 

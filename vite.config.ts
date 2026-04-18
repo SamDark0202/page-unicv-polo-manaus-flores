@@ -453,7 +453,107 @@ export default defineConfig(({ mode }) => {
             return sendJson(res, 200, { partner: data });
           }
 
-          res.setHeader("Allow", "GET, POST, PUT");
+          if (req.method === "DELETE") {
+            const body = await readJsonBody(req);
+            const partnerId = String(body?.partnerId || "").trim();
+            const reassignToPartnerId = String(body?.reassignToPartnerId || "").trim() || null;
+
+            if (!partnerId) {
+              return sendJson(res, 400, { error: "partnerId é obrigatório." });
+            }
+
+            const { data: partner, error: partnerError } = await localSupabaseAdmin
+              .from("parceiros")
+              .select("id, email, auth_user_id")
+              .eq("id", partnerId)
+              .maybeSingle();
+
+            if (partnerError || !partner?.id) {
+              return sendJson(res, 404, { error: "Parceiro não encontrado." });
+            }
+
+            const partnerEmail = String(partner.email || "").trim().toLowerCase();
+            if (ALLOWED_ADMIN_EMAILS.has(partnerEmail)) {
+              return sendJson(res, 400, { error: "Não é permitido excluir um usuário administrativo por esta tela." });
+            }
+
+            if (reassignToPartnerId) {
+              if (reassignToPartnerId === partnerId) {
+                return sendJson(res, 400, { error: "O parceiro destino não pode ser o mesmo que está sendo excluído." });
+              }
+
+              const { data: targetPartner, error: targetError } = await localSupabaseAdmin
+                .from("parceiros")
+                .select("id")
+                .eq("id", reassignToPartnerId)
+                .maybeSingle();
+
+              if (targetError || !targetPartner?.id) {
+                return sendJson(res, 404, { error: "Parceiro destino não encontrado." });
+              }
+            }
+
+            const { data: leadsCheck, error: leadsCheckError } = await localSupabaseAdmin
+              .from("indicacoes")
+              .select("id")
+              .eq("parceiro_id", partnerId);
+
+            if (leadsCheckError) {
+              return sendJson(res, 500, { error: "Falha ao verificar leads do parceiro." });
+            }
+
+            const leadsCount = leadsCheck?.length ?? 0;
+            let leadsReassigned = 0;
+
+            if (leadsCount > 0 && reassignToPartnerId) {
+              const { data: updatedLeads, error: reassignError } = await localSupabaseAdmin
+                .from("indicacoes")
+                .update({ parceiro_id: reassignToPartnerId })
+                .eq("parceiro_id", partnerId)
+                .select("id");
+
+              if (reassignError) {
+                return sendJson(res, 500, { error: `Falha ao reatribuir os leads do parceiro: ${reassignError.message || "Erro desconhecido"}` });
+              }
+
+              leadsReassigned = updatedLeads?.length ?? 0;
+            } else if (leadsCount > 0 && !reassignToPartnerId) {
+              return sendJson(res, 400, { error: `O parceiro possui ${leadsCount} lead(s). Selecione um parceiro destino para transferência.` });
+            }
+
+            const { error: deletePartnerError } = await localSupabaseAdmin
+              .from("parceiros")
+              .delete()
+              .eq("id", partnerId);
+
+            if (deletePartnerError) {
+              return sendJson(res, 500, { error: `Falha ao excluir o cadastro do parceiro: ${deletePartnerError.message || "Erro desconhecido"}` });
+            }
+
+            let authUserId = partner.auth_user_id || null;
+            if (!authUserId) {
+              for (let page = 1; page <= 5; page += 1) {
+                const { data, error } = await localSupabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
+                if (error) break;
+
+                const users = data?.users || [];
+                const found = users.find((u) => String(u?.email || "").toLowerCase() === partnerEmail);
+                if (found?.id) {
+                  authUserId = found.id;
+                  break;
+                }
+                if (users.length < 200) break;
+              }
+            }
+
+            if (authUserId) {
+              await localSupabaseAdmin.auth.admin.deleteUser(authUserId).catch(() => null);
+            }
+
+            return sendJson(res, 200, { success: true, leadsReassigned });
+          }
+
+          res.setHeader("Allow", "GET, POST, PUT, DELETE");
           return sendJson(res, 405, { error: "Method Not Allowed" });
         });
       },
