@@ -399,7 +399,8 @@ function UserBubble({ text }: { text: string }) {
 // ─── Constantes ───────────────────────────────────────────────────────────────
 const WA_PHONE = "559220201260";
 const WA_BASE = `https://wa.me/${WA_PHONE}`;
-const RESULT_WEBHOOK = "https://hook.us2.make.com/aujmadqbmtpngf3gmwmoz2rjny55li4y";
+// Proxy backend → evita bloqueio de CORS ao chamar Make.com direto do browser
+const RESULT_WEBHOOK = "/api/vocacional-resend-email";
 
 // ─── Builder do e-mail de resultado ──────────────────────────────────────────
 function buildResultEmail(
@@ -718,13 +719,20 @@ const TesteVocacional = () => {
       }),
     }).catch(() => {});
 
-    // 2. Disparar webhook para envio do e-mail de resultado
+    // 2. Disparar webhook para envio do e-mail de resultado (via proxy backend)
     const html = buildResultEmail(lead.nome, PROFILES[areas[0]], topRecommended, areas, scores);
     fetch(RESULT_WEBHOOK, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: lead.email, nome: lead.nome, html }),
-    }).catch(() => {});
+    }).then(async (res) => {
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        console.error("[vocacional] Falha ao enviar e-mail de resultado:", body);
+      }
+    }).catch((err) => {
+      console.error("[vocacional] Erro ao disparar webhook de resultado:", err);
+    });
   }, [phase, leadId, scores, topRecommended, lead]);
 
   // Auto-scroll chat

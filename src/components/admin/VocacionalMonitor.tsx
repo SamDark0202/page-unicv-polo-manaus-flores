@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Brain, Search, RefreshCw, GraduationCap } from "lucide-react";
+import { Brain, Search, RefreshCw, GraduationCap, Mail, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 type VocacionalLead = {
@@ -76,6 +76,8 @@ const AREA_COLORS: Record<string, string> = {
 };
 
 // ─── Modal de detalhes ────────────────────────────────────────────────────────
+type ResendState = "idle" | "loading" | "success" | "error";
+
 function LeadDetailModal({
   lead,
   open,
@@ -85,6 +87,32 @@ function LeadDetailModal({
   open: boolean;
   onClose: () => void;
 }) {
+  const [resendState, setResendState] = useState<ResendState>("idle");
+  const [resendError, setResendError] = useState("");
+
+  async function handleResend() {
+    if (!lead) return;
+    setResendState("loading");
+    setResendError("");
+    try {
+      const res = await fetch("/api/vocacional-resend-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadId: lead.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setResendError((data as { error?: string }).error ?? `Erro ${res.status}`);
+        setResendState("error");
+      } else {
+        setResendState("success");
+        setTimeout(() => setResendState("idle"), 4000);
+      }
+    } catch (err) {
+      setResendError("Falha de rede. Tente novamente.");
+      setResendState("error");
+    }
+  }
   if (!lead) return null;
 
   const topScore =
@@ -99,7 +127,7 @@ function LeadDetailModal({
     : [];
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) { setResendState("idle"); setResendError(""); onClose(); } }}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
@@ -182,6 +210,33 @@ function LeadDetailModal({
               </ul>
             </div>
           )}
+
+          {/* Reenviar e-mail */}
+          <div className="border-t pt-4">
+            <p className="text-xs text-muted-foreground mb-2">
+              Reenviar o e-mail de resultado para <strong>{lead.email}</strong>
+            </p>
+            <Button
+              size="sm"
+              variant={resendState === "success" ? "outline" : "default"}
+              className="gap-1.5"
+              disabled={resendState === "loading" || resendState === "success"}
+              onClick={handleResend}
+            >
+              {resendState === "loading" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {resendState === "success" && <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />}
+              {resendState === "error" && <AlertCircle className="h-3.5 w-3.5 text-destructive" />}
+              {resendState === "idle" && <Mail className="h-3.5 w-3.5" />}
+              {resendState === "loading"
+                ? "Enviando…"
+                : resendState === "success"
+                ? "E-mail enviado!"
+                : "Reenviar e-mail"}
+            </Button>
+            {resendState === "error" && (
+              <p className="mt-2 text-xs text-destructive">{resendError}</p>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
