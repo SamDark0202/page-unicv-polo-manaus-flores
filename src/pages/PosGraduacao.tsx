@@ -31,7 +31,7 @@ type PostGraduateApiResponse = {
   courses: PostGraduateCourse[];
 };
 
-const DEFAULT_API_URL = "/api/pos-graduacao";
+const DEFAULT_API_URL = "/api/cursos?tipo=pos-graduacao";
 const API_URL = import.meta.env.VITE_POS_GRADUACAO_API_URL || DEFAULT_API_URL;
 const API_FALLBACK_URL = "https://www.unicivepoloam.com.br/api/pos-graduacao";
 const WHATSAPP_PHONE = "559220201260";

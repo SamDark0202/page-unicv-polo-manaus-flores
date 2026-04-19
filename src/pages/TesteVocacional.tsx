@@ -881,52 +881,37 @@ const TesteVocacional = () => {
             <div className="absolute top-20 left-1/4 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-10 right-1/4 w-72 h-72 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="relative container mx-auto px-4 py-20 lg:py-32">
-              <div className="text-center max-w-4xl mx-auto">
-                <Badge className="mb-6 px-4 py-1.5 bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-xs font-semibold tracking-wider uppercase">
+            <div className="relative container mx-auto px-5 pt-12 pb-14 sm:py-20 lg:py-32">
+              <div className="text-center max-w-3xl mx-auto">
+                <Badge className="mb-5 px-3.5 py-1 bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-[11px] font-semibold tracking-wider uppercase">
                   <Sparkles className="h-3 w-3 mr-1.5" />
                   Teste Vocacional Inteligente
                 </Badge>
 
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-6 leading-tight">
-                  Descubra em{" "}
+                <h1 className="text-[2.1rem] leading-[1.15] sm:text-5xl lg:text-6xl font-black mb-4 sm:mb-6">
+                  Descubra em{" "}<br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 grad-anim">
                     2 minutos
-                  </span>
-                  <br />
+                  </span>{" "}
                   qual carreira é feita para você
                 </h1>
 
-                <p className="text-lg lg:text-xl text-slate-300 mb-4 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-base sm:text-lg text-slate-300 mb-8 max-w-xl mx-auto leading-relaxed">
                   Responda perguntas rápidas e descubra seu perfil profissional,
                   as áreas mais compatíveis e os cursos ideais para o seu futuro.
                 </p>
 
-                {/* Social proof */}
-                <div className="flex items-center justify-center gap-2 mb-10 text-sm text-slate-400">
-                  <div className="flex -space-x-2">
-                    {["bg-emerald-500", "bg-cyan-500", "bg-blue-500", "bg-violet-500"].map((c, i) => (
-                      <div key={i} className={`w-8 h-8 rounded-full ${c} border-2 border-slate-900 flex items-center justify-center text-xs text-white font-bold`}>
-                        {["M", "J", "A", "C"][i]}
-                      </div>
-                    ))}
-                  </div>
-                  <span><strong className="text-white">+1.247 alunos</strong> já descobriram seu caminho</span>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
-                  <Button
-                    size="lg"
-                    className="text-lg px-10 py-6 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-white font-bold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-400/40 hover:scale-105 transition-all duration-200 border-0"
-                    onClick={() => setPhase("lead")}
-                  >
-                    Descobrir Minha Vocação
-                    <ArrowRight className="h-5 w-5 ml-2" />
-                  </Button>
-                </div>
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto text-base sm:text-lg px-10 py-5 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-white font-bold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-400/40 hover:scale-105 transition-all duration-200 border-0 mb-4"
+                  onClick={() => setPhase("lead")}
+                >
+                  Descobrir Minha Vocação
+                  <ArrowRight className="h-5 w-5 ml-2" />
+                </Button>
 
                 {/* Proof items */}
-                <div className="flex flex-wrap justify-center gap-6 text-sm text-slate-400">
+                <div className="flex items-center justify-center gap-5 text-sm text-slate-400 mb-8">
                   {[
                     { icon: CheckCircle, text: "100% gratuito" },
                     { icon: Award, text: "Base científica" },
@@ -936,6 +921,18 @@ const TesteVocacional = () => {
                       <span>{text}</span>
                     </div>
                   ))}
+                </div>
+
+                {/* Social proof */}
+                <div className="flex items-center justify-center gap-2.5 text-sm text-slate-400">
+                  <div className="flex -space-x-2">
+                    {["bg-emerald-500", "bg-cyan-500", "bg-blue-500", "bg-violet-500"].map((c, i) => (
+                      <div key={i} className={`w-7 h-7 rounded-full ${c} border-2 border-slate-900 flex items-center justify-center text-xs text-white font-bold`}>
+                        {["M", "J", "A", "C"][i]}
+                      </div>
+                    ))}
+                  </div>
+                  <span><strong className="text-white">+1.247 alunos</strong> já descobriram seu caminho</span>
                 </div>
               </div>
             </div>

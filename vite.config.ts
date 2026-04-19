@@ -22,9 +22,8 @@ import { syncCommissionForIndication } from "./api/_indicationCommissionSync.js"
 import { buildPartnershipPayload, validatePartnershipBody } from "./api/_partnershipWebhookCore.js";
 import { buildIndicationPayload, validateIndicationBody } from "./api/_indicationWebhookCore.js";
 import { buildPartnerPublicLeadPayload, validatePartnerPublicLeadBody } from "./api/_partnerPublicLeadCore.js";
-import posGraduacaoHandler from "./api/pos-graduacao.js";
+import cursosHandler from "./api/cursos.js";
 import vocacionalLeadHandler from "./api/vocacional-lead.js";
-import vocacionalLeadsListHandler from "./api/vocacional-leads-list.js";
 
 async function readJsonBody(req: import("node:http").IncomingMessage) {
   const chunks: Buffer[] = [];
@@ -194,13 +193,13 @@ export default defineConfig(({ mode }) => {
   plugins: [
     react(),
     {
-      name: "local-pos-graduacao",
+      name: "local-cursos-pos-graduacao",
       apply: "serve",
       configureServer(server) {
         server.middlewares.use(async (req, res, next) => {
-          if (!req.url || !req.url.startsWith("/api/pos-graduacao")) {
-            return next();
-          }
+          if (!req.url || !req.url.includes("/api/cursos")) return next();
+          const reqUrl = new URL(req.url, "http://localhost");
+          if (reqUrl.searchParams.get("tipo") !== "pos-graduacao") return next();
 
           if (req.method !== "GET") {
             res.statusCode = 405;
@@ -227,7 +226,7 @@ export default defineConfig(({ mode }) => {
           };
 
           try {
-            await posGraduacaoHandler(req, vercelRes);
+            await cursosHandler(req, vercelRes);
           } catch (err) {
             const message = err instanceof Error ? err.message : "Erro interno";
             sendJson(res, 500, { error: message });
@@ -302,8 +301,7 @@ export default defineConfig(({ mode }) => {
       apply: "serve",
       configureServer(server) {
         server.middlewares.use(async (req, res, next) => {
-          // Só intercepta /api/vocacional-lead (POST/PATCH), não /api/vocacional-leads-list
-          if (!req.url || !req.url.startsWith("/api/vocacional-lead") || req.url.startsWith("/api/vocacional-leads-list")) {
+          if (!req.url || !req.url.startsWith("/api/vocacional-lead")) {
             return next();
           }
 
@@ -325,40 +323,6 @@ export default defineConfig(({ mode }) => {
 
           try {
             await vocacionalLeadHandler(req, vercelRes);
-          } catch (err) {
-            const message = err instanceof Error ? err.message : "Erro interno";
-            sendJson(res, 500, { error: message });
-          }
-        });
-      },
-    },
-    {
-      name: "local-vocacional-leads-list",
-      apply: "serve",
-      configureServer(server) {
-        server.middlewares.use(async (req, res, next) => {
-          if (!req.url || !req.url.startsWith("/api/vocacional-leads-list")) {
-            return next();
-          }
-
-          let pendingStatus = 200;
-          const extraHeaders: Record<string, string> = {};
-
-          const vercelRes = {
-            status(code: number) { pendingStatus = code; return vercelRes; },
-            setHeader(name: string, value: string) { extraHeaders[name] = value; },
-            json(data: unknown) {
-              res.statusCode = pendingStatus;
-              res.setHeader("Content-Type", "application/json; charset=utf-8");
-              for (const [k, v] of Object.entries(extraHeaders)) {
-                res.setHeader(k, v);
-              }
-              res.end(JSON.stringify(data));
-            },
-          };
-
-          try {
-            await vocacionalLeadsListHandler(req, vercelRes);
           } catch (err) {
             const message = err instanceof Error ? err.message : "Erro interno";
             sendJson(res, 500, { error: message });

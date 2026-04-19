@@ -57,6 +57,19 @@ export default async function handler(request, response) {
     });
   }
 
+  // GET → lista todos os leads (monitor admin)
+  if (request.method === "GET") {
+    const { data, error } = await admin
+      .from("leads_vocacional")
+      .select("id, nome, telefone, email, perfil, top_areas, top_cursos, score_json, status, origem, created_at")
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error("[vocacional-lead GET]", error.message);
+      return response.status(500).json({ error: error.message });
+    }
+    return response.status(200).json(data ?? []);
+  }
+
   try {
     const body = await parseBody(request);
 
@@ -111,7 +124,7 @@ export default async function handler(request, response) {
       return response.status(200).json({ success: true });
     }
 
-    response.setHeader("Allow", "POST, PATCH");
+    response.setHeader("Allow", "GET, POST, PATCH");
     return response.status(405).json({ error: "Method Not Allowed" });
   } catch (error) {
     const message = error instanceof Error ? error.message : "erro desconhecido";

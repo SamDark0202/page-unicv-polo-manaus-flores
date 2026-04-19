@@ -36,7 +36,7 @@ type VocacionalLead = {
 
 // ─── Fetch via API (service role — bypass RLS) ────────────────────────────────
 async function fetchLeads(): Promise<VocacionalLead[]> {
-  const res = await fetch("/api/vocacional-leads-list");
+  const res = await fetch("/api/vocacional-lead");
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
