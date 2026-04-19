@@ -9,13 +9,21 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 
 import TopbarFixed from "./components/TopbarFixed";
 import { isChristmas } from "@/lib/isChristmas";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { AuthProvider } from "@/contexts/AuthContext";
 import PageTracker from "@/components/PageTracker";
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [pathname]);
+  return null;
+}
 
 // ✅ LAZY LOAD - Páginas carregadas sob demanda
 const Index = lazy(() => import("./pages/Index"));
@@ -47,6 +55,7 @@ const WhatsAppRedirectLanding = lazy(() => import("./pages/WhatsAppRedirectLandi
 const Controle = lazy(() => import("@/pages/Controle"));
 const TermosDeServico = lazy(() => import("./pages/TermosDeServico"));
 const PoliticaDePrivacidade = lazy(() => import("./pages/PoliticaDePrivacidade"));
+const TesteVocacional = lazy(() => import("./pages/TesteVocacional"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // ✅ Loading skeleton while pages load
@@ -81,16 +90,21 @@ const AppRoutes = () => {
   ]);
   const isRedirectLanding = redirectPaths.has(location.pathname);
   const isAdmin = location.pathname.startsWith("/controle");
+  const isVocationalTestRoute = location.pathname === "/teste-vocacional";
   const isPartnershipFlow =
     location.pathname.startsWith("/parcerias") ||
     location.pathname.startsWith("/indique-e-ganhe");
     const isPartnerPublicRoute = location.pathname.startsWith('/parceiro/');
-    const hideGlobalChrome = isAdmin || isRedirectLanding || isPartnershipFlow || isPartnerPublicRoute;
-  const showWhatsApp = location.pathname !== "/form-parceria-mt" && !hideGlobalChrome;
+    const hideGlobalChrome = isAdmin || isRedirectLanding || isPartnershipFlow || isPartnerPublicRoute || isVocationalTestRoute;
+  const showWhatsApp =
+    location.pathname !== "/form-parceria-mt" &&
+    !hideGlobalChrome &&
+    !isVocationalTestRoute;
 
   return (
     <>
       <PageTracker />
+      <ScrollToTop />
       {!hideGlobalChrome && <TopbarFixed isChristmas={isChristmas} />}
       {showWhatsApp && <WhatsAppFloat />}
 
@@ -103,6 +117,7 @@ const AppRoutes = () => {
           <Route path="/tecnico-para-tecnologo" element={<TecnicoParaTecnologo />} />
           <Route path="/segunda-graduacao" element={<SegundaGraduacao />} />
           <Route path="/pos-graduacao" element={<PosGraduacao />} />
+          <Route path="/teste-vocacional" element={<TesteVocacional />} />
           <Route path="/parcerias" element={<Parcerias />} />
           <Route path="/parcerias/empresas" element={<ParceriasEmpresas />} />
           <Route path="/parcerias/empresas/formulario" element={<ParceriasFormularioEmpresa />} />
@@ -172,12 +187,13 @@ const AppContent = () => {
   ]);
   const isRedirectLanding = redirectPaths.has(location.pathname);
   const isAdmin = location.pathname.startsWith("/controle");
+  const isVocationalTestRoute = location.pathname === "/teste-vocacional";
   const isPartnershipFlow =
     location.pathname.startsWith("/parcerias") ||
     location.pathname.startsWith("/indique-e-ganhe");
   const isPartnerPublicRoute = location.pathname.startsWith("/parceiro/");
   return (
-    <div className={isAdmin || isRedirectLanding || isPartnershipFlow || isPartnerPublicRoute ? "min-h-screen" : "pt-[90px] min-h-screen"}>
+    <div className={isAdmin || isRedirectLanding || isPartnershipFlow || isPartnerPublicRoute || isVocationalTestRoute ? "min-h-screen" : "pt-[90px] min-h-screen"}>
       <AppRoutes />
     </div>
   );

@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import Diferenciais from "@/components/Diferenciais";
 import Modalidades from "@/components/Modalidades";
 import HomeLaunchCarouselSection from "@/components/HomeLaunchCarouselSection";
+import VocacionalPromoSection from "@/components/VocacionalPromoSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import LeadForm from "@/components/LeadForm";
 import Footer from "@/components/Footer";
@@ -18,6 +19,7 @@ const Index = () => {
       <Diferenciais />
       <Modalidades />
       <HomeLaunchCarouselSection />
+      <VocacionalPromoSection />
       <TestimonialsSection />
       
       {/* Contact Section */}

@@ -9,8 +9,8 @@ import {
   Linkedin,
   MessageCircle,
   GraduationCap,
-  Clock,
-  Star
+  Star,
+  Zap
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import logoImage from "@/assets/unicive-logo-branco.png"; // ✅ Import da logo
@@ -31,16 +31,9 @@ const Footer = ({ showPromoBanner = true }: FooterProps) => {
     { name: "Graduação Bacharelado", link: "/bacharelado" },
     { name: "Graduação Licenciatura", link: "/licenciatura" },
     { name: "Graduação Tecnólogo", link: "/tecnologo" },
+    { name: "2ª Graduação", link: "/segunda-graduacao" },
     { name: "Pós-Graduação", link: "/pos-graduacao" },
-  ];
-
-  const cursosPopulares = [
-    "Administração",
-    "Pedagogia",
-    "Análise de Sistemas",
-    "MBA Gestão Empresarial",
-    "Gestão da Produção Industrial",
-    "Marketing Digital"
+   
   ];
 
   const handleWhatsApp = () => {
@@ -92,13 +85,11 @@ const Footer = ({ showPromoBanner = true }: FooterProps) => {
 
       {/* Main Footer */}
       <div className="container mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Company Info */}
           <div className="space-y-6">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-primary p-2 rounded-lg">
-                <GraduationCap className="h-6 w-6 text-primary-foreground" />
-              </div>
+            
               <div>
                 <img
                   src={logoImage}
@@ -159,33 +150,14 @@ const Footer = ({ showPromoBanner = true }: FooterProps) => {
                 </Link>
               ))}
             </div>
-            <div className="mt-6 p-4 bg-warning/10 rounded-lg border border-warning/20">
-              <div className="flex items-center space-x-2 mb-2">
-                <Clock className="h-4 w-4 text-[#11493C]" />
-                <span className="text-sm font-semibold text-[#11493C]">Destaque</span>
+            <Link
+              to="/tecnico-para-tecnologo"
+              className="mt-6 inline-flex items-center gap-3 rounded-xl bg-gradient-to-r from-warning to-yellow-400 px-4 py-3 shadow-lg hover:brightness-110 transition-all duration-200 group"
+            >
+              <div>
+                <p className="text-sm font-semibold text-black leading-tight">Técnico para Tecnólogo em apenas 1 ano</p>
               </div>
-              <Link
-                to="/tecnico-para-tecnologo"
-                className="text-sm text-secondary-foreground/80 underline-offset-2 transition-colors hover:text-secondary-foreground hover:underline"
-              >
-                Técnico para Tecnólogo em apenas 1 ano
-              </Link>
-            </div>
-          </div>
-
-          {/* Cursos Populares */}
-          <div>
-            <h3 className="font-bold text-lg mb-6">Cursos Populares</h3>
-            <div className="space-y-3">
-              {cursosPopulares.map((curso, index) => (
-                <div
-                  key={index}
-                  className="text-secondary-foreground/80 text-sm"
-                >
-                  {curso}
-                </div>
-              ))}
-            </div>
+            </Link>
           </div>
 
           {/* Contato */}

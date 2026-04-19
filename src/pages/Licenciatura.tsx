@@ -81,20 +81,6 @@ const Licenciatura = () => {
               </strong>{" "}
               com duração de 3 a 4 anos.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="text-center">
-                  <div className="text-3xl font-bold mb-2">{isLoading ? "--" : totalCursos}</div>
-                  <div className="text-sm opacity-90">Cursos Disponíveis</div>
-                </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-2">3-4</div>
-                <div className="text-sm opacity-90">Anos de Duração</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-2">100%</div>
-                <div className="text-sm opacity-90">Reconhecido MEC</div>
-              </div>
-            </div>
             <Button variant="hero" size="lg" asChild>
               <a href="#contato">Quero ser Professor</a>
             </Button>
@@ -151,7 +137,7 @@ const Licenciatura = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">Cursos de Licenciatura Disponíveis</h2>
             <p className="text-xl text-muted-foreground mb-6">
-              Escolha entre nossos 24 cursos de licenciatura reconhecidos pelo MEC
+              Escolha entre nossos {isLoading ? "--" : totalCursos} cursos de licenciatura reconhecidos pelo MEC
             </p>
 
             <div className="flex justify-center mb-8">

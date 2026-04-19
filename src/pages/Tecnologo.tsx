@@ -82,22 +82,8 @@ const Tecnologo = () => {
               </strong>{" "}
               com duração de 1,5 a 2,5 anos.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="text-center">
-                  <div className="text-3xl font-bold mb-2">{isLoading ? "--" : totalCursos}</div>
-                  <div className="text-sm opacity-90">Cursos Disponíveis</div>
-                </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-2">1,5-2,5</div>
-                <div className="text-sm opacity-90">Anos de Duração</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-2">1</div>
-                <div className="text-sm opacity-90">Ano (Técnico→Tecnólogo)</div>
-              </div>
-            </div>
             <Button variant="hero" size="lg" asChild>
-              <a href="#contato">Quero Entrar no Mercado Agora</a>
+              <a href="#cursos-tecnologo">Explorar Cursos</a>
             </Button>
           </div>
         </div>
@@ -132,7 +118,7 @@ const Tecnologo = () => {
       </section>
 
       {/* Lista de Cursos com Busca */}
-      <section className="py-16">
+      <section id="cursos-tecnologo" className="py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">Cursos Tecnólogos Disponíveis</h2>

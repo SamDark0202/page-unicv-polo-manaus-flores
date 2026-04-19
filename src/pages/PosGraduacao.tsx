@@ -281,20 +281,6 @@ const PosGraduacao = () => {
               Especialize-se e acelere sua carreira profissional.
               <strong> Escolha sua especialização e fale com nosso time em um clique.</strong>
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-2">{courses.length > 0 ? `${courses.length}+` : "200+"}</div>
-                <div className="text-sm opacity-90">Especializações</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-2">360h+</div>
-                <div className="text-sm opacity-90">Carga horária</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-2">EAD</div>
-                <div className="text-sm opacity-90">Flexível para sua rotina</div>
-              </div>
-            </div>
             <Button variant="hero" size="lg" asChild>
               <a href="#cursos-pos">Quero me Especializar</a>
             </Button>
@@ -326,18 +312,7 @@ const PosGraduacao = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 mt-12">
-            {beneficios.map((beneficio) => (
-              <Card key={beneficio} className="text-center shadow-soft hover:shadow-elevated transition-all duration-300">
-                <CardContent className="p-6">
-                  <TrendingUp className="h-8 w-8 text-accent mx-auto mb-3" />
-                  <p className="font-medium">{beneficio}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <Card className="bg-gradient-primary text-primary-foreground shadow-floating">
+          <Card className="mt-12 bg-gradient-primary text-primary-foreground shadow-floating">
             <CardContent className="p-8 lg:p-12">
               <div className="text-center mb-8">
                 <Award className="h-12 w-12 mx-auto mb-4" />
@@ -564,7 +539,7 @@ const PosGraduacao = () => {
                     variant="outline"
                     size="sm"
                     disabled={currentPage === 1}
-                    onClick={() => { setCurrentPage((p) => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    onClick={() => { setCurrentPage((p) => p - 1); document.getElementById('cursos-pos')?.scrollIntoView({ behavior: 'smooth' }); }}
                   >
                     &lsaquo;
                   </Button>
@@ -583,7 +558,7 @@ const PosGraduacao = () => {
                           key={item}
                           variant={item === currentPage ? 'default' : 'outline'}
                           size="sm"
-                          onClick={() => { setCurrentPage(item as number); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                          onClick={() => { setCurrentPage(item as number); document.getElementById('cursos-pos')?.scrollIntoView({ behavior: 'smooth' }); }}
                         >
                           {item}
                         </Button>
@@ -594,7 +569,7 @@ const PosGraduacao = () => {
                     variant="outline"
                     size="sm"
                     disabled={currentPage === totalPages}
-                    onClick={() => { setCurrentPage((p) => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    onClick={() => { setCurrentPage((p) => p + 1); document.getElementById('cursos-pos')?.scrollIntoView({ behavior: 'smooth' }); }}
                   >
                     &rsaquo;
                   </Button>

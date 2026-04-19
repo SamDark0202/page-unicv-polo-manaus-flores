@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ChevronLeft, ChevronRight, FileText, GraduationCap, LogOut, Moon, Sun, BarChart3, Settings, UsersRound } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, GraduationCap, LogOut, Moon, Sun, BarChart3, Settings, UsersRound, ClipboardList } from "lucide-react";
 import LoginGate from "../components/admin/LoginGate";
 import PostList from "../components/admin/PostList";
 import PostEditor from "../components/admin/PostEditor";
@@ -8,6 +8,7 @@ import CourseManager from "@/components/admin/courses/CourseManager";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 import PartnerHub from "@/components/admin/partners/PartnerHub";
 import AdminSettingsHub from "@/components/admin/settings/AdminSettingsHub";
+import VocacionalMonitor from "@/components/admin/VocacionalMonitor";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useThemeMode } from "@/hooks/useThemeMode";
@@ -16,7 +17,7 @@ import { useAdminAuth } from "@/contexts/AuthContext";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 
 type BlogView = "list" | "editor";
-type AdminSection = "blog" | "courses" | "analytics" | "partners" | "settings";
+type AdminSection = "blog" | "courses" | "analytics" | "partners" | "settings" | "vocacional";
 
 type SidebarItem = {
   value: AdminSection;
@@ -63,6 +64,10 @@ export default function Controle() {
   function renderContent() {
     if (section === "settings") {
       return <AdminSettingsHub canManageUsers={permissions.canManageInternalUsers} />;
+    }
+
+    if (section === "vocacional") {
+      return <VocacionalMonitor />;
     }
 
     if (section === "analytics") {
@@ -115,12 +120,14 @@ export default function Controle() {
         ? ([
             { value: "partners", label: "Gestão de Parcerias", description: "Parceiros e CRM", icon: UsersRound, group: "Gestão de Parcerias" },
             { value: "courses", label: "Gestão de Cursos", description: "Cursos e técnico para tecnólogo", icon: GraduationCap },
+            { value: "vocacional", label: "Teste Vocacional", description: "Leads e resultados", icon: ClipboardList },
           ] satisfies SidebarItem[])
         : ([
             { value: "analytics", label: "Analytics", description: "KPIs e métricas do site", icon: BarChart3 },
             { value: "partners", label: "Gestão de Parcerias", description: "Cadastro, CRM e comissões", icon: UsersRound, group: "Gestão de Parcerias" },
             { value: "blog", label: "Gestão de Blog", description: "Posts, capas e SEO", icon: FileText },
             { value: "courses", label: "Gestão de Cursos", description: "Modalidades e ofertas", icon: GraduationCap },
+            { value: "vocacional", label: "Teste Vocacional", description: "Leads e resultados do teste", icon: ClipboardList },
           ] satisfies SidebarItem[])),
     ...(permissions.canSeeSettings
       ? ([{ value: "settings", label: "Configurações", description: "Usuários internos e logs", icon: Settings, group: "Sistema" }] satisfies SidebarItem[])
@@ -135,6 +142,8 @@ export default function Controle() {
       ? "Gestão de Parcerias"
     : section === "settings"
       ? "Configurações"
+    : section === "vocacional"
+      ? "Teste Vocacional"
     : isBlogSection
       ? blogView === "editor"
         ? "Editar Post"
@@ -146,6 +155,8 @@ export default function Controle() {
       ? "Centralize parceiros, pipeline comercial e financeiro em uma única experiência operacional."
     : section === "settings"
       ? "Controle usuários internos, perfis de acesso e trilhas de auditoria do sistema."
+    : section === "vocacional"
+      ? "Monitore os leads e resultados gerados pelo teste vocacional."
     : isBlogSection
       ? "Gerencie conteúdos, capas e SEO do blog institucional."
       : "Organize matrizes curriculares e disponibilidade dos cursos.";
@@ -158,7 +169,7 @@ export default function Controle() {
       return;
     }
 
-    if (role === "vendedor" && section !== "partners" && section !== "courses") {
+    if (role === "vendedor" && section !== "partners" && section !== "courses" && section !== "vocacional") {
       setSection("partners");
       return;
     }
@@ -197,18 +208,17 @@ export default function Controle() {
               const isActive = section === item.value;
               const Icon = item.icon;
               const prevGroup = idx > 0 ? sidebarItems[idx - 1].group : undefined;
-              const showGroupLabel = !isSidebarCollapsed && item.group && item.group !== prevGroup;
+              // Só mostra separador visual (linha) entre grupos, sem texto
+              const showGroupDivider = !isSidebarCollapsed && item.group && item.group !== prevGroup && idx > 0;
               return (
                 <Fragment key={item.value}>
-                  {showGroupLabel && (
-                    <p className="px-4 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
-                      {item.group}
-                    </p>
+                  {showGroupDivider && (
+                    <div className="my-1 mx-3 border-t border-border/40" />
                   )}
                 <button
                   title={item.label}
                   className={cn(
-                    "group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm transition-all",
+                    "group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition-all",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                     isActive
                       ? "bg-primary text-primary-foreground shadow-soft"
@@ -222,19 +232,9 @@ export default function Controle() {
                     }
                   }}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-5 w-5 shrink-0" />
                   {!isSidebarCollapsed && (
-                    <div className="flex-1">
-                      <div className="font-semibold">{item.label}</div>
-                      <div
-                        className={cn(
-                          "text-xs",
-                          isActive ? "text-primary-foreground/80" : "text-muted-foreground/80"
-                        )}
-                      >
-                        {item.description}
-                      </div>
-                    </div>
+                    <span className="flex-1 font-medium text-sm">{item.label}</span>
                   )}
                 </button>
                 </Fragment>
@@ -306,7 +306,7 @@ export default function Controle() {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                  {isPartnersGroup ? "Gestão de Parcerias" : section === "analytics" ? "Analytics" : isBlogSection ? "Gestão de Blog" : "Gestão de Cursos"}
+                  {isPartnersGroup ? "Gestão de Parcerias" : section === "analytics" ? "Analytics" : section === "vocacional" ? "Teste Vocacional" : isBlogSection ? "Gestão de Blog" : "Gestão de Cursos"}
                 </p>
                 <h1 className="text-2xl font-bold">{pageTitle}</h1>
                 <p className="text-sm text-muted-foreground">{pageSubtitle}</p>

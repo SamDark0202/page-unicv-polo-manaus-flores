@@ -37,6 +37,7 @@ const Header = () => {
         { name: "Bacharelado", href: "/bacharelado" },
         { name: "Licenciatura", href: "/licenciatura" },
         { name: "Tecnólogo", href: "/tecnologo" },
+        { name: "Teste Vocacional", href: "/teste-vocacional" },
       ],
     },
     { name: "Técnico para Tecnólogo", href: "/tecnico-para-tecnologo" },

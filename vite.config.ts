@@ -23,6 +23,8 @@ import { buildPartnershipPayload, validatePartnershipBody } from "./api/_partner
 import { buildIndicationPayload, validateIndicationBody } from "./api/_indicationWebhookCore.js";
 import { buildPartnerPublicLeadPayload, validatePartnerPublicLeadBody } from "./api/_partnerPublicLeadCore.js";
 import posGraduacaoHandler from "./api/pos-graduacao.js";
+import vocacionalLeadHandler from "./api/vocacional-lead.js";
+import vocacionalLeadsListHandler from "./api/vocacional-leads-list.js";
 
 async function readJsonBody(req: import("node:http").IncomingMessage) {
   const chunks: Buffer[] = [];
@@ -53,6 +55,14 @@ export default defineConfig(({ mode }) => {
   const ALLOWED_ADMIN_EMAILS = resolveAllowedAdminEmails(env);
   const SUPABASE_URL = env.SUPABASE_URL || env.VITE_SUPABASE_URL || "";
   const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+  // Ensure local API handlers that read process.env can access Supabase settings in dev.
+  if (!process.env.SUPABASE_URL && SUPABASE_URL) {
+    process.env.SUPABASE_URL = SUPABASE_URL;
+  }
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY && SUPABASE_SERVICE_ROLE_KEY) {
+    process.env.SUPABASE_SERVICE_ROLE_KEY = SUPABASE_SERVICE_ROLE_KEY;
+  }
 
   const localSupabaseAdmin = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
     ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -283,6 +293,75 @@ export default defineConfig(({ mode }) => {
             return sendJson(res, 400, { error: "Parâmetro 'tipo' inválido. Use: lead, indication, partnership" });
           } catch {
             return sendJson(res, 500, { error: "Falha ao processar o formulário." });
+          }
+        });
+      },
+    },
+    {
+      name: "local-vocacional-lead",
+      apply: "serve",
+      configureServer(server) {
+        server.middlewares.use(async (req, res, next) => {
+          // Só intercepta /api/vocacional-lead (POST/PATCH), não /api/vocacional-leads-list
+          if (!req.url || !req.url.startsWith("/api/vocacional-lead") || req.url.startsWith("/api/vocacional-leads-list")) {
+            return next();
+          }
+
+          let pendingStatus = 200;
+          const extraHeaders: Record<string, string> = {};
+
+          const vercelRes = {
+            status(code: number) { pendingStatus = code; return vercelRes; },
+            setHeader(name: string, value: string) { extraHeaders[name] = value; },
+            json(data: unknown) {
+              res.statusCode = pendingStatus;
+              res.setHeader("Content-Type", "application/json; charset=utf-8");
+              for (const [k, v] of Object.entries(extraHeaders)) {
+                res.setHeader(k, v);
+              }
+              res.end(JSON.stringify(data));
+            },
+          };
+
+          try {
+            await vocacionalLeadHandler(req, vercelRes);
+          } catch (err) {
+            const message = err instanceof Error ? err.message : "Erro interno";
+            sendJson(res, 500, { error: message });
+          }
+        });
+      },
+    },
+    {
+      name: "local-vocacional-leads-list",
+      apply: "serve",
+      configureServer(server) {
+        server.middlewares.use(async (req, res, next) => {
+          if (!req.url || !req.url.startsWith("/api/vocacional-leads-list")) {
+            return next();
+          }
+
+          let pendingStatus = 200;
+          const extraHeaders: Record<string, string> = {};
+
+          const vercelRes = {
+            status(code: number) { pendingStatus = code; return vercelRes; },
+            setHeader(name: string, value: string) { extraHeaders[name] = value; },
+            json(data: unknown) {
+              res.statusCode = pendingStatus;
+              res.setHeader("Content-Type", "application/json; charset=utf-8");
+              for (const [k, v] of Object.entries(extraHeaders)) {
+                res.setHeader(k, v);
+              }
+              res.end(JSON.stringify(data));
+            },
+          };
+
+          try {
+            await vocacionalLeadsListHandler(req, vercelRes);
+          } catch (err) {
+            const message = err instanceof Error ? err.message : "Erro interno";
+            sendJson(res, 500, { error: message });
           }
         });
       },
