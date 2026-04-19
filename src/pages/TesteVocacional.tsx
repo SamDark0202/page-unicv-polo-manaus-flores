@@ -400,7 +400,8 @@ function UserBubble({ text }: { text: string }) {
 const WA_PHONE = "559220201260";
 const WA_BASE = `https://wa.me/${WA_PHONE}`;
 // Proxy backend → evita bloqueio de CORS ao chamar Make.com direto do browser
-const RESULT_WEBHOOK = "/api/vocacional-resend-email";
+// Usa PUT no mesmo endpoint vocacional-lead para não exceder limite de 12 funções do Vercel Hobby
+const RESULT_WEBHOOK = "/api/vocacional-lead";
 
 // ─── Builder do e-mail de resultado ──────────────────────────────────────────
 function buildResultEmail(
@@ -722,7 +723,7 @@ const TesteVocacional = () => {
     // 2. Disparar webhook para envio do e-mail de resultado (via proxy backend)
     const html = buildResultEmail(lead.nome, PROFILES[areas[0]], topRecommended, areas, scores);
     fetch(RESULT_WEBHOOK, {
-      method: "POST",
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: lead.email, nome: lead.nome, html }),
     }).then(async (res) => {

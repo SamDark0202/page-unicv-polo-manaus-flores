@@ -95,8 +95,8 @@ function LeadDetailModal({
     setResendState("loading");
     setResendError("");
     try {
-      const res = await fetch("/api/vocacional-resend-email", {
-        method: "POST",
+      const res = await fetch("/api/vocacional-lead", {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ leadId: lead.id }),
       });
