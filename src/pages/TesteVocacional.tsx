@@ -903,7 +903,7 @@ const TesteVocacional = () => {
                     2 minutos
                   </span>{" "}
                   qual carreira é feita para você
-                </h1>
+                </h1>w
 
                 <p className="text-base sm:text-lg text-slate-300 mb-8 max-w-xl mx-auto leading-relaxed">
                   Responda perguntas rápidas e descubra seu perfil profissional,

@@ -84,6 +84,17 @@ const formatPrice = (value: string) => {
   return value || "-";
 };
 
+// O preço "De" vem do site externo 100× inflado (ex: 276.990,00 em vez de 2.769,90).
+// Dividimos por 100 para exibir o valor real.
+const formatOldPrice = (value: string) => {
+  const clean = (value || "").replace(/\./g, "").replace(",", ".").trim();
+  const numberValue = Number(clean);
+  if (!Number.isNaN(numberValue) && numberValue > 0) {
+    return (numberValue / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+  return value || "-";
+};
+
 const formatDuration = (value: string) => {
   const text = (value || "").trim();
   if (!text) return "Carga horária sob consulta";
@@ -497,7 +508,7 @@ const PosGraduacao = () => {
                         <div className="rounded-lg border bg-muted/30 p-3 space-y-1">
                           <p className="text-xs text-muted-foreground">Investimento</p>
                           {course.old_price ? (
-                            <p className="text-xs text-muted-foreground line-through">De {formatPrice(course.old_price)}</p>
+                            <p className="text-xs text-muted-foreground line-through">De {formatOldPrice(course.old_price)}</p>
                           ) : null}
                           <p className="text-base font-bold text-primary">Por {formatPrice(course.current_price)}</p>
                           {course.installment_price ? (
