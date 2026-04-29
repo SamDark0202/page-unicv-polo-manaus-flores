@@ -125,7 +125,14 @@ export async function resetInternalUserPassword(id: string) {
     retryAfterSeconds?: number;
   };
 
-  if (!response.ok || !payload.success) {
+  if (!response.ok) {
+    throw createPasswordRecoveryError(
+      { message: payload.error, retryAfterSeconds: payload.retryAfterSeconds, status: response.status },
+      "Não foi possível enviar a redefinição de senha.",
+    );
+  }
+
+  if (payload.error) {
     throw createPasswordRecoveryError(
       { message: payload.error, retryAfterSeconds: payload.retryAfterSeconds, status: response.status },
       "Não foi possível enviar a redefinição de senha.",
