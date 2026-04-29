@@ -173,6 +173,11 @@ export default function AdminSettingsHub({ canManageUsers }: { canManageUsers: b
       const retryAfterSeconds = getPasswordRecoveryRetryAfterSeconds(error);
       if (retryAfterSeconds) {
         startCooldown(id, retryAfterSeconds);
+        toast({
+          title: "E-mail já enviado recentemente",
+          description: "Use o e-mail mais recente recebido pelo usuário. Se precisar reenviar, aguarde o prazo indicado e tente novamente.",
+        });
+        return;
       }
       toast({
         title: "Erro ao resetar senha",

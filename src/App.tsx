@@ -16,6 +16,10 @@ import { isChristmas } from "@/lib/isChristmas";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
 import { AuthProvider } from "@/contexts/AuthContext";
 import PageTracker from "@/components/PageTracker";
+import {
+  hasAdminPasswordSetupContext,
+  resolveAdminPasswordSetupTargetPath,
+} from "@/lib/adminPasswordSetup";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -78,6 +82,26 @@ const queryClient = new QueryClient({
   },
 });
 
+const RootEntryRoute = () => {
+  const location = useLocation();
+
+  if (location.pathname === "/" && hasAdminPasswordSetupContext(location.search, location.hash)) {
+    const targetPath = resolveAdminPasswordSetupTargetPath(location.search, location.hash);
+    return (
+      <Navigate
+        to={{
+          pathname: targetPath,
+          search: location.search,
+          hash: location.hash,
+        }}
+        replace
+      />
+    );
+  }
+
+  return <Index />;
+};
+
 /* =========================
    ROTAS
 ========================= */
@@ -110,7 +134,7 @@ const AppRoutes = () => {
 
       <Suspense fallback={<PageLoadingSkeleton />}>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<RootEntryRoute />} />
           <Route path="/bacharelado" element={<Bacharelado />} />
           <Route path="/licenciatura" element={<Licenciatura />} />
           <Route path="/tecnologo" element={<Tecnologo />} />

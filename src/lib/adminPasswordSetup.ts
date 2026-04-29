@@ -16,6 +16,25 @@ function getSetupParam(search: string, hash: string, key: string) {
   return createUrlParams(search).get(key) ?? createUrlParams(hash).get(key);
 }
 
+export function resolveAdminPasswordSetupTargetPath(
+  search = window.location.search,
+  hash = window.location.hash,
+) {
+  const redirectTo = getSetupParam(search, hash, "redirect_to");
+  if (redirectTo) {
+    try {
+      const redirectUrl = new URL(redirectTo, window.location.origin);
+      if (redirectUrl.origin === window.location.origin && redirectUrl.pathname === "/controle/definir-senha") {
+        return `${redirectUrl.pathname}${redirectUrl.search}${redirectUrl.hash}`;
+      }
+    } catch {
+      // Ignore invalid redirect_to and fall back to the known admin password page.
+    }
+  }
+
+  return "/controle/definir-senha";
+}
+
 export function hasAdminPasswordSetupContext(search = window.location.search, hash = window.location.hash) {
   const normalizedSearch = String(search || "").toLowerCase();
   const normalizedHash = String(hash || "").toLowerCase();
