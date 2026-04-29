@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { createPasswordRecoveryError } from "@/lib/passwordRecovery";
 import { adminSupabase, partnerSupabase } from "@/lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 
@@ -64,7 +65,9 @@ function AdminAuthProviderInner({ children }: { children: React.ReactNode }) {
   async function resetPassword(email: string) {
     const redirectTo = `${window.location.origin}/controle/definir-senha`;
     const { error } = await adminSupabase.auth.resetPasswordForEmail(email, { redirectTo });
-    if (error) throw error;
+    if (error) {
+      throw createPasswordRecoveryError(error, "Não foi possível enviar o e-mail de redefinição de senha.");
+    }
   }
 
   async function signOut() {
@@ -105,7 +108,9 @@ function PartnerAuthProviderInner({ children }: { children: React.ReactNode }) {
   async function resetPassword(email: string) {
     const redirectTo = `${window.location.origin}/parcerias/definir-senha`;
     const { error } = await partnerSupabase.auth.resetPasswordForEmail(email, { redirectTo });
-    if (error) throw error;
+    if (error) {
+      throw createPasswordRecoveryError(error, "Não foi possível enviar o e-mail de redefinição de senha.");
+    }
   }
 
   async function signOut() {

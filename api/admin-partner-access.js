@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { createPasswordRecoveryDeliveryError } from "./_authRecoveryCore.js";
 import { hasRequiredRole, resolveAdminAccess } from "./_adminAccessCore.js";
 import { resolveAllowedAdminEmails } from "./_adminPartnersCore.js";
 
@@ -107,7 +108,14 @@ async function sendPartnerAccess(request, response, admin, bodyOverride) {
     mode = "recovery";
     const { error: recoveryError } = await admin.auth.resetPasswordForEmail(email, { redirectTo });
     if (recoveryError) {
-      return response.status(500).json({ error: "Não foi possível enviar o link de redefinição de senha ao parceiro." });
+      const normalizedError = createPasswordRecoveryDeliveryError(
+        recoveryError,
+        "Não foi possível enviar o link de redefinição de senha ao parceiro.",
+      );
+      return response.status(Number(normalizedError.statusCode) || 500).json({
+        error: normalizedError.message,
+        retryAfterSeconds: Number(normalizedError.retryAfterSeconds) || undefined,
+      });
     }
   } else if (inviteData?.user?.id) {
     authUserId = inviteData.user.id;
@@ -226,7 +234,14 @@ async function resetPartnerPasswordHandler(body, response, admin, request) {
 
   const { error: resetError } = await admin.auth.resetPasswordForEmail(email, { redirectTo });
   if (resetError) {
-    return response.status(500).json({ error: "Não foi possível enviar o e-mail de redefinição de senha." });
+    const normalizedError = createPasswordRecoveryDeliveryError(
+      resetError,
+      "Não foi possível enviar o e-mail de redefinição de senha.",
+    );
+    return response.status(Number(normalizedError.statusCode) || 500).json({
+      error: normalizedError.message,
+      retryAfterSeconds: Number(normalizedError.retryAfterSeconds) || undefined,
+    });
   }
 
   return response.status(200).json({ success: true, email });

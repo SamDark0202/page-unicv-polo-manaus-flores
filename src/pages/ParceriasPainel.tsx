@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { usePasswordRecoveryCooldown } from "@/hooks/usePasswordRecoveryCooldown";
 import { usePartnerAuth } from "@/contexts/AuthContext";
+import { getPasswordRecoveryRetryAfterSeconds } from "@/lib/passwordRecovery";
 import {
   hasPartnerPasswordSetupContext,
   isPartnerPasswordSetupPending,
@@ -19,6 +21,7 @@ export default function ParceriasPainel() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { getRemainingSeconds, isCooldownActive, startCooldown } = usePasswordRecoveryCooldown();
   const { user, loading, signIn, resetPassword } = usePartnerAuth();
 
   const [email, setEmail] = useState("");
@@ -26,6 +29,7 @@ export default function ParceriasPainel() {
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
+  const recoveryCooldownKey = "partner-panel-recovery";
 
   const hasSetupContext = hasPartnerPasswordSetupContext(location.search, location.hash);
   const setupPending = isPartnerPasswordSetupPending();
@@ -69,12 +73,17 @@ export default function ParceriasPainel() {
     setIsRecovering(true);
     try {
       await resetPassword(recoveryEmail);
+      startCooldown(recoveryCooldownKey);
       toast({
         title: "Recuperação enviada",
         description: "Verifique seu e-mail para redefinir a senha de acesso ao painel.",
       });
       setRecoveryEmail("");
     } catch (error) {
+      const retryAfterSeconds = getPasswordRecoveryRetryAfterSeconds(error);
+      if (retryAfterSeconds) {
+        startCooldown(recoveryCooldownKey, retryAfterSeconds);
+      }
       toast({
         title: "Falha na recuperação",
         description: error instanceof Error ? error.message : "Não foi possível enviar o e-mail de recuperação.",
@@ -180,11 +189,22 @@ export default function ParceriasPainel() {
                       />
                     </div>
 
-                    <Button type="submit" variant="outline" className="w-full" size="lg" disabled={isRecovering || loading}>
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      className="w-full"
+                      size="lg"
+                      disabled={isRecovering || loading || isCooldownActive(recoveryCooldownKey)}
+                    >
                       {isRecovering ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
                           Enviando link...
+                        </>
+                      ) : isCooldownActive(recoveryCooldownKey) ? (
+                        <>
+                          <KeyRound className="h-4 w-4" />
+                          Aguarde {getRemainingSeconds(recoveryCooldownKey)}s
                         </>
                       ) : (
                         <>

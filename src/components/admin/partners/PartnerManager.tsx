@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { usePasswordRecoveryCooldown } from "@/hooks/usePasswordRecoveryCooldown";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,6 +48,7 @@ import {
 import { formatPartnerTypeLabel, type PartnerType } from "@/lib/partnerProfile";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { normalizeText } from "@/utils/normalize";
+import { getPasswordRecoveryRetryAfterSeconds } from "@/lib/passwordRecovery";
 import { KeyRound, Loader2, Mail, Pencil, Plus, RefreshCcw, Search, Trash2, UsersRound } from "lucide-react";
 
 const schema = z.object({
@@ -67,6 +69,7 @@ const brl = new Intl.NumberFormat("pt-BR", {
 
 export default function PartnerManager({ readOnly = false }: { readOnly?: boolean }) {
   const { toast } = useToast();
+  const { getRemainingSeconds, isCooldownActive, startCooldown } = usePasswordRecoveryCooldown();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [partners, setPartners] = useState<AdminPartnerRecord[]>([]);
@@ -191,9 +194,11 @@ export default function PartnerManager({ readOnly = false }: { readOnly?: boolea
   }
 
   async function handleSendAccess(partner: AdminPartnerRecord) {
+    const cooldownKey = `access:${partner.id}`;
     try {
       setSendingAccessId(partner.id);
       const result = await sendPartnerAccessLink(partner.id);
+      startCooldown(cooldownKey);
       toast({
         title: "Link de acesso enviado",
         description:
@@ -203,6 +208,10 @@ export default function PartnerManager({ readOnly = false }: { readOnly?: boolea
       });
       await loadPartners();
     } catch (error) {
+      const retryAfterSeconds = getPasswordRecoveryRetryAfterSeconds(error);
+      if (retryAfterSeconds) {
+        startCooldown(cooldownKey, retryAfterSeconds);
+      }
       toast({
         title: "Falha ao enviar acesso",
         description: error instanceof Error ? error.message : "Não foi possível enviar o link de acesso.",
@@ -214,14 +223,20 @@ export default function PartnerManager({ readOnly = false }: { readOnly?: boolea
   }
 
   async function handleResetPassword(partner: AdminPartnerRecord) {
+    const cooldownKey = `reset:${partner.id}`;
     try {
       setResettingPasswordId(partner.id);
       await resetPartnerPassword(partner.id);
+      startCooldown(cooldownKey);
       toast({
         title: "E-mail de redefinição enviado",
         description: `Link para redefinir senha enviado para ${partner.email}.`,
       });
     } catch (error) {
+      const retryAfterSeconds = getPasswordRecoveryRetryAfterSeconds(error);
+      if (retryAfterSeconds) {
+        startCooldown(cooldownKey, retryAfterSeconds);
+      }
       toast({
         title: "Falha ao redefinir senha",
         description: error instanceof Error ? error.message : "Não foi possível enviar o e-mail de redefinição.",
@@ -403,14 +418,18 @@ export default function PartnerManager({ readOnly = false }: { readOnly?: boolea
                               variant="outline"
                               size="icon"
                               onClick={() => handleSendAccess(partner)}
-                              disabled={sendingAccessId === partner.id}
+                              disabled={sendingAccessId === partner.id || isCooldownActive(`access:${partner.id}`)}
                             >
                               {sendingAccessId === partner.id
                                 ? <Loader2 className="h-4 w-4 animate-spin" />
                                 : <KeyRound className="h-4 w-4" />}
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>Enviar acesso</TooltipContent>
+                          <TooltipContent>
+                            {isCooldownActive(`access:${partner.id}`)
+                              ? `Aguarde ${getRemainingSeconds(`access:${partner.id}`)}s`
+                              : "Enviar acesso"}
+                          </TooltipContent>
                         </Tooltip>
 
                         <Tooltip>
@@ -419,14 +438,18 @@ export default function PartnerManager({ readOnly = false }: { readOnly?: boolea
                               variant="outline"
                               size="icon"
                               onClick={() => handleResetPassword(partner)}
-                              disabled={resettingPasswordId === partner.id}
+                              disabled={resettingPasswordId === partner.id || isCooldownActive(`reset:${partner.id}`)}
                             >
                               {resettingPasswordId === partner.id
                                 ? <Loader2 className="h-4 w-4 animate-spin" />
                                 : <Mail className="h-4 w-4" />}
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>Redefinir senha</TooltipContent>
+                          <TooltipContent>
+                            {isCooldownActive(`reset:${partner.id}`)
+                              ? `Aguarde ${getRemainingSeconds(`reset:${partner.id}`)}s`
+                              : "Redefinir senha"}
+                          </TooltipContent>
                         </Tooltip>
 
                         <Tooltip>

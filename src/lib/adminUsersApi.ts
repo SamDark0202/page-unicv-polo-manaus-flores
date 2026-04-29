@@ -1,4 +1,5 @@
 import { adminSupabase } from "@/lib/supabaseClient";
+import { createPasswordRecoveryError } from "@/lib/passwordRecovery";
 import type { AdminRole } from "@/hooks/useAdminAccess";
 
 export type InternalUserRecord = {
@@ -74,10 +75,14 @@ export async function createInternalUser(values: Pick<InternalUserRecord, "email
       redirectTo: string;
     };
     error?: string;
+    retryAfterSeconds?: number;
   };
 
   if (!response.ok || !payload.user) {
-    throw new Error(payload.error || "Não foi possível criar o usuário interno.");
+    throw createPasswordRecoveryError(
+      { message: payload.error, retryAfterSeconds: payload.retryAfterSeconds, status: response.status },
+      "Não foi possível criar o usuário interno.",
+    );
   }
 
   return {
@@ -117,10 +122,14 @@ export async function resetInternalUserPassword(id: string) {
   const payload = (await response.json().catch(() => ({}))) as {
     success?: boolean;
     error?: string;
+    retryAfterSeconds?: number;
   };
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.error || "Não foi possível enviar a redefinição de senha.");
+    throw createPasswordRecoveryError(
+      { message: payload.error, retryAfterSeconds: payload.retryAfterSeconds, status: response.status },
+      "Não foi possível enviar a redefinição de senha.",
+    );
   }
 }
 

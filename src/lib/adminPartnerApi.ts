@@ -1,4 +1,5 @@
 import { adminSupabase } from "@/lib/supabaseClient";
+import { createPasswordRecoveryError } from "@/lib/passwordRecovery";
 import type { PartnerType } from "@/lib/partnerProfile";
 
 export type AdminPartnerRecord = {
@@ -117,10 +118,14 @@ export async function sendPartnerAccessLink(partnerId: string) {
     email?: string;
     authUserLinked?: boolean;
     error?: string;
+    retryAfterSeconds?: number;
   };
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.error || "Não foi possível enviar o link de acesso ao parceiro.");
+    throw createPasswordRecoveryError(
+      { message: payload.error, retryAfterSeconds: payload.retryAfterSeconds, status: response.status },
+      "Não foi possível enviar o link de acesso ao parceiro.",
+    );
   }
 
   return payload;
@@ -161,10 +166,14 @@ export async function resetPartnerPassword(partnerId: string) {
     success?: boolean;
     email?: string;
     error?: string;
+    retryAfterSeconds?: number;
   };
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.error || "Não foi possível enviar o e-mail de redefinição de senha.");
+    throw createPasswordRecoveryError(
+      { message: payload.error, retryAfterSeconds: payload.retryAfterSeconds, status: response.status },
+      "Não foi possível enviar o e-mail de redefinição de senha.",
+    );
   }
 
   return payload;

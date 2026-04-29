@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { createPasswordRecoveryDeliveryError } from "./_authRecoveryCore.js";
 import { hasRequiredRole, insertAuditLog, resolveAdminAccess } from "./_adminAccessCore.js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -91,7 +92,10 @@ async function dispatchInternalUserAccessEmail(request, admin, email) {
     mode = "recovery";
     const { error: resetError } = await admin.auth.resetPasswordForEmail(email, { redirectTo });
     if (resetError) {
-      throw new Error("Não foi possível enviar o e-mail de redefinição de senha ao usuário interno.");
+      throw createPasswordRecoveryDeliveryError(
+        resetError,
+        "Não foi possível enviar o e-mail de redefinição de senha ao usuário interno.",
+      );
     }
   }
 
@@ -144,8 +148,10 @@ async function createUser(request, response, admin, actor) {
   try {
     dispatchResult = await dispatchInternalUserAccessEmail(request, admin, email);
   } catch (error) {
-    return response.status(500).json({
+    const statusCode = Number(error?.statusCode) || 500;
+    return response.status(statusCode).json({
       error: error instanceof Error ? error.message : "Não foi possível enviar o acesso inicial por e-mail.",
+      retryAfterSeconds: Number(error?.retryAfterSeconds) || undefined,
     });
   }
 
@@ -294,7 +300,14 @@ async function resetInternalPassword(request, response, admin, actor) {
   });
 
   if (resetError) {
-    return response.status(500).json({ error: "Não foi possível enviar e-mail de redefinição de senha." });
+    const normalizedError = createPasswordRecoveryDeliveryError(
+      resetError,
+      "Não foi possível enviar e-mail de redefinição de senha.",
+    );
+    return response.status(Number(normalizedError.statusCode) || 500).json({
+      error: normalizedError.message,
+      retryAfterSeconds: Number(normalizedError.retryAfterSeconds) || undefined,
+    });
   }
 
   await insertAuditLog(

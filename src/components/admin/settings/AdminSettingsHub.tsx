@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { usePasswordRecoveryCooldown } from "@/hooks/usePasswordRecoveryCooldown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +19,7 @@ import {
   type InternalUserRecord,
 } from "@/lib/adminUsersApi";
 import { Loader2, RefreshCcw, Shield, Trash2, UserCog, KeyRound } from "lucide-react";
+import { getPasswordRecoveryRetryAfterSeconds } from "@/lib/passwordRecovery";
 
 type UserFormState = {
   id: string | null;
@@ -44,6 +46,7 @@ function roleLabel(role: string) {
 
 export default function AdminSettingsHub({ canManageUsers }: { canManageUsers: boolean }) {
   const { toast } = useToast();
+  const { getRemainingSeconds, isCooldownActive, startCooldown } = usePasswordRecoveryCooldown();
   const [users, setUsers] = useState<InternalUserRecord[]>([]);
   const [logs, setLogs] = useState<AuditLogRecord[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
@@ -164,8 +167,13 @@ export default function AdminSettingsHub({ canManageUsers }: { canManageUsers: b
     try {
       setSaving(true);
       await resetInternalUserPassword(id);
+      startCooldown(id);
       toast({ title: "Link de redefinição enviado" });
     } catch (error) {
+      const retryAfterSeconds = getPasswordRecoveryRetryAfterSeconds(error);
+      if (retryAfterSeconds) {
+        startCooldown(id, retryAfterSeconds);
+      }
       toast({
         title: "Erro ao resetar senha",
         description: error instanceof Error ? error.message : "Falha inesperada.",
@@ -317,9 +325,9 @@ export default function AdminSettingsHub({ canManageUsers }: { canManageUsers: b
                           variant="outline"
                           size="sm"
                           onClick={() => void handleResetPassword(row.id)}
-                          disabled={!canManageUsers || saving}
+                          disabled={!canManageUsers || saving || isCooldownActive(row.id)}
                         >
-                          <KeyRound className="mr-2 h-4 w-4" /> Resetar senha
+                          <KeyRound className="mr-2 h-4 w-4" /> {isCooldownActive(row.id) ? `Aguarde ${getRemainingSeconds(row.id)}s` : "Resetar senha"}
                         </Button>
                         <Button
                           variant="destructive"
