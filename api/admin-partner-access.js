@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { createPasswordRecoveryDeliveryError } from "./_authRecoveryCore.js";
+import { resolvePublicAppPathUrl } from "./_publicAppUrlCore.js";
 import { hasRequiredRole, resolveAdminAccess } from "./_adminAccessCore.js";
 import { resolveAllowedAdminEmails } from "./_adminPartnersCore.js";
 
@@ -42,13 +43,7 @@ function resolvePartnerRedirectTo(request) {
   );
   if (explicit) return explicit;
 
-  const originHeader = request.headers?.origin || request.headers?.Origin;
-  if (typeof originHeader === "string" && originHeader.startsWith("http")) {
-    return normalizePasswordSetupRedirect(`${originHeader.replace(/\/$/, "")}/parcerias/definir-senha`);
-  }
-
-  const host = request.headers?.host || "localhost:8080";
-  return normalizePasswordSetupRedirect(`http://${host}/parcerias/definir-senha`);
+  return normalizePasswordSetupRedirect(resolvePublicAppPathUrl(request, "/parcerias/definir-senha"));
 }
 
 function isAlreadyRegisteredError(error) {

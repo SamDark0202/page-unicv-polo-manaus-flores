@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { createPasswordRecoveryDeliveryError } from "./_authRecoveryCore.js";
+import { resolvePublicAppPathUrl } from "./_publicAppUrlCore.js";
 import { hasRequiredRole, insertAuditLog, resolveAdminAccess } from "./_adminAccessCore.js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -65,13 +66,7 @@ function resolveAdminPasswordSetupRedirect(request) {
     return explicit;
   }
 
-  const originHeader = request.headers?.origin || request.headers?.Origin;
-  if (typeof originHeader === "string" && originHeader.startsWith("http")) {
-    return `${originHeader.replace(/\/$/, "")}/controle/definir-senha`;
-  }
-
-  const host = request.headers?.host || "localhost:8080";
-  return `http://${host}/controle/definir-senha`;
+  return resolvePublicAppPathUrl(request, "/controle/definir-senha");
 }
 
 function isAlreadyRegisteredError(error) {

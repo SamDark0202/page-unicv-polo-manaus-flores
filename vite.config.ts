@@ -22,6 +22,7 @@ import { syncCommissionForIndication } from "./api/_indicationCommissionSync.js"
 import { buildPartnershipPayload, validatePartnershipBody } from "./api/_partnershipWebhookCore.js";
 import { buildIndicationPayload, validateIndicationBody } from "./api/_indicationWebhookCore.js";
 import { buildPartnerPublicLeadPayload, validatePartnerPublicLeadBody } from "./api/_partnerPublicLeadCore.js";
+import { resolvePublicAppPathUrl } from "./api/_publicAppUrlCore.js";
 import cursosHandler from "./api/cursos.js";
 import vocacionalLeadHandler from "./api/vocacional-lead.js";
 
@@ -981,14 +982,8 @@ export default defineConfig(({ mode }) => {
                 return sendJson(res, 403, { error: "Apenas o root pode resetar senha de administrador." });
               }
 
-              const originHeader = req.headers.origin;
-              const host = req.headers.host || "localhost:8080";
-              const redirectBase = typeof originHeader === "string" && originHeader.startsWith("http")
-                ? originHeader.replace(/\/$/, "")
-                : `http://${host}`;
-
               const { error: resetError } = await localSupabaseAdmin.auth.resetPasswordForEmail(String(target.email).toLowerCase(), {
-                redirectTo: `${redirectBase}/controle/definir-senha`,
+                redirectTo: resolvePublicAppPathUrl(req, "/controle/definir-senha", env),
               });
 
               if (resetError) {
@@ -1019,12 +1014,7 @@ export default defineConfig(({ mode }) => {
               return sendJson(res, 403, { error: "Apenas o root pode criar outros administradores." });
             }
 
-            const host = req.headers.host || "localhost:8080";
-            const originHeader = req.headers.origin;
-            const redirectBase = typeof originHeader === "string" && originHeader.startsWith("http")
-              ? originHeader.replace(/\/$/, "")
-              : `http://${host}`;
-            const redirectTo = `${redirectBase}/controle/definir-senha`;
+            const redirectTo = resolvePublicAppPathUrl(req, "/controle/definir-senha", env);
 
             let mode: "invite" | "recovery" = "invite";
             let authUserId: string | null = null;
@@ -1257,12 +1247,7 @@ export default defineConfig(({ mode }) => {
             return sendJson(res, 404, { error: "Parceiro não encontrado para envio de acesso." });
           }
 
-          const originHeader = req.headers.origin;
-          const host = req.headers.host || "localhost:8080";
-          const redirectBase = typeof originHeader === "string" && originHeader.startsWith("http")
-            ? originHeader.replace(/\/$/, "")
-            : `http://${host}`;
-          const redirectTo = `${redirectBase}/parcerias/definir-senha`;
+          const redirectTo = resolvePublicAppPathUrl(req, "/parcerias/definir-senha", env);
 
           const email = String(partner.email).trim().toLowerCase();
           async function findAuthUserIdByEmail() {
