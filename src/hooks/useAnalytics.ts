@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabaseClient";
+import { adminSupabase } from "@/lib/supabaseClient";
 import { DEFAULT_BASE_DELAY_MS, DEFAULT_MAX_RETRIES, getRetryDelay, shouldRetryHttpLikeError } from "@/lib/retry";
 
 // ---------------------------------------------------------------------------
@@ -109,7 +109,7 @@ async function fetchKpis(filter: AnalyticsFilter, dynamicFilters?: DynamicFilter
   const { gte, lte } = getQueryBounds(filter);
 
   // Busca todos os eventos do período de uma vez
-  let query = supabase.from("site_events").select(
+  let query = adminSupabase.from("site_events").select(
     "id, event_type, page_path, referrer, metadata, visitor_id, created_at"
   );
   if (gte) {

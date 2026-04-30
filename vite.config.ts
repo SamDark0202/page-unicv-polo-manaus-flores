@@ -49,6 +49,8 @@ function isMissingColumnError(error: { code?: string } | null | undefined) {
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  const DEV_API_PROXY_TARGET = String(env.VITE_DEV_API_PROXY_TARGET || "").trim().replace(/\/+$/, "");
+  const USE_REMOTE_API_IN_DEV = mode === "development" && /^https?:\/\//i.test(DEV_API_PROXY_TARGET);
   const MAKE_WEBHOOK_URL = env.MAKE_WEBHOOK_URL || "";
   const MAKE_PARTNERSHIP_WEBHOOK_URL = env.MAKE_PARTNERSHIP_WEBHOOK_URL || env.MAKE_WEBHOOK_URL || "";
   const MAKE_INDICATION_WEBHOOK_URL = env.MAKE_INDICATION_WEBHOOK_URL || "";
@@ -138,24 +140,36 @@ export default defineConfig(({ mode }) => {
     return allowed.includes(role);
   }
 
+  const devProxy = USE_REMOTE_API_IN_DEV
+    ? {
+        "/api": {
+          target: DEV_API_PROXY_TARGET,
+          changeOrigin: true,
+          secure: true,
+          followRedirects: true,
+          rewrite: (path: string) => path,
+        },
+      }
+    : {
+        "/api/cursos": {
+          target: "https://diariodebordo.unicv.edu.br",
+          changeOrigin: true,
+          secure: true,
+          followRedirects: true,
+          rewrite: (path: string) => {
+            const url = new URL(path, "http://localhost");
+            const tipo = url.searchParams.get("tipo") || "";
+            if (tipo === "segunda-graduacao") return "/cursos-segunda-graduacao/publico";
+            return "/cursos-tecnicos/publico";
+          },
+        },
+      };
+
   return ({
   server: {
     host: "::",
     port: 8080,
-    proxy: {
-      "/api/cursos": {
-        target: "https://diariodebordo.unicv.edu.br",
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => {
-          const url = new URL(path, "http://localhost");
-          const tipo = url.searchParams.get("tipo") || "";
-          if (tipo === "segunda-graduacao") return "/cursos-segunda-graduacao/publico";
-          return "/cursos-tecnicos/publico";
-        },
-      },
-// lead/indication/partnership-webhook tratados pelo middleware local-webhooks
-    },
+    proxy: devProxy,
   },
   build: {
     target: "ES2020",
@@ -194,13 +208,11 @@ export default defineConfig(({ mode }) => {
   plugins: [
     react(),
     {
-      name: "local-cursos-pos-graduacao",
+      name: "local-cursos",
       apply: "serve",
       configureServer(server) {
         server.middlewares.use(async (req, res, next) => {
           if (!req.url || !req.url.includes("/api/cursos")) return next();
-          const reqUrl = new URL(req.url, "http://localhost");
-          if (reqUrl.searchParams.get("tipo") !== "pos-graduacao") return next();
 
           if (req.method !== "GET") {
             res.statusCode = 405;

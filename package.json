@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "cf:dev": "npx wrangler dev",
+    "cf:deploy": "npx wrangler deploy --keep-vars",
     "preview": "vite preview",
     "migrate:posts": "tsx scripts/migratePostsToSupabase.ts",
     "migrate:courses": "tsx scripts/migrateCoursesToSupabase.ts",

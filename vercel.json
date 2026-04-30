@@ -23,7 +23,7 @@
     }
   ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/api/(.*)", "destination": "https://api.unicivepoloam.com.br/api/$1" },
     { "source": "/admin/(.*)", "destination": "/admin/index.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]

@@ -62,7 +62,7 @@ export default async function handler(request, response) {
     return response.status(405).json({ error: "Method Not Allowed" });
   }
 
-  response.setHeader("Access-Control-Allow-Origin", process.env.ALLOWED_ORIGIN || "https://unicvflores.com.br");
+  response.setHeader("Access-Control-Allow-Origin", process.env.ALLOWED_ORIGIN || "https://unicivepoloam.com.br");
   response.setHeader("Access-Control-Allow-Methods", "POST");
   response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
