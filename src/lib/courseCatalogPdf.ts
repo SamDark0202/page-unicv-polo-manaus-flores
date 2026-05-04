@@ -1,4 +1,4 @@
-import { jsPDF } from "jspdf";
+﻿import { jsPDF } from "jspdf";
 import type { Course, CourseModality } from "@/types/course";
 import logoUnicv from "@/assets/unicive-logo-branco.png";
 
@@ -35,6 +35,74 @@ function normalizeText(value: string) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+}
+
+// Detecta emojis e codepoints fora do range Latin que Helvetica não renderiza.
+const EMOJI_RE = /[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}\u{2B00}-\u{2BFF}\u{1F300}-\u{1F9FF}\u{FE00}-\u{FE0F}]/u;
+
+function containsEmoji(texts: string[]): boolean {
+  return texts.some((t) => EMOJI_RE.test(t));
+}
+
+// Sanitiza apenas para campos de metadados (nome do curso, etc.)
+// onde emoji é improvável mas causaria garrafados.
+function sanitizePdfText(value: string): string {
+  return value
+    .replace(
+      /[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}\u{2B00}-\u{2BFF}\u{1F300}-\u{1F9FF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu,
+      ""
+    )
+    .replace(/ {2,}/g, " ")
+    .trim();
+}
+
+/**
+ * Renderiza linhas de texto via Canvas 2D do navegador (que usa fontes do sistema
+ * com suporte a emoji colorido) e retorna um PNG data URL para embutir no PDF.
+ *
+ * fontSizePt: tamanho em pontos tipográficos (como no jsPDF)
+ * lineHeightMm: espaço vertical por linha em milímetros
+ * widthMm: largura disponível em milímetros
+ * colorHex: cor do texto em formato hex, ex: "#2d2d2d"
+ */
+async function renderLinesToCanvas(
+  lines: string[],
+  fontSizePt: number,
+  lineHeightMm: number,
+  widthMm: number,
+  colorHex: string
+): Promise<{ dataUrl: string; heightMm: number }> {
+  const scale = 3; // fator de resolução (3× = qualidade adequada para PDF)
+  const mmToPx = 3.7795; // px por mm a 96 DPI
+  const ptToPx = 96 / 72; // px por ponto tipográfico a 96 DPI
+
+  const fontSizePx = fontSizePt * ptToPx * scale;
+  const lineHeightPx = lineHeightMm * mmToPx * scale;
+  const canvasW = Math.ceil(widthMm * mmToPx * scale);
+  const canvasH = Math.ceil(lines.length * lineHeightPx + scale * 2);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = canvasW;
+  canvas.height = canvasH;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas 2D context unavailable");
+
+  // Stack de fontes: emojis nativos do sistema, com fallback seguro
+  ctx.font = `${fontSizePx}px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Twemoji Mozilla", "Segoe UI", Arial, sans-serif`;
+  ctx.fillStyle = colorHex;
+  ctx.textBaseline = "top";
+
+  lines.forEach((line, i) => {
+    if (line.trim()) {
+      ctx.fillText(line, 0, i * lineHeightPx);
+    }
+  });
+
+  return {
+    dataUrl: canvas.toDataURL("image/png"),
+    heightMm: lines.length * lineHeightMm,
+  };
 }
 
 function getTeachingMode(course: Course) {
@@ -92,6 +160,56 @@ function loadImageDataUrl(src: string) {
   });
 }
 
+function buildFormattedLines(doc: jsPDF, content: string, maxWidth: number) {
+  const source = (content || "").replace(/\r\n/g, "\n").trim();
+  if (!source) return ["Informação não cadastrada."];
+
+  const unorderedRegex = /^[-*•]\s+/;
+  const orderedRegex = /^(\d+)[.)]\s+/;
+
+  const lines = source.split("\n");
+  const formatted: string[] = [];
+
+  lines.forEach((rawLine) => {
+    const line = rawLine.trim();
+    if (!line) {
+      formatted.push("");
+      return;
+    }
+
+    if (unorderedRegex.test(line)) {
+      const contentLine = line.replace(unorderedRegex, "").trim();
+      formatted.push(...doc.splitTextToSize(`- ${contentLine}`, maxWidth));
+      return;
+    }
+
+    const orderedMatch = line.match(orderedRegex);
+    if (orderedMatch) {
+      const contentLine = line.replace(orderedRegex, "").trim();
+      formatted.push(...doc.splitTextToSize(`${orderedMatch[1]}) ${contentLine}`, maxWidth));
+      return;
+    }
+
+    formatted.push(...doc.splitTextToSize(line, maxWidth));
+  });
+
+  return formatted.length > 0 ? formatted : ["Informação não cadastrada."];
+}
+
+function buildCurriculumLines(doc: jsPDF, curriculum: string[], maxWidth: number) {
+  if (!curriculum || curriculum.length === 0) {
+    return ["Informação não cadastrada."];
+  }
+
+  const lines: string[] = [];
+  curriculum.forEach((item) => {
+    const text = (item || "Informação não cadastrada.").trim();
+    lines.push(...doc.splitTextToSize(`- ${text}`, maxWidth));
+  });
+
+  return lines;
+}
+
 export async function generateCourseCatalogPdf(courses: Course[], options?: GenerateCatalogOptions) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -134,7 +252,7 @@ export async function generateCourseCatalogPdf(courses: Course[], options?: Gene
     if (showPoloInfo) {
       const poloTextWidth = pageWidth - margin * 2 - logoBoxWidth - 6;
       const poloLines = doc.splitTextToSize(
-        `${poloInfo.name} • ${poloInfo.address} • ${poloInfo.cep} • Tel: ${poloInfo.phone} • ${poloInfo.email}`,
+        `${poloInfo.name} | ${poloInfo.address} | ${poloInfo.cep} | Tel: ${poloInfo.phone} | ${poloInfo.email}`,
         poloTextWidth
       );
       doc.setFontSize(8.5);
@@ -154,9 +272,9 @@ export async function generateCourseCatalogPdf(courses: Course[], options?: Gene
 
   const groups = groupedCourses(courses);
 
-  modalityOrder.forEach((modality) => {
+  for (const modality of modalityOrder) {
     const modalityCourses = groups[modality];
-    if (modalityCourses.length === 0) return;
+    if (modalityCourses.length === 0) continue;
 
     const theme = modalityTheme[modality];
 
@@ -166,11 +284,11 @@ export async function generateCourseCatalogPdf(courses: Course[], options?: Gene
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text(`${modalityLabel[modality]} • ${modalityCourses.length} curso(s)`, margin + 3, cursorY + 6.8);
+    doc.text(`${modalityLabel[modality]} | ${modalityCourses.length} curso(s)`, margin + 3, cursorY + 6.8);
     cursorY += 13;
 
-    modalityCourses.forEach((course) => {
-      const previewLines = doc.splitTextToSize(course.preview || "", pageWidth - margin * 2 - 8).slice(0, 5);
+    for (const course of modalityCourses) {
+      const previewLines = buildFormattedLines(doc, course.preview || "", pageWidth - margin * 2 - 8).slice(0, 6);
       const blockHeight = 24 + previewLines.length * 4;
 
       ensureSpace(blockHeight + 4);
@@ -186,12 +304,12 @@ export async function generateCourseCatalogPdf(courses: Course[], options?: Gene
       doc.setTextColor(30, 30, 30);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
-      doc.text(course.name, margin + 5, cursorY + 7);
+      doc.text(sanitizePdfText(course.name), margin + 5, cursorY + 7);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.text(
-        `Modalidade: ${modalityLabel[course.modality]}   |   Oferta: ${getTeachingMode(course)}   |   Duração: ${course.duration}`,
+        `Tipo: ${modalityLabel[course.modality]} | Oferta: ${getTeachingMode(course)} | Duração: ${course.duration}`,
         margin + 5,
         cursorY + 12
       );
@@ -199,13 +317,25 @@ export async function generateCourseCatalogPdf(courses: Course[], options?: Gene
       const statusLabel = course.active ? "Ativo" : "Inativo";
       doc.text(`Status: ${statusLabel}`, margin + 5, cursorY + 16);
 
-      doc.setTextColor(70, 70, 70);
-      doc.text(previewLines, margin + 5, cursorY + 21);
+      if (containsEmoji(previewLines)) {
+        const { dataUrl, heightMm } = await renderLinesToCanvas(
+          previewLines,
+          9,
+          4,
+          pageWidth - margin * 2 - 10,
+          "#464646"
+        );
+        doc.addImage(dataUrl, "PNG", margin + 5, cursorY + 19.5, pageWidth - margin * 2 - 10, heightMm);
+      } else {
+        doc.setTextColor(70, 70, 70);
+        doc.text(previewLines, margin + 5, cursorY + 21);
+      }
+
       cursorY += blockHeight + 4;
-    });
+    }
 
     cursorY += 2;
-  });
+  }
 
   const pages = doc.getNumberOfPages();
 
@@ -274,11 +404,11 @@ export async function generateCourseInformationPdf(course: Course, options?: Gen
     doc.setTextColor(35, 35, 35);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9.5);
-    doc.text(`Curso: ${course.name}`, margin + 2.5, 32);
+    doc.text(`Curso: ${sanitizePdfText(course.name)}`, margin + 2.5, 32);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
     doc.text(
-      `Modalidade: ${modalityLabel[course.modality]} | Oferta: ${getTeachingMode(course)} | Duração: ${course.duration}`,
+      `Tipo: ${modalityLabel[course.modality]} | Oferta: ${getTeachingMode(course)} | Duração: ${course.duration}`,
       margin + 2.5,
       36
     );
@@ -299,10 +429,10 @@ export async function generateCourseInformationPdf(course: Course, options?: Gen
     drawHeader();
   };
 
-  const drawSection = (title: string, content: string | string[]) => {
+  const drawSection = async (title: string, content: string | string[]) => {
     const lines = Array.isArray(content)
-      ? content.flatMap((item) => doc.splitTextToSize(`• ${item}`, pageWidth - margin * 2 - 6))
-      : doc.splitTextToSize(content, pageWidth - margin * 2 - 6);
+      ? buildCurriculumLines(doc, content, pageWidth - margin * 2 - 6)
+      : buildFormattedLines(doc, content, pageWidth - margin * 2 - 6);
 
     const blockHeight = 10 + lines.length * 4.2;
     ensureSpace(blockHeight + 4);
@@ -318,23 +448,37 @@ export async function generateCourseInformationPdf(course: Course, options?: Gen
     doc.setFillColor(250, 250, 250);
     doc.setDrawColor(225, 225, 225);
     doc.roundedRect(margin, cursorY, pageWidth - margin * 2, blockHeight, 2, 2, "FD");
-    doc.setTextColor(45, 45, 45);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.4);
-    doc.text(lines, margin + 3, cursorY + 6);
+
+    if (containsEmoji(lines)) {
+      // Renderiza via canvas para preservar emojis coloridos do sistema
+      const { dataUrl, heightMm } = await renderLinesToCanvas(
+        lines,
+        9.4,
+        4.2,
+        pageWidth - margin * 2 - 6,
+        "#2d2d2d"
+      );
+      doc.addImage(dataUrl, "PNG", margin + 3, cursorY + 5, pageWidth - margin * 2 - 6, heightMm);
+    } else {
+      doc.setTextColor(45, 45, 45);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.4);
+      doc.text(lines, margin + 3, cursorY + 6);
+    }
+
     cursorY += blockHeight + 5;
   };
 
   drawHeader();
 
-  drawSection("Resumo", course.preview || "Informação não cadastrada.");
-  drawSection("Sobre o curso", course.about || "Informação não cadastrada.");
-  drawSection("Mercado de trabalho", course.jobMarket || "Informação não cadastrada.");
-  drawSection(
+  await drawSection("Resumo", course.preview || "Informação não cadastrada.");
+  await drawSection("Sobre o curso", course.about || "Informação não cadastrada.");
+  await drawSection("Mercado de trabalho", course.jobMarket || "Informação não cadastrada.");
+  await drawSection(
     "Matriz curricular",
     course.curriculum && course.curriculum.length > 0 ? course.curriculum : ["Informação não cadastrada."]
   );
-  drawSection("Requisitos", course.requirements || "Informação não cadastrada.");
+  await drawSection("Requisitos", course.requirements || "Informação não cadastrada.");
 
   const ctaHeight = 20;
   ensureSpace(ctaHeight + 10);

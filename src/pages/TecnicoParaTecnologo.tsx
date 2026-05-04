@@ -302,67 +302,93 @@ const TecnicoParaTecnologo = () => {
           <p className="text-xl lg:text-2xl text-blue-100 max-w-4xl mx-auto">
            Aproveite sua experiência e conquiste seu diploma de graduação <strong>em até 12 meses</strong>, abrindo novas oportunidades profissionais.
           </p>
+          <a
+            href="#simulador"
+            className="inline-block mt-8 bg-warning text-warning-foreground font-bold px-8 py-3 rounded-xl shadow-lg hover:scale-105 transition-transform"
+          >
+            Simular minha trilha agora ↓
+          </a>
+          <div className="flex gap-6 justify-center flex-wrap text-sm font-semibold text-white/90 mt-6">
+            <span>✓ Diploma reconhecido pelo MEC</span>
+            <span>✓ 100% EAD</span>
+            <span>✓ A partir de 12 meses</span>
+          </div>
         </div>
       </section>
 
-      <section className="py-16 bg-gradient-subtle">
-        <div className="container mx-auto px-4 max-w-[1400px]">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <Card className="border-primary/20 shadow-soft">
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Rocket className="h-5 w-5 text-primary" />
-                  </div>
-                  <Badge variant="outline">Vantagens</Badge>
-                </div>
-                <CardTitle className="text-xl">Ganhos reais para quem já é Técnico</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 text-muted-foreground">
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 mt-1 text-primary" />
-                  <p>
-                    Aproveite sua formação prévia para encurtar o caminho até a graduação tecnóloga.
-                  </p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 mt-1 text-primary" />
-                  <p>
-                    Fortaleça seu currículo, aumente sua competitividade e abra novas oportunidades de carreira.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+      <section className="py-16 bg-white border-b">
+        <div className="container mx-auto px-4 max-w-4xl text-center">
+          <h2 className="text-3xl font-bold mb-2">Como funciona em 3 passos</h2>
+          <p className="text-muted-foreground mb-12">
+            Você não começa do zero. Aproveitamos tudo que você já estudou.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center text-2xl font-bold shadow-md">1</div>
+              <h3 className="font-semibold text-lg">Informe seu técnico</h3>
+              <p className="text-sm text-muted-foreground text-center">
+                Digite o nome do seu curso técnico no simulador abaixo e veja quais tecnólogos são compatíveis com sua formação.
+              </p>
+            </div>
 
-            <Card className="border-primary/20 shadow-soft">
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Target className="h-5 w-5 text-primary" />
-                  </div>
-                  <Badge variant="outline">Passo a passo</Badge>
-                </div>
-                <CardTitle className="text-xl">Visualize seu próximo passo com clareza</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 text-muted-foreground">
-                <div className="flex items-start gap-2">
-                  <BookOpenCheck className="h-4 w-4 mt-1 text-primary" />
-                  <p>
-                    No simulador, informe seu curso técnico e veja os tecnólogos compatíveis com sua formação.
-                  </p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <MessageCircle className="h-4 w-4 mt-1 text-primary" />
-                  <p>
-                    Escolha a melhor opção e clique em <strong className="text-foreground">Matricule-se</strong> para receber atendimento direto no WhatsApp.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center text-2xl font-bold shadow-md">2</div>
+              <h3 className="font-semibold text-lg">Veja o que você já tem</h3>
+              <p className="text-sm text-muted-foreground text-center">
+                O sistema mostra quantas disciplinas você aproveita e quanto tempo e custo ainda falta para concluir o tecnólogo.
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center text-2xl font-bold shadow-md">3</div>
+              <h3 className="font-semibold text-lg">Fale com um consultor</h3>
+              <p className="text-sm text-muted-foreground text-center">
+                Clique em "Matricule-se" no resultado do simulador e receba atendimento direto pelo WhatsApp para concluir a matrícula.
+              </p>
+            </div>
           </div>
+        </div>
+      </section>
 
-          <Card>
-            <CardHeader>
+      <section className="py-12 bg-gradient-subtle">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              {
+                icon: <Rocket className="h-5 w-5" />,
+                title: "Menos tempo",
+                desc: "Conclua em até 12 meses aproveitando o que já estudou",
+              },
+              {
+                icon: <CheckCircle2 className="h-5 w-5" />,
+                title: "MEC reconhecido",
+                desc: "Diploma com validade nacional em todo o Brasil",
+              },
+              {
+                icon: <Target className="h-5 w-5" />,
+                title: "100% online",
+                desc: "Estude no seu ritmo, sem sair de casa",
+              },
+              {
+                icon: <MessageCircle className="h-5 w-5" />,
+                title: "Suporte no WhatsApp",
+                desc: "Consultor disponível para tirar todas as dúvidas",
+              },
+            ].map((item) => (
+              <Card key={item.title} className="border-primary/20 shadow-soft text-center p-6">
+                <div className="flex justify-center mb-3 text-primary">{item.icon}</div>
+                <h3 className="font-bold mb-1">{item.title}</h3>
+                <p className="text-sm text-muted-foreground">{item.desc}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="simulador" className="py-16 bg-gradient-subtle scroll-mt-20">
+        <div className="container mx-auto px-4 max-w-[1400px]">
+          <Card className="border-primary/20 shadow-soft">
+            <CardHeader className="space-y-3">
               <CardTitle className="text-2xl lg:text-3xl">Simule sua Trilha de Formação</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -388,6 +414,13 @@ const TecnicoParaTecnologo = () => {
                   {isLoading && <Loader2 className="h-4 w-4 animate-spin text-primary absolute right-3 top-3" />}
                 </div>
 
+                {!selectedTechnicalCourse && !searchTerm.trim() && !isLoading && (
+                  <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground/70 rounded-lg border border-dashed border-primary/30 bg-primary/5">
+                    <Search className="h-10 w-10 text-primary/70" />
+                    <p className="text-sm font-medium">Comece digitando o nome do seu curso técnico acima</p>
+                  </div>
+                )}
+
                 {!isLoading && !selectedTechnicalCourse && searchTerm.trim() && suggestions.length > 0 && (
                   <Card className="mt-2 border-border">
                     <CardContent className="p-2">
@@ -408,10 +441,6 @@ const TecnicoParaTecnologo = () => {
                 )}
               </div>
 
-              <div className="text-base font-semibold text-primary text-center">
-                Escolha um curso compatível e inicie seu atendimento agora
-              </div>
-
               {isLoading && <SimulatorLoadingState attempt={fetchAttempt} />}
               {!isLoading && errorMessage && (
                 <div className="space-y-3">
@@ -429,6 +458,17 @@ const TecnicoParaTecnologo = () => {
                     <Card className="border-dashed">
                       <CardContent className="p-6 text-center text-muted-foreground">
                         Não encontramos opções compatíveis para esse curso técnico no momento.
+                        <Button variant="whatsapp" className="mt-4 w-full font-bold" asChild>
+                          <a
+                            href={`https://wa.me/559220201260?text=${encodeURIComponent(
+                              `Olá! Tenho ${selectedTechnicalCourse.name} e não encontrei compatível. Podem me ajudar?`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Falar com consultor no WhatsApp
+                          </a>
+                        </Button>
                       </CardContent>
                     </Card>
                   )}
@@ -514,7 +554,7 @@ const TecnicoParaTecnologo = () => {
             </CardContent>
           </Card>
 
-          <Card className="mt-8">
+          <Card className="mt-8 border-primary/20 bg-white/80">
             <CardContent className="p-6 lg:p-8 grid md:grid-cols-[auto_1fr] gap-4 items-start">
               <BookOpenCheck className="h-8 w-8 text-primary" />
               <p className="text-muted-foreground">
@@ -525,7 +565,7 @@ const TecnicoParaTecnologo = () => {
           </Card>
         </div>
       </section>
-
+      
       <Footer />
     </div>
   );

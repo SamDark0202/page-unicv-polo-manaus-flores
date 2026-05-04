@@ -14,10 +14,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCoursesQuery, useCourseMutations } from "@/hooks/useCourses";
 import { useToast } from "@/hooks/use-toast";
-import type { Course, CourseModality } from "@/types/course";
+import type { Course, CourseDeliveryMode, CourseModality } from "@/types/course";
 import { generateCourseCatalogPdf, generateCourseInformationPdf } from "@/lib/courseCatalogPdf";
 import { Clock, Download, FileDown, GraduationCap, RefreshCcw } from "lucide-react";
 
@@ -29,13 +28,26 @@ const modalityTabs: Array<{ value: ModalityTab; label: string }> = [
 ];
 
 type ModalityTab = CourseModality | "all";
-type ExportStatusFilter = "all" | "active" | "inactive";
+type ExportStatusFilter = "active" | "inactive";
+
+const exportStatusOptions: ExportStatusFilter[] = ["active", "inactive"];
+const exportDeliveryModeOptions: CourseDeliveryMode[] = ["ead", "semipresencial"];
 
 const modalityLabel: Record<ModalityTab, string> = {
   all: "Todas",
   bacharelado: "Bacharelado",
   licenciatura: "Licenciatura",
   tecnologo: "Tecnólogo",
+};
+
+const deliveryModeLabel: Record<CourseDeliveryMode, string> = {
+  ead: "EAD",
+  semipresencial: "Semipresencial",
+};
+
+const exportStatusLabel: Record<ExportStatusFilter, string> = {
+  active: "Ativo",
+  inactive: "Inativo",
 };
 
 type Props = {
@@ -48,8 +60,9 @@ export default function CourseList({ onCreate, onEdit, canEditCourses = true }: 
   const [modality, setModality] = useState<ModalityTab>("all");
   const [query, setQuery] = useState("");
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-  const [exportModality, setExportModality] = useState<ModalityTab>("all");
-  const [exportStatus, setExportStatus] = useState<ExportStatusFilter>("all");
+  const [exportCourseTypes, setExportCourseTypes] = useState<CourseModality[]>([]);
+  const [exportDeliveryModes, setExportDeliveryModes] = useState<CourseDeliveryMode[]>([]);
+  const [exportStatuses, setExportStatuses] = useState<ExportStatusFilter[]>([...exportStatusOptions]);
   const [exportQuery, setExportQuery] = useState("");
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
   const { data: allCourses = [], isLoading, error, refetch } = useCoursesQuery({ activeOnly: false });
@@ -76,16 +89,18 @@ export default function CourseList({ onCreate, onEdit, canEditCourses = true }: 
     const term = normalizeText(exportQuery.trim());
 
     return allCourses.filter((course) => {
-      if (exportModality !== "all" && course.modality !== exportModality) return false;
-      if (exportStatus === "active" && !course.active) return false;
-      if (exportStatus === "inactive" && course.active) return false;
+      if (exportCourseTypes.length > 0 && !exportCourseTypes.includes(course.modality)) return false;
+      if (exportDeliveryModes.length > 0 && !exportDeliveryModes.includes(course.deliveryMode)) return false;
+
+      const courseStatus: ExportStatusFilter = course.active ? "active" : "inactive";
+      if (!exportStatuses.includes(courseStatus)) return false;
       if (!term) return true;
 
       return [course.name, course.preview, course.duration].some((value) =>
         normalizeText(value).includes(term)
       );
     });
-  }, [allCourses, exportModality, exportQuery, exportStatus]);
+  }, [allCourses, exportCourseTypes, exportDeliveryModes, exportQuery, exportStatuses]);
 
   useEffect(() => {
     if (!isExportDialogOpen) return;
@@ -133,11 +148,30 @@ export default function CourseList({ onCreate, onEdit, canEditCourses = true }: 
   }
 
   function handleOpenExportDialog() {
-    setExportModality(modality);
-    setExportStatus("all");
+    setExportCourseTypes(modality === "all" ? [] : [modality]);
+    setExportDeliveryModes([]);
+    setExportStatuses([...exportStatusOptions]);
     setExportQuery("");
     setSelectedCourseIds([]);
     setIsExportDialogOpen(true);
+  }
+
+  function toggleCourseTypeFilter(value: CourseModality) {
+    setExportCourseTypes((previous) =>
+      previous.includes(value) ? previous.filter((item) => item !== value) : [...previous, value]
+    );
+  }
+
+  function toggleDeliveryModeFilter(value: CourseDeliveryMode) {
+    setExportDeliveryModes((previous) =>
+      previous.includes(value) ? previous.filter((item) => item !== value) : [...previous, value]
+    );
+  }
+
+  function toggleStatusFilter(value: ExportStatusFilter) {
+    setExportStatuses((previous) =>
+      previous.includes(value) ? previous.filter((item) => item !== value) : [...previous, value]
+    );
   }
 
   function handleToggleSelect(id: string) {
@@ -283,38 +317,59 @@ export default function CourseList({ onCreate, onEdit, canEditCourses = true }: 
             <DialogHeader>
               <DialogTitle>Exportar catálogo de cursos</DialogTitle>
               <DialogDescription>
-                Filtre cursos por modalidade e status, selecione os itens e gere um PDF com layout por modalidade.
+                Use filtros múltiplos por tipo de curso, modalidade de ensino e status para gerar o catálogo PDF.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Tipo de curso</p>
+                <div className="space-y-2 rounded-md border p-3">
+                  {modalityTabs
+                    .filter((tab) => tab.value !== "all")
+                    .map((tab) => {
+                      const courseType = tab.value as CourseModality;
+                      return (
+                        <label key={courseType} className="flex items-center gap-2 text-sm">
+                          <Checkbox
+                            checked={exportCourseTypes.includes(courseType)}
+                            onCheckedChange={() => toggleCourseTypeFilter(courseType)}
+                          />
+                          <span>{tab.label}</span>
+                        </label>
+                      );
+                    })}
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <p className="text-sm font-medium">Modalidade</p>
-                <Select value={exportModality} onValueChange={(value) => setExportModality(value as ModalityTab)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="bacharelado">Bacharelado</SelectItem>
-                    <SelectItem value="licenciatura">Licenciatura</SelectItem>
-                    <SelectItem value="tecnologo">Tecnólogo</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2 rounded-md border p-3">
+                  {exportDeliveryModeOptions.map((deliveryMode) => (
+                    <label key={deliveryMode} className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={exportDeliveryModes.includes(deliveryMode)}
+                        onCheckedChange={() => toggleDeliveryModeFilter(deliveryMode)}
+                      />
+                      <span>{deliveryModeLabel[deliveryMode]}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-2">
                 <p className="text-sm font-medium">Status</p>
-                <Select value={exportStatus} onValueChange={(value) => setExportStatus(value as ExportStatusFilter)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Ativos e inativos</SelectItem>
-                    <SelectItem value="active">Somente ativos</SelectItem>
-                    <SelectItem value="inactive">Somente inativos</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2 rounded-md border p-3">
+                  {exportStatusOptions.map((status) => (
+                    <label key={status} className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={exportStatuses.includes(status)}
+                        onCheckedChange={() => toggleStatusFilter(status)}
+                      />
+                      <span>{exportStatusLabel[status]}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-2">
