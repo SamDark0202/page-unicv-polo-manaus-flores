@@ -12,6 +12,8 @@ END$$;
 CREATE TABLE IF NOT EXISTS public.courses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   modalidade public.course_modality NOT NULL,
+  slug TEXT NOT NULL,
+  imagem_url TEXT,
   nome_curso TEXT NOT NULL,
   duracao TEXT NOT NULL,
   texto_preview TEXT NOT NULL,
@@ -23,11 +25,14 @@ CREATE TABLE IF NOT EXISTS public.courses (
   created_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc', NOW()),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc', NOW()),
   CONSTRAINT courses_modality_name_unique UNIQUE (modalidade, nome_curso),
+  CONSTRAINT courses_slug_unique UNIQUE (slug),
+  CONSTRAINT courses_slug_format_chk CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'),
   CONSTRAINT courses_curriculum_is_array CHECK (jsonb_typeof(matriz_curricular) = 'array')
 );
 
 -- Índices auxiliares
 CREATE INDEX IF NOT EXISTS courses_modalidade_idx ON public.courses (modalidade);
+CREATE INDEX IF NOT EXISTS courses_slug_idx ON public.courses (slug);
 CREATE INDEX IF NOT EXISTS courses_ativo_idx ON public.courses (ativo);
 CREATE INDEX IF NOT EXISTS courses_modalidade_ativo_idx ON public.courses (modalidade, ativo);
 

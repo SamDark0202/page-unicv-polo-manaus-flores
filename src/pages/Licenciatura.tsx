@@ -1,7 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadForm from "@/components/LeadForm";
-import CourseDetailDialog from "@/components/CourseDetailDialog";
 import { useMemo, useState } from "react";
 import { normalizeText } from "@/utils/normalize";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,13 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, Clock, Star, Users, CheckCircle, BookOpen, Search } from "lucide-react";
 import { useCoursesQuery } from "@/hooks/useCourses";
-import type { Course } from "@/types/course";
 import { trackCardClick } from "@/lib/tracker";
+import { Link } from "react-router-dom";
+import { buildCoursePath } from "@/lib/courseRoute";
 
 const Licenciatura = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { data: courses = [], isLoading, error } = useCoursesQuery({ modality: "licenciatura", activeOnly: true });
   const fetchError = error instanceof Error ? error.message : null;
 
@@ -30,19 +28,6 @@ const Licenciatura = () => {
   }, [courses, searchTerm]);
 
   const totalCursos = courses.length;
-
-  function handleOpenDetails(course: Course) {
-    trackCardClick(course.name, { modality: "licenciatura" });
-    setSelectedCourse(course);
-    setIsDetailsOpen(true);
-  }
-
-  function handleCloseDetails(openState: boolean) {
-    setIsDetailsOpen(openState);
-    if (!openState) {
-      setSelectedCourse(null);
-    }
-  }
 
   const beneficios = [
     "Carreira na educação",
@@ -154,7 +139,7 @@ const Licenciatura = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-12">
             {isLoading && (
               <div className="col-span-full text-center text-muted-foreground">Carregando cursos...</div>
             )}
@@ -164,39 +149,54 @@ const Licenciatura = () => {
             )}
 
             {!isLoading && !fetchError && cursosFiltrados.map((curso) => (
-              <Card key={curso.id} className="hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="pb-3">
+              <Card key={curso.id} className="group overflow-hidden border border-border/70 hover:border-primary/40 hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
+                {curso.imageUrl && (
+                  <div className="relative overflow-hidden border-b">
+                    <img src={curso.imageUrl} alt={curso.name} className="aspect-video w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]" loading="lazy" />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
+                    <div className="absolute left-3 top-3">
+                      <Badge variant="secondary" className="bg-white/95 text-foreground shadow-sm">
+                        {curso.deliveryMode === "semipresencial" ? "Semipresencial" : "EAD"}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+                <CardHeader className="p-4 pb-2">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-lg mb-2">{curso.name}</CardTitle>
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4" />
+                      <CardTitle className="text-lg leading-tight mb-1.5 line-clamp-2">{curso.name}</CardTitle>
+                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5" />
                         <span>{curso.duration}</span>
                       </div>
                     </div>
-                    <Users className="h-6 w-6 text-accent" />
+                    <Users className="h-5 w-5 text-accent" />
                   </div>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <CardDescription className="mb-4">
+                <CardContent className="p-4 pt-0 space-y-3">
+                  <CardDescription className="text-sm leading-relaxed line-clamp-2 min-h-[2.75rem]">
                     {curso.preview}
                   </CardDescription>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-2.5 py-2">
                     <div className="flex items-center space-x-2">
-                      <Star className="h-4 w-4 text-warning fill-current" />
+                      <Star className="h-3.5 w-3.5 text-warning fill-current" />
                       <div className="flex flex-col items-start">
-                        <span className="text-sm text-muted-foreground">MODALIDADE</span>
-                        <span className="text-sm font-medium">{curso.deliveryMode === "semipresencial" ? "SEMIPRESENCIAL" : "EAD"}</span>
+                        <span className="text-xs text-muted-foreground">MODALIDADE</span>
+                        <span className="text-xs font-medium">{curso.deliveryMode === "semipresencial" ? "SEMIPRESENCIAL" : "EAD"}</span>
                       </div>
                     </div>
+                  </div>
+                  <div className="space-y-2">
                     <Button
                       size="sm"
-                      variant="outline"
-                      className="text-xs"
-                      onClick={() => handleOpenDetails(curso)}
+                      variant="default"
+                      asChild
+                      className="w-full"
+                      onClick={() => trackCardClick(curso.name, { modality: "licenciatura" })}
                     >
-                      Ver detalhes
+                      <Link to={buildCoursePath(curso)}>Ver detalhes</Link>
                     </Button>
+                    <p className="text-[11px] text-muted-foreground text-center">Veja matriz curricular, mercado e requisitos</p>
                   </div>
                 </CardContent>
               </Card>
@@ -205,33 +205,6 @@ const Licenciatura = () => {
           {!isLoading && !fetchError && cursosFiltrados.length === 0 && (
             <p className="text-center text-muted-foreground py-4">Não possuímos o curso no momento.</p>
           )}
-
-          {/* Destaque para Pedagogia */}
-          <Card className="bg-gradient-accent text-accent-foreground shadow-floating max-w-4xl mx-auto mb-12">
-            <CardContent className="p-8 lg:p-12">
-              <div className="text-center">
-                <GraduationCap className="h-12 w-12 mx-auto mb-4" />
-                <h3 className="text-3xl font-bold mb-4">Pedagogia - Nosso Destaque</h3>
-                <p className="text-xl text-accent-foreground/90 mb-6">
-                  Forme-se para atuar na educação infantil, anos iniciais do ensino fundamental e gestão educacional.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <div className="font-bold">Educação Infantil</div>
-                    <div className="text-sm opacity-90">0 a 5 anos</div>
-                  </div>
-                  <div>
-                    <div className="font-bold">Anos Iniciais</div>
-                    <div className="text-sm opacity-90">1º ao 5º ano</div>
-                  </div>
-                  <div>
-                    <div className="font-bold">Gestão Escolar</div>
-                    <div className="text-sm opacity-90">Coordenação e supervisão</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         
@@ -256,12 +229,6 @@ const Licenciatura = () => {
       </section>
 
       <Footer />
-
-      <CourseDetailDialog
-        course={selectedCourse}
-        open={isDetailsOpen}
-        onOpenChange={handleCloseDetails}
-      />
     </div>
   );
 };

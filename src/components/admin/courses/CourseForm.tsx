@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Course, CourseDeliveryMode, CourseInput, CourseModality } from "@/types/course";
 import { useCourseMutations } from "@/hooks/useCourses";
 import { useToast } from "@/hooks/use-toast";
+import { slugify } from "@/utils/slugify";
 
 const modalityOptions: Array<{ value: CourseModality; label: string }> = [
   { value: "bacharelado", label: "Bacharelado" },
@@ -33,6 +34,8 @@ type FormState = CourseInput;
 const emptyState: FormState = {
   modality: "bacharelado",
   deliveryMode: "ead",
+  slug: "",
+  imageUrl: "",
   name: "",
   duration: "",
   preview: "",
@@ -49,6 +52,8 @@ function cloneCourse(course: Course | null): FormState {
     id: course.id,
     modality: course.modality,
     deliveryMode: course.deliveryMode,
+    slug: course.slug,
+    imageUrl: course.imageUrl,
     name: course.name,
     duration: course.duration,
     preview: course.preview,
@@ -63,6 +68,7 @@ function cloneCourse(course: Course | null): FormState {
 export default function CourseForm({ course, onCancel, onSaved, readOnly = false }: Props) {
   const [form, setForm] = useState<FormState>(() => cloneCourse(course));
   const [errors, setErrors] = useState<string[]>([]);
+  const [slugTouched, setSlugTouched] = useState(false);
   const { upsert } = useCourseMutations();
   const { toast } = useToast();
   const [curriculumDraft, setCurriculumDraft] = useState(() => (course ? course.curriculum.join("\n") : ""));
@@ -70,6 +76,7 @@ export default function CourseForm({ course, onCancel, onSaved, readOnly = false
   useEffect(() => {
     setForm(cloneCourse(course));
     setCurriculumDraft(course ? course.curriculum.join("\n") : "");
+    setSlugTouched(!!course?.slug);
     setErrors([]);
   }, [course]);
 
@@ -90,6 +97,10 @@ export default function CourseForm({ course, onCancel, onSaved, readOnly = false
 
   function validate(): string[] {
     const issues: string[] = [];
+    if (!form.slug.trim()) issues.push("Informe o slug (URL) do curso.");
+    if (form.slug.trim() && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.slug.trim())) {
+      issues.push("O slug deve conter apenas letras minúsculas, números e hífen.");
+    }
     if (!form.name.trim()) issues.push("Informe o nome do curso.");
     if (!form.duration.trim()) issues.push("Informe a duração.");
     if (!form.preview.trim()) issues.push("Informe o texto de pré-visualização.");
@@ -109,6 +120,7 @@ export default function CourseForm({ course, onCancel, onSaved, readOnly = false
 
     const payload: CourseInput = {
       ...form,
+      slug: slugify(form.slug || form.name),
       curriculum: form.curriculum,
     };
 
@@ -216,13 +228,63 @@ export default function CourseForm({ course, onCancel, onSaved, readOnly = false
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Nome do curso</Label>
-              <Input value={form.name} onChange={(event) => updateField("name", event.target.value)} disabled={readOnly} />
+              <Input
+                value={form.name}
+                onChange={(event) => {
+                  const nextName = event.target.value;
+                  updateField("name", nextName);
+                  if (!slugTouched) {
+                    updateField("slug", slugify(nextName));
+                  }
+                }}
+                disabled={readOnly}
+              />
             </div>
             <div>
               <Label>Duração</Label>
               <Input value={form.duration} onChange={(event) => updateField("duration", event.target.value)} disabled={readOnly} />
             </div>
           </div>
+
+          <div>
+            <Label>Slug da URL</Label>
+            <Input
+              value={form.slug}
+              onChange={(event) => {
+                setSlugTouched(true);
+                updateField("slug", slugify(event.target.value));
+              }}
+              placeholder="exemplo: analise-e-desenvolvimento-de-sistemas"
+              disabled={readOnly}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              URL publica: /cursos/{form.modality}/{form.slug || "seu-slug"}
+            </p>
+          </div>
+
+          <div>
+            <Label>Imagem do curso (URL)</Label>
+            <Input
+              value={form.imageUrl}
+              onChange={(event) => updateField("imageUrl", event.target.value)}
+              placeholder="https://..."
+              disabled={readOnly}
+            />
+          </div>
+
+          {form.imageUrl.trim() && (
+            <div>
+              <Label>Pré-visualização da imagem</Label>
+              <div className="mt-2 overflow-hidden rounded-lg border bg-muted">
+                <img
+                  src={form.imageUrl}
+                  alt={`Preview do curso ${form.name || ""}`}
+                  className="h-44 w-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+          )}
 
           <div>
             <Label>Texto de pré-visualização</Label>

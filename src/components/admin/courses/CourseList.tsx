@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Course, CourseDeliveryMode, CourseModality } from "@/types/course";
 import { generateCourseCatalogPdf, generateCourseInformationPdf } from "@/lib/courseCatalogPdf";
 import { Clock, Download, FileDown, GraduationCap, RefreshCcw } from "lucide-react";
+import { buildCoursePath } from "@/lib/courseRoute";
 
 const modalityTabs: Array<{ value: ModalityTab; label: string }> = [
   { value: "all", label: "Todos" },
@@ -306,6 +307,7 @@ export default function CourseList({ onCreate, onEdit, canEditCourses = true }: 
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground line-clamp-2">{course.preview}</p>
+              <p className="mt-2 text-xs text-muted-foreground">URL publica: {buildCoursePath(course)}</p>
             </CardContent>
           </Card>
         ))}

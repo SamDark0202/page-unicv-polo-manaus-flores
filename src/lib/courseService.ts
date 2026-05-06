@@ -1,10 +1,13 @@
 import type { Course, CourseDeliveryMode, CourseFilters, CourseInput, CourseModality } from "@/types/course";
-import { supabase } from "./supabaseClient";
+import { adminSupabase, supabase } from "./supabaseClient";
+import { slugify } from "@/utils/slugify";
 
 export type DbCourse = {
   id: string;
   modalidade: CourseModality;
   modalidade_entrega: CourseDeliveryMode | null;
+  slug: string | null;
+  imagem_url: string | null;
   nome_curso: string;
   duracao: string;
   texto_preview: string;
@@ -55,10 +58,14 @@ function parseCurriculum(value: unknown): string[] {
 }
 
 function dbToCourse(data: DbCourse): Course {
+  const fallbackSlug = slugify(data.nome_curso);
+
   return {
     id: data.id,
     modality: data.modalidade,
     deliveryMode: data.modalidade_entrega ?? "ead",
+    slug: data.slug && data.slug.trim() ? data.slug.trim() : fallbackSlug,
+    imageUrl: data.imagem_url?.trim() ?? "",
     name: data.nome_curso,
     duration: data.duracao,
     preview: data.texto_preview,
@@ -73,9 +80,13 @@ function dbToCourse(data: DbCourse): Course {
 }
 
 function toDbPayload(course: CourseInput) {
+  const safeSlug = slugify((course.slug || "").trim() || course.name);
+
   const payload: Record<string, unknown> = {
     modalidade: course.modality,
     modalidade_entrega: course.deliveryMode,
+    slug: safeSlug,
+    imagem_url: course.imageUrl?.trim() || null,
     nome_curso: course.name,
     duracao: course.duration,
     texto_preview: course.preview,
@@ -95,7 +106,9 @@ function toDbPayload(course: CourseInput) {
 
 export async function fetchCourses(filters: CourseFilters = {}): Promise<Course[]> {
   const { modality, activeOnly } = filters;
-  let query = supabase
+  const client = activeOnly ? supabase : adminSupabase;
+
+  let query = client
     .from("courses")
     .select("*")
     .order("nome_curso", { ascending: true });
@@ -118,7 +131,7 @@ export async function fetchCourses(filters: CourseFilters = {}): Promise<Course[
 }
 
 export async function fetchCourseById(id: string): Promise<Course | null> {
-  const { data, error } = await supabase
+  const { data, error } = await adminSupabase
     .from("courses")
     .select("*")
     .eq("id", id)
@@ -134,14 +147,82 @@ export async function fetchCourseById(id: string): Promise<Course | null> {
   return dbToCourse(data as DbCourse);
 }
 
+type FetchBySlugParams = {
+  slug: string;
+  modality?: CourseModality;
+  activeOnly?: boolean;
+};
+
+export async function fetchCourseBySlug(params: FetchBySlugParams): Promise<Course | null> {
+  const slug = slugify(params.slug);
+  if (!slug) return null;
+
+  let query = supabase
+    .from("courses")
+    .select("*")
+    .eq("slug", slug)
+    .limit(1);
+
+  if (params.modality) {
+    query = query.eq("modalidade", params.modality);
+  }
+
+  if (params.activeOnly) {
+    query = query.eq("ativo", true);
+  }
+
+  const { data, error } = await query.maybeSingle();
+
+  if (error) {
+    const missingSlugColumn =
+      error.code === "42703" ||
+      /column\s+courses\.slug\s+does not exist/i.test(error.message || "");
+
+    if (!missingSlugColumn) {
+      throw new Error(error.message);
+    }
+
+    let fallbackQuery = supabase
+      .from("courses")
+      .select("*")
+      .order("nome_curso", { ascending: true });
+
+    if (params.modality) {
+      fallbackQuery = fallbackQuery.eq("modalidade", params.modality);
+    }
+
+    if (params.activeOnly) {
+      fallbackQuery = fallbackQuery.eq("ativo", true);
+    }
+
+    const { data: fallbackData, error: fallbackError } = await fallbackQuery;
+
+    if (fallbackError) {
+      throw new Error(fallbackError.message);
+    }
+
+    const match = (fallbackData as DbCourse[]).find((course) => slugify(course.nome_curso) === slug);
+    return match ? dbToCourse(match) : null;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return dbToCourse(data as DbCourse);
+}
+
 export async function saveCourse(course: CourseInput): Promise<Course> {
-  const { data, error } = await supabase
+  const { data, error } = await adminSupabase
     .from("courses")
     .upsert(toDbPayload(course), { onConflict: "id" })
     .select("*")
     .single();
 
   if (error) {
+    if (error.code === "42501") {
+      throw new Error("Sessao sem permissao para salvar curso. Faca login novamente no painel.");
+    }
     throw new Error(error.message);
   }
 
@@ -149,7 +230,7 @@ export async function saveCourse(course: CourseInput): Promise<Course> {
 }
 
 export async function setCourseActive(id: string, active: boolean): Promise<Course> {
-  const { data, error } = await supabase
+  const { data, error } = await adminSupabase
     .from("courses")
     .update({ ativo: active })
     .eq("id", id)
@@ -157,6 +238,9 @@ export async function setCourseActive(id: string, active: boolean): Promise<Cour
     .single();
 
   if (error) {
+    if (error.code === "42501") {
+      throw new Error("Sessao sem permissao para atualizar curso. Faca login novamente no painel.");
+    }
     throw new Error(error.message);
   }
 
@@ -164,8 +248,11 @@ export async function setCourseActive(id: string, active: boolean): Promise<Cour
 }
 
 export async function deleteCourse(id: string): Promise<void> {
-  const { error } = await supabase.from("courses").delete().eq("id", id);
+  const { error } = await adminSupabase.from("courses").delete().eq("id", id);
   if (error) {
+    if (error.code === "42501") {
+      throw new Error("Sessao sem permissao para excluir curso. Faca login novamente no painel.");
+    }
     throw new Error(error.message);
   }
 }

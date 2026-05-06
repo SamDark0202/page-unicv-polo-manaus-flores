@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { CourseFilters, CourseInput } from "@/types/course";
-import { deleteCourse, fetchCourses, saveCourse, setCourseActive } from "@/lib/courseService";
+import type { CourseFilters, CourseInput, CourseModality } from "@/types/course";
+import { deleteCourse, fetchCourseBySlug, fetchCourses, saveCourse, setCourseActive } from "@/lib/courseService";
 import { DEFAULT_BASE_DELAY_MS, DEFAULT_MAX_RETRIES, getRetryDelay, shouldRetryHttpLikeError } from "@/lib/retry";
 
 const baseKey = ["courses"] as const;
@@ -27,6 +27,27 @@ export function useCoursesQuery(filters?: CourseFilters) {
   return useQuery({
     queryKey,
     queryFn: () => fetchCourses(filters),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: (failureCount, error) => failureCount < DEFAULT_MAX_RETRIES && shouldRetryHttpLikeError(error),
+    retryDelay: (attemptIndex) => getRetryDelay(DEFAULT_BASE_DELAY_MS, attemptIndex),
+  });
+}
+
+type CourseBySlugFilters = {
+  slug: string;
+  modality?: CourseModality;
+  activeOnly?: boolean;
+};
+
+export function useCourseBySlugQuery(filters: CourseBySlugFilters) {
+  const safeSlug = filters.slug.trim();
+
+  return useQuery({
+    queryKey: ["course", "slug", safeSlug, filters.modality ?? "all", (filters.activeOnly ?? true).toString()],
+    enabled: !!safeSlug,
+    queryFn: () => fetchCourseBySlug(filters),
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,

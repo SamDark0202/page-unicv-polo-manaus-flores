@@ -5,6 +5,8 @@ export type CourseDeliveryMode = "ead" | "semipresencial";
 export type CourseBase = {
   modality: CourseModality;
   deliveryMode: CourseDeliveryMode;
+  slug: string;
+  imageUrl: string;
   name: string;
   duration: string;
   preview: string;

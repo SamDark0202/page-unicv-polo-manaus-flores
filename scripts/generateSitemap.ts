@@ -14,6 +14,13 @@ import * as fs from "fs";
 import * as path from "path";
 import { seedCourses } from "./courseSeedData";
 
+type SitemapCourse = {
+  modality: "bacharelado" | "licenciatura" | "tecnologo";
+  name: string;
+  slug: string;
+  updatedAt?: string;
+};
+
 // Tentar carregar .env.local se existir
 const envPath = path.join(process.cwd(), ".env.local");
 if (fs.existsSync(envPath)) {
@@ -62,7 +69,7 @@ async function generateSitemap() {
   console.log("🚀 Iniciando geração do sitemap...\n");
 
   const today = new Date().toISOString().split("T")[0];
-  const baseUrl = "https://www.unicvpoloam.com.br";
+  const baseUrl = "https://www.unicivepoloam.com.br";
 
   // Rotas internas/secretas que nunca devem ser indexadas no sitemap.
   const blockedInternalRoutes = [
@@ -96,16 +103,47 @@ async function generateSitemap() {
     console.log("⚠️  Supabase não configurado - pulando posts do blog\n");
   }
 
-  // Agrupar cursos por modalidade
-  const bacharelado = seedCourses.filter(c => c.modality === "bacharelado");
-  const licenciatura = seedCourses.filter(c => c.modality === "licenciatura");
-  const tecnologo = seedCourses.filter(c => c.modality === "tecnologo");
+  // Buscar cursos para URLs individuais
+  let courseEntries: SitemapCourse[] = [];
+
+  if (supabase) {
+    const { data: coursesData, error: coursesError } = await supabase
+      .from("courses")
+      .select("modalidade, nome_curso, slug, updated_at, ativo")
+      .eq("ativo", true)
+      .order("nome_curso", { ascending: true });
+
+    if (coursesError) {
+      console.error("❌ Erro ao buscar cursos para sitemap:", coursesError.message);
+    } else {
+      courseEntries = (coursesData || [])
+        .map((item: any) => ({
+          modality: item.modalidade,
+          name: item.nome_curso,
+          slug: item.slug || slugify(item.nome_curso || ""),
+          updatedAt: item.updated_at,
+        }))
+        .filter((item) => item.modality && item.slug);
+    }
+  }
+
+  if (courseEntries.length === 0) {
+    courseEntries = seedCourses.map((course) => ({
+      modality: course.modality,
+      name: course.name,
+      slug: slugify(course.name),
+    }));
+  }
+
+  const bacharelado = courseEntries.filter((c) => c.modality === "bacharelado");
+  const licenciatura = courseEntries.filter((c) => c.modality === "licenciatura");
+  const tecnologo = courseEntries.filter((c) => c.modality === "tecnologo");
 
   console.log(`📚 Cursos registrados:`);
   console.log(`   - Bacharelado: ${bacharelado.length}`);
   console.log(`   - Licenciatura: ${licenciatura.length}`);
   console.log(`   - Tecnólogo: ${tecnologo.length}`);
-  console.log(`   - Total: ${seedCourses.length}\n`);
+  console.log(`   - Total: ${courseEntries.length}\n`);
 
   // Iniciar XML
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -170,12 +208,13 @@ async function generateSitemap() {
   xml += `  <!-- ==================== BACHARELADO (${bacharelado.length} CURSOS) ==================== -->\n\n`;
   
   for (const curso of bacharelado) {
-    const slug = slugify(curso.name);
+    const slug = curso.slug;
+    const courseLastMod = curso.updatedAt ? curso.updatedAt.split("T")[0] : today;
     const priority = ["administracao", "ciencias-contabeis", "educacao-fisica", "psicanalise", "engenharia-dados", "engenharia-software", "engenharia-seguranca-cibernetica"].includes(slug) ? "0.85" : "0.8";
     
     xml += `  <url>
-    <loc>${baseUrl}/bacharelado#${slug}</loc>
-    <lastmod>${today}</lastmod>
+    <loc>${baseUrl}/cursos/bacharelado/${slug}</loc>
+    <lastmod>${courseLastMod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>${priority}</priority>
   </url>
@@ -187,12 +226,13 @@ async function generateSitemap() {
   xml += `  <!-- ==================== LICENCIATURA (${licenciatura.length} CURSOS) ==================== -->\n\n`;
   
   for (const curso of licenciatura) {
-    const slug = slugify(curso.name);
+    const slug = curso.slug;
+    const courseLastMod = curso.updatedAt ? curso.updatedAt.split("T")[0] : today;
     const priority = slug === "pedagogia" ? "0.9" : ["educacao-fisica", "matematica", "historia", "psicopedagogia", "educacao-especial"].includes(slug) ? "0.85" : "0.8";
     
     xml += `  <url>
-    <loc>${baseUrl}/licenciatura#${slug}</loc>
-    <lastmod>${today}</lastmod>
+    <loc>${baseUrl}/cursos/licenciatura/${slug}</loc>
+    <lastmod>${courseLastMod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>${priority}</priority>
   </url>
@@ -204,13 +244,14 @@ async function generateSitemap() {
   xml += `  <!-- ==================== TECNÓLOGO (${tecnologo.length} CURSOS) ==================== -->\n\n`;
   
   for (const curso of tecnologo) {
-    const slug = slugify(curso.name);
+    const slug = curso.slug;
+    const courseLastMod = curso.updatedAt ? curso.updatedAt.split("T")[0] : today;
     const priority = ["marketing-digital", "inteligencia-artificial"].includes(slug) ? "0.9" : 
                      ["processos-gerenciais", "analise-e-desenvolvimento-de-sistemas", "gestao-recursos-humanos", "logistica", "gestao-financeira", "gestao-tecnologia-da-informacao", "seguranca-da-informacao", "seguranca-no-trabalho", "marketing", "gestao-comercial", "jogos-digitais", "sistemas-para-internet", "transformacao-digital"].includes(slug) ? "0.85" : "0.8";
     
     xml += `  <url>
-    <loc>${baseUrl}/tecnologo#${slug}</loc>
-    <lastmod>${today}</lastmod>
+    <loc>${baseUrl}/cursos/tecnologo/${slug}</loc>
+    <lastmod>${courseLastMod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>${priority}</priority>
   </url>
@@ -296,7 +337,7 @@ async function generateSitemap() {
   console.log(`   - Cursos de Licenciatura: ${licenciatura.length}`);
   console.log(`   - Cursos Tecnólogos: ${tecnologo.length}`);
   console.log(`   - Posts do Blog: ${posts?.length || 0}`);
-  console.log(`   - TOTAL DE URLs: ${7 + seedCourses.length + (posts?.length || 0)}`);
+  console.log(`   - TOTAL DE URLs: ${7 + courseEntries.length + (posts?.length || 0)}`);
   console.log(`\n🌐 Acesse: ${baseUrl}/sitemap.xml`);
 }
 

@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 import { seedCourses, type SeedCourse } from "./courseSeedData";
+import { slugify } from "../src/utils/slugify";
 
 dotenv.config({ path: ".env.local" });
 
@@ -22,6 +23,8 @@ const supabase = createClient(supabaseUrl, authKey);
 
 type DbPayload = {
   modalidade: SeedCourse["modality"];
+  slug: string;
+  imagem_url: string | null;
   nome_curso: string;
   duracao: string;
   texto_preview: string;
@@ -35,6 +38,8 @@ type DbPayload = {
 function toPayload(course: SeedCourse): DbPayload {
   return {
     modalidade: course.modality,
+    slug: slugify(course.name),
+    imagem_url: null,
     nome_curso: course.name,
     duracao: course.duration,
     texto_preview: course.preview,

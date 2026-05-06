@@ -3,11 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselApi, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { useHomeLaunchBannersQuery } from "@/hooks/useHomeLaunchBanners";
 import { useCoursesQuery } from "@/hooks/useCourses";
-import CourseDetailDialog from "@/components/CourseDetailDialog";
 import { trackCardClick } from "@/lib/tracker";
 import { toSupabaseRenderImageUrl } from "@/lib/supabaseImage";
 import type { Course } from "@/types/course";
 import { Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { buildCoursePath } from "@/lib/courseRoute";
 
 export default function HomeLaunchCarouselSection() {
   const { data: banners = [] } = useHomeLaunchBannersQuery({ activeOnly: true });
@@ -15,8 +16,6 @@ export default function HomeLaunchCarouselSection() {
 
   const [api, setApi] = useState<CarouselApi>();
   const [isPaused, setIsPaused] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   const sortedBanners = useMemo(
     () => [...banners].sort((a, b) => a.sortOrder - b.sortOrder || b.createdAt.localeCompare(a.createdAt)),
@@ -54,9 +53,6 @@ export default function HomeLaunchCarouselSection() {
       course_id: courseId,
       course_name: course.name,
     });
-
-    setSelectedCourse(course);
-    setDialogOpen(true);
   }
 
   if (sortedBanners.length === 0) {
@@ -95,8 +91,8 @@ export default function HomeLaunchCarouselSection() {
                 return (
                   <CarouselItem key={banner.id} className="basis-[88%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
                     <div className="h-full max-w-[320px] mx-auto rounded-xl border bg-card p-1.5 shadow-soft hover:shadow-elevated transition-shadow duration-300">
-                      <button
-                        type="button"
+                      <Link
+                        to={linkedCourse ? buildCoursePath(linkedCourse) : "#"}
                         onClick={() => handleBannerClick(banner.id, banner.bannerName, banner.courseId)}
                         className="w-full text-left"
                       >
@@ -123,7 +119,7 @@ export default function HomeLaunchCarouselSection() {
                             Duração: {linkedCourse?.duration ?? "Não informada"}
                           </p>
                         </div>
-                      </button>
+                      </Link>
                     </div>
                   </CarouselItem>
                 );
@@ -132,17 +128,6 @@ export default function HomeLaunchCarouselSection() {
           </Carousel>
         </div>
       </div>
-
-      <CourseDetailDialog
-        open={dialogOpen}
-        course={selectedCourse}
-        onOpenChange={(open) => {
-          setDialogOpen(open);
-          if (!open) {
-            setSelectedCourse(null);
-          }
-        }}
-      />
     </section>
   );
 }
