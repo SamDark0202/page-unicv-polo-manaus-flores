@@ -1,10 +1,32 @@
+function parseDateSafe(dateValue) {
+  if (!dateValue) return new Date();
+
+  if (dateValue instanceof Date && !Number.isNaN(dateValue.getTime())) {
+    return dateValue;
+  }
+
+  if (typeof dateValue === "string") {
+    const dateOnlyMatch = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (dateOnlyMatch) {
+      const year = Number(dateOnlyMatch[1]);
+      const monthIndex = Number(dateOnlyMatch[2]) - 1;
+      const day = Number(dateOnlyMatch[3]);
+      const parsedDateOnly = new Date(Date.UTC(year, monthIndex, day, 12, 0, 0, 0));
+      if (!Number.isNaN(parsedDateOnly.getTime())) {
+        return parsedDateOnly;
+      }
+    }
+  }
+
+  const parsed = new Date(dateValue);
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
 function resolveReferenceMonth(dateValue) {
-  const parsed = dateValue ? new Date(dateValue) : new Date();
-  const date = Number.isNaN(parsed.getTime()) ? new Date() : parsed;
-
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-
+  const date = parseDateSafe(dateValue);
+  const nextMonthStart = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1));
+  const year = nextMonthStart.getUTCFullYear();
+  const month = String(nextMonthStart.getUTCMonth() + 1).padStart(2, "0");
   return `${year}-${month}-01`;
 }
 

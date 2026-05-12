@@ -456,6 +456,9 @@ export default defineConfig(({ mode }) => {
             const filters = buildPartnerFilters({
               search: searchParams.get("search") || "",
               tipo: searchParams.get("tipo") || "todos",
+              periodType: searchParams.get("periodType") || "todos",
+              periodMonth: searchParams.get("periodMonth") || "",
+              periodYear: searchParams.get("periodYear") || "",
             });
 
             let partnerQuery = localSupabaseAdmin
@@ -474,15 +477,25 @@ export default defineConfig(({ mode }) => {
 
             const [{ data: partners, error: partnersError }, { data: indications, error: indicationsError }, { data: commissions, error: commissionsError }] = await Promise.all([
               partnerQuery,
-              localSupabaseAdmin.from("indicacoes").select("parceiro_id, status"),
+              localSupabaseAdmin.from("indicacoes").select("parceiro_id, status, data_criacao, data_conversao, valor_matricula"),
               localSupabaseAdmin.from("comissoes").select("parceiro_id, valor, status_pagamento"),
             ]);
 
-            if (partnersError || indicationsError || commissionsError) {
+            let safeIndications = indications;
+            if (indicationsError && String(indicationsError.code || "") === "42703") {
+              const fallback = await localSupabaseAdmin.from("indicacoes").select("parceiro_id, status, data_criacao");
+              safeIndications = (fallback.data || []).map((item: Record<string, unknown>) => ({
+                ...item,
+                data_conversao: null,
+                valor_matricula: null,
+              }));
+            }
+
+            if (partnersError || commissionsError) {
               return sendJson(res, 500, { error: "Falha ao carregar dados administrativos de parceiros." });
             }
 
-            const merged = mapPartnersWithMetrics(partners || [], indications || [], commissions || []);
+            const merged = mapPartnersWithMetrics(partners || [], safeIndications || [], commissions || [], filters);
             return sendJson(res, 200, { partners: merged, filters });
           }
 

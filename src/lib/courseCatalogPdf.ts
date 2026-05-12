@@ -160,18 +160,26 @@ function loadImageDataUrl(src: string) {
   });
 }
 
+// Substitui caracteres de bullet Unicode por hífen simples, compatível com Helvetica/Latin-1
+function normalizeBulletChars(text: string): string {
+  return text
+    .replace(/[\u2022\u2023\u2024\u2025\u2043\u204C\u204D\u2219\u25AA\u25CF\u25E6\u2768\u29BE\u29BF]/g, "-")
+    .replace(/[\u2013\u2014]/g, "-");
+}
+
 function buildFormattedLines(doc: jsPDF, content: string, maxWidth: number) {
   const source = (content || "").replace(/\r\n/g, "\n").trim();
   if (!source) return ["Informação não cadastrada."];
 
-  const unorderedRegex = /^[-*•]\s+/;
+  // Aceita bullet com ou sem espaço após o marcador
+  const unorderedRegex = /^[-*•\u2022\u2023\u25AA\u25CF\u25E6]\s*/;
   const orderedRegex = /^(\d+)[.)]\s+/;
 
   const lines = source.split("\n");
   const formatted: string[] = [];
 
   lines.forEach((rawLine) => {
-    const line = rawLine.trim();
+    const line = normalizeBulletChars(rawLine.trim());
     if (!line) {
       formatted.push("");
       return;
@@ -203,7 +211,7 @@ function buildCurriculumLines(doc: jsPDF, curriculum: string[], maxWidth: number
 
   const lines: string[] = [];
   curriculum.forEach((item) => {
-    const text = (item || "Informação não cadastrada.").trim();
+    const text = normalizeBulletChars((item || "Informação não cadastrada.").trim());
     lines.push(...doc.splitTextToSize(`- ${text}`, maxWidth));
   });
 

@@ -107,6 +107,7 @@ export default function PartnerCommissionsDialog({
       setNewValor("");
       setNewDescricao("");
       setNewIndicacaoId("");
+      setMesFilter("");
     }
   }, [open, parceiroId]);
 

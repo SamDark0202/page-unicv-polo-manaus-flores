@@ -178,13 +178,29 @@ export function formatCurrencyBRL(value: number) {
   });
 }
 
+function parseDateSafe(value: string | null | undefined) {
+  if (!value) return new Date();
+
+  const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (dateOnlyMatch) {
+    const year = Number(dateOnlyMatch[1]);
+    const monthIndex = Number(dateOnlyMatch[2]) - 1;
+    const day = Number(dateOnlyMatch[3]);
+    const parsedDateOnly = new Date(Date.UTC(year, monthIndex, day, 12, 0, 0, 0));
+    if (!Number.isNaN(parsedDateOnly.getTime())) {
+      return parsedDateOnly;
+    }
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
 function resolveReferenceMonthDate(value: string | null | undefined) {
-  const parsed = value ? new Date(value) : new Date();
-  const date = Number.isNaN(parsed.getTime()) ? new Date() : parsed;
-
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-
+  const date = parseDateSafe(value);
+  const nextMonthStart = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1));
+  const year = nextMonthStart.getUTCFullYear();
+  const month = String(nextMonthStart.getUTCMonth() + 1).padStart(2, "0");
   return `${year}-${month}-01`;
 }
 

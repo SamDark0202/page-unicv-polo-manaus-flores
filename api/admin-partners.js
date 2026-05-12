@@ -58,15 +58,31 @@ async function listPartners(request, response, admin) {
 
   const [{ data: partners, error: partnersError }, { data: indications, error: indicationsError }, { data: commissions, error: commissionsError }] = await Promise.all([
     partnerQuery,
-    admin.from("indicacoes").select("parceiro_id, status"),
+    admin.from("indicacoes").select("parceiro_id, status, data_criacao, data_conversao, valor_matricula"),
     admin.from("comissoes").select("parceiro_id, valor, status_pagamento"),
   ]);
 
-  if (partnersError || indicationsError || commissionsError) {
+  let safeIndications = indications;
+  let safeIndicationsError = indicationsError;
+
+  if (safeIndicationsError && String(safeIndicationsError.code || "") === "42703") {
+    const fallback = await admin
+      .from("indicacoes")
+      .select("parceiro_id, status, data_criacao");
+
+    safeIndications = (fallback.data || []).map((item) => ({
+      ...item,
+      data_conversao: null,
+      valor_matricula: null,
+    }));
+    safeIndicationsError = fallback.error;
+  }
+
+  if (partnersError || safeIndicationsError || commissionsError) {
     return response.status(500).json({ error: "Falha ao carregar dados administrativos de parceiros." });
   }
 
-  const merged = mapPartnersWithMetrics(partners || [], indications || [], commissions || []);
+  const merged = mapPartnersWithMetrics(partners || [], safeIndications || [], commissions || [], filters);
   return response.status(200).json({ partners: merged, filters });
 }
 

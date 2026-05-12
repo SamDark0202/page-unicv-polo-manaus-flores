@@ -33,6 +33,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
@@ -48,8 +49,9 @@ import {
 import { formatPartnerTypeLabel, type PartnerType } from "@/lib/partnerProfile";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
 import { normalizeText } from "@/utils/normalize";
+import { getCurrentMonthValue, getPreviousMonthValue, getCurrentYearValue, getPreviousYearValue, type PeriodType } from "@/utils/periodUtils";
 import { getPasswordRecoveryRetryAfterSeconds } from "@/lib/passwordRecovery";
-import { KeyRound, Loader2, Mail, Pencil, Plus, RefreshCcw, Search, Trash2, UsersRound } from "lucide-react";
+import { Filter, KeyRound, Loader2, Mail, Pencil, Plus, RefreshCcw, Search, Trash2, UsersRound } from "lucide-react";
 
 const schema = z.object({
   nome: z.string().trim().min(2, "Nome obrigatório.").max(160, "Nome muito longo."),
@@ -60,7 +62,6 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
-
 const brl = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
@@ -75,6 +76,9 @@ export default function PartnerManager({ readOnly = false }: { readOnly?: boolea
   const [partners, setPartners] = useState<AdminPartnerRecord[]>([]);
   const [query, setQuery] = useSessionStorageState<string>("controle.partnerManager.query", "");
   const [tipo, setTipo] = useSessionStorageState<PartnerType | "todos">("controle.partnerManager.tipo", "todos");
+  const [periodType, setPeriodType] = useSessionStorageState<PeriodType>("controle.partnerManager.periodType", "todos");
+  const [periodMonth, setPeriodMonth] = useSessionStorageState<string>("controle.partnerManager.periodMonth", "");
+  const [periodYear, setPeriodYear] = useSessionStorageState<string>("controle.partnerManager.periodYear", "");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<AdminPartnerRecord | null>(null);
   const [sendingAccessId, setSendingAccessId] = useState<string | null>(null);
@@ -94,24 +98,12 @@ export default function PartnerManager({ readOnly = false }: { readOnly?: boolea
     },
   });
 
-  const summary = useMemo(() => {
-    return partners.reduce(
-      (acc, item) => {
-        acc.total += 1;
-        acc.indicacoes += item.totalIndicacoes;
-        acc.convertidas += item.convertidas;
-        acc.comissaoPendente += Number(item.comissaoPendente || 0);
-        return acc;
-      },
-      { total: 0, indicacoes: 0, convertidas: 0, comissaoPendente: 0 },
-    );
-  }, [partners]);
-
   const filteredPartners = useMemo(() => {
     const q = normalizeText(query.trim());
     return partners.filter((p) => {
       const matchesTipo = tipo === "todos" || p.tipo === tipo;
       if (!matchesTipo) return false;
+
       if (!q) return true;
       return (
         normalizeText(p.nome).includes(q) ||
@@ -121,10 +113,51 @@ export default function PartnerManager({ readOnly = false }: { readOnly?: boolea
     });
   }, [partners, query, tipo]);
 
+  const summary = useMemo(() => {
+    return filteredPartners.reduce(
+      (acc, item) => {
+        acc.total += 1;
+        acc.indicacoes += item.totalIndicacoes;
+        acc.convertidas += item.convertidas;
+        acc.comissaoPendente += Number(item.comissaoPendente || 0);
+        return acc;
+      },
+      { total: 0, indicacoes: 0, convertidas: 0, comissaoPendente: 0 },
+    );
+  }, [filteredPartners]);
+
+  const periodSummaryLabel = useMemo(() => {
+    if (periodType === "todos") return "Todo período";
+
+    if (periodType === "mes") {
+      if (!periodMonth) return "Mês aberto";
+      return new Date(`${periodMonth}-01T12:00:00`).toLocaleDateString("pt-BR", { month: "short", year: "numeric" });
+    }
+
+    return periodYear || "Ano aberto";
+  }, [periodMonth, periodType, periodYear]);
+
+  const paymentForecastLabel = useMemo(() => {
+    if (periodType !== "mes" || !periodMonth) return "";
+
+    const [yearRaw, monthRaw] = periodMonth.split("-");
+    const year = Number(yearRaw);
+    const month = Number(monthRaw);
+    if (!year || !month) return "";
+
+    const competency = new Date(year, month - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    const paymentDate = new Date(year, month, 10).toLocaleDateString("pt-BR");
+    return `Leads convertidos em ${competency} geram pagamento previsto para ${paymentDate}.`;
+  }, [periodMonth, periodType]);
+
   async function loadPartners() {
     try {
       setLoading(true);
-      const rows = await fetchAdminPartners();
+      const rows = await fetchAdminPartners({
+        periodType,
+        periodMonth: periodType === "mes" ? periodMonth : undefined,
+        periodYear: periodType === "ano" ? periodYear : undefined,
+      });
       setPartners(rows);
     } catch (error) {
       toast({
@@ -139,7 +172,7 @@ export default function PartnerManager({ readOnly = false }: { readOnly?: boolea
 
   useEffect(() => {
     loadPartners();
-  }, []);
+  }, [periodMonth, periodType, periodYear]);
 
   function openCreateDialog() {
     setEditingPartner(null);
@@ -356,6 +389,104 @@ export default function PartnerManager({ readOnly = false }: { readOnly?: boolea
               </Button>
             )}
           </div>
+
+          <div className="mt-3 flex justify-end">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button type="button" variant="outline" className="h-11 min-w-[230px] justify-between rounded-2xl px-4">
+                  <span className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    Filtro de período
+                  </span>
+                  <span className="max-w-[120px] truncate text-xs text-muted-foreground">{periodSummaryLabel}</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-[320px] rounded-2xl p-4">
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Cadastro de parceiros</p>
+
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Tipo</p>
+                    <Select value={periodType} onValueChange={(value) => setPeriodType(value as PeriodType)}>
+                      <SelectTrigger className="h-10 rounded-xl">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="todos">Todo período</SelectItem>
+                        <SelectItem value="mes">Por mês</SelectItem>
+                        <SelectItem value="ano">Por ano</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {periodType === "mes" ? (
+                    <div className="space-y-1">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Mês</p>
+                      <Input
+                        type="month"
+                        value={periodMonth}
+                        onChange={(event) => setPeriodMonth(event.target.value)}
+                        className="h-10 rounded-xl"
+                      />
+                    </div>
+                  ) : periodType === "ano" ? (
+                    <div className="space-y-1">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Ano</p>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min={2000}
+                        max={2100}
+                        placeholder="2026"
+                        value={periodYear}
+                        onChange={(event) => setPeriodYear(event.target.value.slice(0, 4))}
+                        className="h-10 rounded-xl"
+                      />
+                    </div>
+                  ) : null}
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      setPeriodType("mes");
+                      setPeriodMonth(getCurrentMonthValue());
+                    }}>
+                      Mês atual
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      setPeriodType("mes");
+                      setPeriodMonth(getPreviousMonthValue());
+                    }}>
+                      Mês anterior
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      setPeriodType("ano");
+                      setPeriodYear(getCurrentYearValue());
+                    }}>
+                      Ano atual
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      setPeriodType("ano");
+                      setPeriodYear(getPreviousYearValue());
+                    }}>
+                      Ano anterior
+                    </Button>
+                  </div>
+
+                  <Button type="button" variant="ghost" size="sm" className="w-full" onClick={() => {
+                    setPeriodType("todos");
+                    setPeriodMonth("");
+                    setPeriodYear("");
+                  }}>
+                    Limpar período
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {paymentForecastLabel ? (
+            <p className="mt-2 text-right text-xs text-muted-foreground">{paymentForecastLabel}</p>
+          ) : null}
 
           <div className="mt-5 space-y-3">
             {loading ? (

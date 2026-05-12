@@ -20,6 +20,7 @@ import {
 } from "@/lib/adminIndicationApi";
 import { formatPartnerIndicationStatus, type PartnerIndicationStatus } from "@/lib/partnerIndication";
 import { normalizeText } from "@/utils/normalize";
+import { getCurrentMonthValue, getPreviousMonthValue, getCurrentYearValue, getPreviousYearValue, isInPeriod, type PeriodType } from "@/utils/periodUtils";
 import { Loader2, Save, Search } from "lucide-react";
 
 const STATUS_OPTIONS: Array<{ value: PartnerIndicationStatus | "todos"; label: string }> = [
@@ -46,6 +47,8 @@ type DraftMap = Record<string, {
   valor_matricula: string;
 }>;
 
+type PeriodBasis = "criacao" | "conversao";
+
 function toInputDate(value: string | null) {
   if (!value) return "";
   const date = new Date(value);
@@ -66,6 +69,10 @@ export default function PartnerIndicationsCrmDialog({
   const [indications, setIndications] = useState<AdminIndicationRecord[]>([]);
   const [statusFilter, setStatusFilter] = useState<PartnerIndicationStatus | "todos">("todos");
   const [search, setSearch] = useState("");
+  const [periodType, setPeriodType] = useState<PeriodType>("todos");
+  const [periodBasis, setPeriodBasis] = useState<PeriodBasis>("criacao");
+  const [periodMonth, setPeriodMonth] = useState("");
+  const [periodYear, setPeriodYear] = useState("");
   const [drafts, setDrafts] = useState<DraftMap>({});
 
   async function load() {
@@ -100,6 +107,10 @@ export default function PartnerIndicationsCrmDialog({
     const q = normalizeText(search.trim());
     return indications.filter((item) => {
       if (statusFilter !== "todos" && item.status !== statusFilter) return false;
+
+      const baseDate = periodBasis === "conversao" ? item.data_conversao : item.data_criacao;
+      if (!isInPeriod(baseDate, periodType, periodMonth, periodYear)) return false;
+
       if (!q) return true;
       return (
         normalizeText(item.nome).includes(q) ||
@@ -108,7 +119,7 @@ export default function PartnerIndicationsCrmDialog({
         normalizeText(item.curso_interesse ?? "").includes(q)
       );
     });
-  }, [indications, search, statusFilter]);
+  }, [indications, periodBasis, periodMonth, periodType, periodYear, search, statusFilter]);
 
   useEffect(() => {
     if (open && parceiroId) {
@@ -199,6 +210,83 @@ export default function PartnerIndicationsCrmDialog({
           <Button variant="outline" onClick={load}>
             Atualizar lista
           </Button>
+        </div>
+
+        <div className="grid gap-3 border-b pb-4 md:grid-cols-[160px_180px_180px_1fr]">
+          <Select value={periodType} onValueChange={(value) => setPeriodType(value as PeriodType)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Período" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todo período</SelectItem>
+              <SelectItem value="mes">Por mês</SelectItem>
+              <SelectItem value="ano">Por ano</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={periodBasis} onValueChange={(value) => setPeriodBasis(value as PeriodBasis)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Base" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="criacao">Base: criado</SelectItem>
+              <SelectItem value="conversao">Base: convertido</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {periodType === "mes" ? (
+            <Input
+              type="month"
+              value={periodMonth}
+              onChange={(event) => setPeriodMonth(event.target.value)}
+            />
+          ) : periodType === "ano" ? (
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={2000}
+              max={2100}
+              placeholder="Ano"
+              value={periodYear}
+              onChange={(event) => setPeriodYear(event.target.value.slice(0, 4))}
+            />
+          ) : (
+            <Input value="Sem filtro" disabled />
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => {
+              setPeriodType("mes");
+              setPeriodMonth(getCurrentMonthValue());
+            }}>
+              Mês atual
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => {
+              setPeriodType("mes");
+              setPeriodMonth(getPreviousMonthValue());
+            }}>
+              Mês anterior
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => {
+              setPeriodType("ano");
+              setPeriodYear(getCurrentYearValue());
+            }}>
+              Ano atual
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => {
+              setPeriodType("ano");
+              setPeriodYear(getPreviousYearValue());
+            }}>
+              Ano anterior
+            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={() => {
+              setPeriodType("todos");
+              setPeriodMonth("");
+              setPeriodYear("");
+            }}>
+              Limpar
+            </Button>
+          </div>
         </div>
 
         <div className="max-h-[62vh] space-y-3 overflow-y-auto pr-1">

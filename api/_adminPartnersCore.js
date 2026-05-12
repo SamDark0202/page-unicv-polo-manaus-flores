@@ -52,11 +52,42 @@ export function resolveAllowedAdminEmails(env) {
 export function buildPartnerFilters(queryLike) {
   const search = sanitizeString(queryLike?.search);
   const tipo = sanitizeString(queryLike?.tipo);
+  const periodTypeRaw = sanitizeString(queryLike?.periodType);
+  const periodType = ["todos", "mes", "ano"].includes(periodTypeRaw) ? periodTypeRaw : "todos";
+  const periodMonthRaw = sanitizeString(queryLike?.periodMonth);
+  const periodYearRaw = sanitizeString(queryLike?.periodYear);
+  const periodMonth = /^\d{4}-\d{2}$/.test(periodMonthRaw) ? periodMonthRaw : "";
+  const periodYear = /^\d{4}$/.test(periodYearRaw) ? periodYearRaw : "";
 
   return {
     search,
     tipo: PARTNER_TYPES.has(tipo) ? tipo : "todos",
+    periodType,
+    periodMonth,
+    periodYear,
   };
+}
+
+function toDatePart(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString().slice(0, 10);
+}
+
+function isInPeriod(dateValue, filters) {
+  if (!filters || filters.periodType === "todos") return true;
+
+  const datePart = toDatePart(dateValue);
+  if (!datePart) return false;
+
+  if (filters.periodType === "mes") {
+    if (!filters.periodMonth) return true;
+    return datePart.startsWith(`${filters.periodMonth}-`);
+  }
+
+  if (!filters.periodYear) return true;
+  return datePart.startsWith(`${filters.periodYear}-`);
 }
 
 export function validatePartnerPayload(payload, mode = "create") {
@@ -90,18 +121,35 @@ export function validatePartnerPayload(payload, mode = "create") {
   return { issues, normalized };
 }
 
-export function mapPartnersWithMetrics(partners, indications, commissions) {
+export function mapPartnersWithMetrics(partners, indications, commissions, filters = { periodType: "todos", periodMonth: "", periodYear: "" }) {
   const indicationByPartner = new Map();
+  const usePeriodFilter = filters.periodType !== "todos";
+
   for (const item of indications) {
     if (!item?.parceiro_id) continue;
+
+    const createdInPeriod = isInPeriod(item.data_criacao, filters);
+
+    if (usePeriodFilter && !createdInPeriod) {
+      continue;
+    }
+
     const current = indicationByPartner.get(item.parceiro_id) || {
       totalIndicacoes: 0,
       emNegociacao: 0,
       convertidas: 0,
+      comissaoPendentePeriodo: 0,
     };
+
     current.totalIndicacoes += 1;
     if (item.status === "em_negociacao") current.emNegociacao += 1;
-    if (item.status === "convertido") current.convertidas += 1;
+    if (item.status === "convertido") {
+      current.convertidas += 1;
+      if (usePeriodFilter) {
+        current.comissaoPendentePeriodo += Number(item.valor_matricula || 0);
+      }
+    }
+
     indicationByPartner.set(item.parceiro_id, current);
   }
 
@@ -126,6 +174,7 @@ export function mapPartnersWithMetrics(partners, indications, commissions) {
       totalIndicacoes: 0,
       emNegociacao: 0,
       convertidas: 0,
+      comissaoPendentePeriodo: 0,
     };
     const c = commissionByPartner.get(partner.id) || {
       comissaoPendente: 0,
@@ -136,6 +185,7 @@ export function mapPartnersWithMetrics(partners, indications, commissions) {
       ...partner,
       ...i,
       ...c,
+      comissaoPendente: usePeriodFilter ? Number(i.comissaoPendentePeriodo || 0) : Number(c.comissaoPendente || 0),
     };
   });
 }

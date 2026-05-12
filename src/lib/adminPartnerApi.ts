@@ -41,11 +41,20 @@ async function getAuthHeaders() {
   } as const;
 }
 
-export async function fetchAdminPartners(params?: { search?: string; tipo?: PartnerType | "todos" }) {
+export async function fetchAdminPartners(params?: {
+  search?: string;
+  tipo?: PartnerType | "todos";
+  periodType?: "todos" | "mes" | "ano";
+  periodMonth?: string;
+  periodYear?: string;
+}) {
   const headers = await getAuthHeaders();
   const query = new URLSearchParams();
   if (params?.search) query.set("search", params.search);
   if (params?.tipo) query.set("tipo", params.tipo);
+  if (params?.periodType) query.set("periodType", params.periodType);
+  if (params?.periodMonth) query.set("periodMonth", params.periodMonth);
+  if (params?.periodYear) query.set("periodYear", params.periodYear);
 
   const response = await fetch(`/api/admin-partners${query.toString() ? `?${query.toString()}` : ""}`, {
     method: "GET",

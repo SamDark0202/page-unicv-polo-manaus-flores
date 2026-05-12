@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getCurrentMonthValue, getPreviousMonthValue, getCurrentYearValue, getPreviousYearValue, isInPeriod, type PeriodType } from "@/utils/periodUtils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useSessionStorageState } from "@/hooks/useSessionStorageState";
@@ -113,6 +115,8 @@ type CreateLeadDraft = {
   observacao: string;
 };
 
+type PeriodBasis = "criacao" | "conversao";
+
 function toInputDate(value: string | null) {
   if (!value) return "";
   const d = new Date(value);
@@ -153,6 +157,10 @@ export default function PartnerCrmSection({ canEdit = true, canDeleteLead = true
   const [indications, setIndications] = useState<AdminIndicationRecord[]>([]);
   const [search, setSearch] = useSessionStorageState<string>("controle.partnerCrm.search", "");
   const [viewFilter, setViewFilter] = useSessionStorageState<"todos" | "abertos" | "fechados">("controle.partnerCrm.viewFilter", "todos");
+  const [periodType, setPeriodType] = useSessionStorageState<PeriodType>("controle.partnerCrm.periodType", "todos");
+  const [periodBasis, setPeriodBasis] = useSessionStorageState<PeriodBasis>("controle.partnerCrm.periodBasis", "criacao");
+  const [periodMonth, setPeriodMonth] = useSessionStorageState<string>("controle.partnerCrm.periodMonth", "");
+  const [periodYear, setPeriodYear] = useSessionStorageState<string>("controle.partnerCrm.periodYear", "");
   const [drafts, setDrafts] = useSessionStorageState<DraftMap>("controle.partnerCrm.drafts", {});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [activeLeadId, setActiveLeadId] = useSessionStorageState<string | null>("controle.partnerCrm.activeLeadId", null);
@@ -339,6 +347,18 @@ export default function PartnerCrmSection({ canEdit = true, canDeleteLead = true
 
   const selectedPartner = selectedId !== ALL_PARTNERS_VALUE ? partnerMap.get(selectedId) || null : null;
 
+  const periodSummaryLabel = useMemo(() => {
+    if (periodType === "todos") return "Todo período";
+    const basisLabel = periodBasis === "conversao" ? "Conversão" : "Criação";
+    if (periodType === "mes") {
+      const monthLabel = periodMonth
+        ? new Date(`${periodMonth}-01T12:00:00`).toLocaleDateString("pt-BR", { month: "short", year: "numeric" })
+        : "mês aberto";
+      return `${basisLabel}: ${monthLabel}`;
+    }
+    return `${basisLabel}: ${periodYear || "ano aberto"}`;
+  }, [periodBasis, periodMonth, periodType, periodYear]);
+
   const filteredIndications = useMemo(() => {
     const query = normalize(search.trim());
 
@@ -360,9 +380,12 @@ export default function PartnerCrmSection({ canEdit = true, canDeleteLead = true
             ? item.status === "novo" || item.status === "em_negociacao"
             : item.status === "convertido" || item.status === "nao_convertido";
 
-      return matchesSearch && matchesView;
+      const baseDate = periodBasis === "conversao" ? item.data_conversao : item.data_criacao;
+      const matchesPeriod = isInPeriod(baseDate, periodType, periodMonth, periodYear);
+
+      return matchesSearch && matchesView && matchesPeriod;
     });
-  }, [indications, partnerMap, search, viewFilter]);
+  }, [indications, partnerMap, periodBasis, periodMonth, periodType, periodYear, search, viewFilter]);
 
   const activeLead = activeLeadId ? indications.find((item) => item.id === activeLeadId) || null : null;
   const activeDraft = activeLead ? drafts[activeLead.id] : null;
@@ -455,6 +478,115 @@ export default function PartnerCrmSection({ canEdit = true, canDeleteLead = true
                 Atualizar CRM
               </Button>
             </div>
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button type="button" variant="outline" className="h-11 min-w-[230px] justify-between rounded-2xl px-4">
+                  <span className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    Filtro de período
+                  </span>
+                  <span className="max-w-[120px] truncate text-xs text-muted-foreground">{periodSummaryLabel}</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-[340px] rounded-2xl p-4">
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Filtro de período</p>
+
+                  <div className="grid gap-3">
+                    <div className="space-y-1">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Tipo</p>
+                      <Select value={periodType} onValueChange={(value) => setPeriodType(value as PeriodType)}>
+                        <SelectTrigger className="h-10 rounded-xl">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todos">Todo período</SelectItem>
+                          <SelectItem value="mes">Por mês</SelectItem>
+                          <SelectItem value="ano">Por ano</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Base da data</p>
+                      <Select value={periodBasis} onValueChange={(value) => setPeriodBasis(value as PeriodBasis)}>
+                        <SelectTrigger className="h-10 rounded-xl">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="criacao">Lead criado</SelectItem>
+                          <SelectItem value="conversao">Lead convertido</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {periodType === "mes" ? (
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Mês</p>
+                        <Input
+                          type="month"
+                          value={periodMonth}
+                          onChange={(event) => setPeriodMonth(event.target.value)}
+                          className="h-10 rounded-xl"
+                        />
+                      </div>
+                    ) : periodType === "ano" ? (
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Ano</p>
+                        <Input
+                          type="number"
+                          inputMode="numeric"
+                          min={2000}
+                          max={2100}
+                          placeholder="2026"
+                          value={periodYear}
+                          onChange={(event) => setPeriodYear(event.target.value.slice(0, 4))}
+                          className="h-10 rounded-xl"
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      setPeriodType("mes");
+                      setPeriodMonth(getCurrentMonthValue());
+                    }}>
+                      Mês atual
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      setPeriodType("mes");
+                      setPeriodMonth(getPreviousMonthValue());
+                    }}>
+                      Mês anterior
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      setPeriodType("ano");
+                      setPeriodYear(getCurrentYearValue());
+                    }}>
+                      Ano atual
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      setPeriodType("ano");
+                      setPeriodYear(getPreviousYearValue());
+                    }}>
+                      Ano anterior
+                    </Button>
+                  </div>
+
+                  <Button type="button" variant="ghost" size="sm" className="w-full" onClick={() => {
+                    setPeriodType("todos");
+                    setPeriodMonth("");
+                    setPeriodYear("");
+                  }}>
+                    Limpar período
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </CardContent>
       </Card>
