@@ -64,6 +64,14 @@ const formatDuration = (value: string | number | null) => {
   return `${text} Trimestres`;
 };
 
+const getPaymentInstallments = (duration: string | number | null): number => {
+  if (duration === null || duration === "") return 12;
+  const text = String(duration).trim();
+  const match = text.match(/^(\d+)/);
+  if (!match) return 12;
+  return parseInt(match[1], 10) * 3;
+};
+
 const formatHours = (value: string | number | null) => {
   if (value === null || value === "") return "-";
   const text = String(value).trim();
@@ -323,7 +331,7 @@ export default function TechnicalToTechnologistManager() {
                         </div>
                         <div>
                           <p className="text-muted-foreground">Plano de Pagamento</p>
-                          <p className="font-medium">1+12x de {formatCurrency(course.value)}</p>
+                          <p className="font-medium">1+{getPaymentInstallments(course.duration)}x de {formatCurrency(course.value)}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -352,7 +360,7 @@ export default function TechnicalToTechnologistManager() {
                         <TableCell className="text-base whitespace-nowrap">{formatDuration(course.duration)}</TableCell>
                         <TableCell className="text-base whitespace-nowrap">{formatHours(course.totalHours)}</TableCell>
                         <TableCell className="text-base whitespace-nowrap">{course.installments || "-"}</TableCell>
-                        <TableCell className="text-base whitespace-nowrap">1+12x de {formatCurrency(course.value)}</TableCell>
+                        <TableCell className="text-base whitespace-nowrap">1+{getPaymentInstallments(course.duration)}x de {formatCurrency(course.value)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

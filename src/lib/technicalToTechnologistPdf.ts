@@ -76,6 +76,14 @@ function formatDuration(value: string | number | null) {
   return `${text} Trimestres`;
 }
 
+function getPaymentInstallments(duration: string | number | null): number {
+  if (duration === null || duration === "") return 12;
+  const text = String(duration).trim();
+  const match = text.match(/^(\d+)/);
+  if (!match) return 12;
+  return parseInt(match[1], 10) * 3;
+}
+
 function formatHours(value: string | number | null) {
   if (value === null || value === "") return "-";
   const text = String(value).trim();
@@ -205,7 +213,7 @@ export async function generateTechnicalToTechnologistPdf(
     doc.text(formatDuration(course.duration), margin + 87, cursorY + 5.2);
     doc.text(formatHours(course.totalHours), margin + 115, cursorY + 5.2);
     doc.text(course.installments || "-", margin + 148, cursorY + 5.2);
-    doc.text(`1+12x de ${formatCurrency(course.value)}`, pageWidth - margin - 2, cursorY + 5.2, { align: "right" });
+    doc.text(`1+${getPaymentInstallments(course.duration)}x de ${formatCurrency(course.value)}`, pageWidth - margin - 2, cursorY + 5.2, { align: "right" });
 
     cursorY += rowHeight;
   });
