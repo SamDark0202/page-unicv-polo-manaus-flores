@@ -152,8 +152,8 @@ const sanitizeOfferGroup = (og) => ({
   duration: safeStr(og?.duration ?? null),
   total_hours: safeStr(og?.total_hours ?? null),
   total_disciplines: safeStr(og?.total_disciplines ?? null),
-  installments: safeStr(og?.installments ?? null),
-  value: safeStr(og?.value ?? null),
+  installments: safeStr(og?.installments ?? og?.payment_plan ?? og?.forma_pagamento ?? null),
+  value: safeStr(og?.value ?? og?.installment_value ?? null),
   matrice_file: og?.matrice_file ? { url: safeStr(og.matrice_file.url ?? null) } : null,
 });
 

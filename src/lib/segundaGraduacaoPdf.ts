@@ -83,6 +83,39 @@ function formatHours(value: string | number | null) {
   return `${text} Horas`;
 }
 
+function formatPaymentPlan(installments: string | null, value: string | number | null) {
+  const installmentsText = (installments ?? "").trim();
+  const formattedValue = formatCurrency(value);
+
+  if (!installmentsText) {
+    return formattedValue === "-" ? "-" : `Consulte condicoes (${formattedValue})`;
+  }
+
+  if (/de\s+/i.test(installmentsText)) {
+    return installmentsText;
+  }
+
+  if (/^\d+$/.test(installmentsText)) {
+    return `1+${installmentsText}x de ${formattedValue}`;
+  }
+
+  if (/^1\s*\+\s*\d+\s*x?$/i.test(installmentsText)) {
+    const normalized = installmentsText.replace(/\s+/g, "").replace(/x$/i, "");
+    return `${normalized}x de ${formattedValue}`;
+  }
+
+  if (/^\d+\s*x$/i.test(installmentsText)) {
+    const normalized = installmentsText.replace(/\s+/g, "").toLowerCase();
+    return `1+${normalized} de ${formattedValue}`;
+  }
+
+  if (/x/i.test(installmentsText) && formattedValue !== "-") {
+    return `${installmentsText} de ${formattedValue}`;
+  }
+
+  return installmentsText;
+}
+
 function sanitizeFilename(value: string) {
   return value
     .normalize("NFD")
@@ -204,7 +237,7 @@ export async function generateSegundaGraduacaoPdf(
     doc.text(formatDuration(item.duration), margin + 87, cursorY + 5.2);
     doc.text(formatHours(item.totalHours), margin + 113, cursorY + 5.2);
     doc.text(item.totalDisciplines ? String(item.totalDisciplines) : "-", margin + 143, cursorY + 5.2);
-    doc.text(`1+12x de ${formatCurrency(item.value)}`, pageWidth - margin - 2, cursorY + 5.2, { align: "right" });
+    doc.text(formatPaymentPlan(item.installments, item.value), pageWidth - margin - 2, cursorY + 5.2, { align: "right" });
 
     cursorY += rowHeight;
   });

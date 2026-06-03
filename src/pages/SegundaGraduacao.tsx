@@ -106,6 +106,56 @@ const formatHours = (value: string | number | null) => {
   return `${text} Horas`;
 };
 
+const getDurationOrderValue = (duration: string | null) => {
+  if (!duration) return Number.POSITIVE_INFINITY;
+  const text = duration.trim().toLowerCase();
+  if (!text) return Number.POSITIVE_INFINITY;
+
+  const normalized = text.replace(",", ".");
+  const match = normalized.match(/\d+(?:\.\d+)?/);
+  if (!match) return Number.POSITIVE_INFINITY;
+
+  const value = Number(match[0]);
+  if (!Number.isFinite(value)) return Number.POSITIVE_INFINITY;
+
+  if (normalized.includes("ano")) return value * 4;
+  if (normalized.includes("mes")) return value / 3;
+  return value;
+};
+
+const formatPaymentPlan = (installments: string | null, value: string | number | null) => {
+  const installmentsText = (installments ?? "").trim();
+  const formattedValue = formatCurrency(value);
+
+  if (!installmentsText) {
+    return formattedValue === "-" ? "-" : `Consulte condições (${formattedValue})`;
+  }
+
+  if (/de\s+/i.test(installmentsText)) {
+    return installmentsText;
+  }
+
+  if (/^\d+$/.test(installmentsText)) {
+    return `1+${installmentsText}x de ${formattedValue}`;
+  }
+
+  if (/^1\s*\+\s*\d+\s*x?$/i.test(installmentsText)) {
+    const normalized = installmentsText.replace(/\s+/g, "").replace(/x$/i, "");
+    return `${normalized}x de ${formattedValue}`;
+  }
+
+  if (/^\d+\s*x$/i.test(installmentsText)) {
+    const normalized = installmentsText.replace(/\s+/g, "").toLowerCase();
+    return `1+${normalized} de ${formattedValue}`;
+  }
+
+  if (/x/i.test(installmentsText) && formattedValue !== "-") {
+    return `${installmentsText} de ${formattedValue}`;
+  }
+
+  return installmentsText;
+};
+
 const toWhatsappLink = (originCourse: string, targetCourse: string) => {
   const message = `Olá! Tenho graduação em ${originCourse} e quero me matricular na 2ª Graduação em ${targetCourse}. Pode me ajudar?`;
   return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`;
@@ -217,9 +267,11 @@ function parseGraduationCourses(payload: unknown): GraduationCourse[] {
         }
       }
 
-      const secondGradOptions = Array.from(unique.values()).sort((a, b) =>
-        a.courseName.localeCompare(b.courseName, "pt-BR")
-      );
+      const secondGradOptions = Array.from(unique.values()).sort((a, b) => {
+        const durationDiff = getDurationOrderValue(a.duration) - getDurationOrderValue(b.duration);
+        if (durationDiff !== 0) return durationDiff;
+        return a.courseName.localeCompare(b.courseName, "pt-BR");
+      });
 
       return {
         id: String(idValue),
@@ -518,7 +570,7 @@ const SegundaGraduacao = () => {
                                 <div>
                                   <p className="text-muted-foreground">Plano de Pagamento</p>
                                   <p className="font-medium">
-                                    1+{opt.installments ?? "?"}x de {formatCurrency(opt.value)}
+                                    {formatPaymentPlan(opt.installments, opt.value)}
                                   </p>
                                 </div>
                               </div>
@@ -585,7 +637,7 @@ const SegundaGraduacao = () => {
                                   {opt.totalDisciplines ?? "-"}
                                 </TableCell>
                                 <TableCell className="text-base whitespace-nowrap">
-                                  1+{opt.installments ?? "?"}x de {formatCurrency(opt.value)}
+                                  {formatPaymentPlan(opt.installments, opt.value)}
                                 </TableCell>
                                 <TableCell>
                                   <Button variant="whatsapp" size="sm" className="px-5 font-bold" asChild>
