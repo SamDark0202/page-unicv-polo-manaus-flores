@@ -6,12 +6,17 @@ const REMOTE_URLS = {
   "segunda-graduacao": "https://diariodebordo.unicv.edu.br/cursos-segunda-graduacao/publico",
 };
 
+// ─── Cache em memória ───────────────────────────────────────────────────────
+let pgCacheData = null;
+let pgCacheTime = 0;
+const PG_CACHE_DURATION_MS = 1800000; // 30 minutos
+
 // ─── Pós-Graduação (scraper HTML Tutor LMS) ───────────────────────────────────
 const PG_BASE_URL = "https://unicive.com/pos-graduacao-ead/";
 const PG_AJAX_URL = "https://unicive.com/wp-admin/admin-ajax.php";
-const PG_MAX_PAGES = 30;
-const PG_TIMEOUT_MS = 15000;
-const PG_RETRIES = 2;
+const PG_MAX_PAGES = 10;
+const PG_TIMEOUT_MS = 20000;
+const PG_RETRIES = 3;
 
 const pgSafeText = (v, max = 5000) =>
   typeof v === "string" ? v.replace(/\s+/g, " ").trim().slice(0, max) : "";
@@ -115,27 +120,62 @@ const pgFetchAjaxPage = async (page, nonce) => {
 };
 
 async function handlePosGraduacao(response) {
-  const firstHtml = await pgFetchPage1();
-  const detectedPages = pgParseTotalPages(firstHtml);
-  const totalPages = Math.max(1, Math.min(detectedPages, PG_MAX_PAGES));
-  const nonce = pgExtractNonce(firstHtml);
-  const allCourses = [...pgParseCoursesFromHtml(firstHtml)];
-  const CONCURRENT = 4;
-  for (let page = 2; page <= totalPages; page += CONCURRENT) {
-    const batch = [];
-    for (let i = page; i < page + CONCURRENT && i <= totalPages; i++) batch.push(i);
-    const results = await Promise.allSettled(batch.map((p) => pgFetchAjaxPage(p, nonce)));
-    for (const r of results) { if (r.status === "fulfilled") allCourses.push(...pgParseCoursesFromHtml(r.value)); }
+  try {
+    // Verificar cache
+    if (pgCacheData && Date.now() - pgCacheTime < PG_CACHE_DURATION_MS) {
+      response.setHeader("Cache-Control", "s-maxage=900, stale-while-revalidate=1800");
+      response.setHeader("Content-Type", "application/json; charset=utf-8");
+      return response.status(200).json(pgCacheData);
+    }
+
+    const firstHtml = await pgFetchPage1();
+    const detectedPages = pgParseTotalPages(firstHtml);
+    const totalPages = Math.max(1, Math.min(detectedPages, PG_MAX_PAGES));
+    const nonce = pgExtractNonce(firstHtml);
+    const allCourses = [...pgParseCoursesFromHtml(firstHtml)];
+    
+    const CONCURRENT = 4;
+    for (let page = 2; page <= totalPages; page += CONCURRENT) {
+      const batch = [];
+      for (let i = page; i < page + CONCURRENT && i <= totalPages; i++) batch.push(i);
+      const results = await Promise.allSettled(batch.map((p) => pgFetchAjaxPage(p, nonce)));
+      for (const r of results) { 
+        if (r.status === "fulfilled") {
+          allCourses.push(...pgParseCoursesFromHtml(r.value));
+        } else if (r.reason) {
+          console.warn(`Erro ao buscar página de pós-graduação:`, r.reason);
+        }
+      }
+    }
+    
+    const unique = new Map();
+    for (const item of allCourses) {
+      const key = `${item.url}::${item.name}`;
+      if (!unique.has(key)) unique.set(key, pgSanitize(item));
+    }
+    const courses = Array.from(unique.values()).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+    
+    // Armazenar em cache
+    pgCacheData = { updated_at: new Date().toISOString(), total_pages: totalPages, total_courses: courses.length, courses };
+    pgCacheTime = Date.now();
+
+    response.setHeader("Cache-Control", "s-maxage=900, stale-while-revalidate=1800");
+    response.setHeader("Content-Type", "application/json; charset=utf-8");
+    return response.status(200).json(pgCacheData);
+  } catch (error) {
+    // Se houver cache mesmo que expirado, retornar como fallback
+    if (pgCacheData) {
+      console.warn("Erro ao buscar pós-graduação, usando cache expirado:", error instanceof Error ? error.message : String(error));
+      response.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
+      response.setHeader("Content-Type", "application/json; charset=utf-8");
+      return response.status(200).json(pgCacheData);
+    }
+
+    console.error("Erro ao buscar pós-graduação:", error instanceof Error ? error.message : String(error));
+    const message = error instanceof Error ? error.message : "Erro ao buscar pós-graduação";
+    response.setHeader("Content-Type", "application/json; charset=utf-8");
+    return response.status(502).json({ error: message });
   }
-  const unique = new Map();
-  for (const item of allCourses) {
-    const key = `${item.url}::${item.name}`;
-    if (!unique.has(key)) unique.set(key, pgSanitize(item));
-  }
-  const courses = Array.from(unique.values()).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-  response.setHeader("Cache-Control", "s-maxage=900, stale-while-revalidate=1800");
-  response.setHeader("Content-Type", "application/json; charset=utf-8");
-  return response.status(200).json({ updated_at: new Date().toISOString(), total_pages: totalPages, total_courses: courses.length, courses });
 }
 // ─────────────────────────────────────────────────────────────────────────────
 

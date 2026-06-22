@@ -32,12 +32,25 @@ type PostGraduateApiResponse = {
 };
 
 const DEFAULT_API_URL = "/api/cursos?tipo=pos-graduacao";
-const API_URL = import.meta.env.VITE_POS_GRADUACAO_API_URL || DEFAULT_API_URL;
-const API_FALLBACK_URL = "https://www.unicivepoloam.com.br/api/pos-graduacao";
+const API_URL = (() => {
+  const envUrl = String(import.meta.env.VITE_POS_GRADUACAO_API_URL || "").trim();
+  if (!envUrl) return DEFAULT_API_URL;
+
+  try {
+    const parsed = new URL(envUrl, window.location.origin);
+    if (parsed.origin === window.location.origin) {
+      return `${parsed.pathname}${parsed.search}`;
+    }
+  } catch {
+    // Ignore invalid env URL and fallback to local API
+  }
+
+  return DEFAULT_API_URL;
+})();
 const WHATSAPP_PHONE = "559220201260";
-const REQUEST_TIMEOUT_MS = 25000;
-const MAX_FETCH_RETRIES = 4;
-const RETRY_BASE_DELAY_MS = 1200;
+const REQUEST_TIMEOUT_MS = 45000;
+const MAX_FETCH_RETRIES = 3;
+const RETRY_BASE_DELAY_MS = 1500;
 const PAGE_SIZE = 12;
 
 class ApiFetchError extends Error {
@@ -202,12 +215,7 @@ const PosGraduacao = () => {
       const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
       try {
-        const shouldTryFallback =
-          attempt > 1 &&
-          !!API_FALLBACK_URL &&
-          API_FALLBACK_URL !== API_URL;
-
-        const endpoint = shouldTryFallback ? API_FALLBACK_URL : API_URL;
+        const endpoint = API_URL;
 
         const response = await fetch(endpoint, {
           method: "GET",

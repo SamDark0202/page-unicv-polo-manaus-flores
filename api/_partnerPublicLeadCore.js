@@ -1,6 +1,6 @@
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const ALLOWED_FIELDS = new Set(["slug", "nome", "telefone", "email", "website"]);
+const ALLOWED_FIELDS = new Set(["slug", "nome", "telefone", "email", "website", "curso_interesse"]);
 
 export function digitsOnly(value) {
   return String(value || "").replace(/\D/g, "");
@@ -94,6 +94,7 @@ export function validatePartnerPublicLeadBody(body) {
     nome: sanitizeString(body.nome),
     telefone: digitsOnly(body.telefone),
     email: sanitizeString(body.email).toLowerCase(),
+    curso_interesse: sanitizeString(body.curso_interesse) || null,
     website: sanitizeString(body.website),
   };
 
@@ -109,6 +110,9 @@ export function validatePartnerPublicLeadBody(body) {
   if (normalized.email && (!EMAIL_RE.test(normalized.email) || normalized.email.length > 254)) {
     issues.push("E-mail inválido.");
   }
+  if (normalized.curso_interesse && normalized.curso_interesse.length > 180) {
+    issues.push("Curso de interesse excede o limite permitido.");
+  }
   if (normalized.website) {
     issues.push("Submissão inválida.");
   }
@@ -122,6 +126,7 @@ export function buildPartnerPublicLeadPayload(parceiroId, normalized) {
     nome: normalized.nome,
     telefone: normalized.telefone,
     email: normalized.email || null,
+    curso_interesse: normalized.curso_interesse || null,
     observacao: `Lead via página personalizada do parceiro (${normalized.slug}).`,
     origem_link: `/parceiro/${normalized.slug}`,
     status: "novo",
