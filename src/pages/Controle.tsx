@@ -90,7 +90,7 @@ export default function Controle() {
 
     if (section === "courses") {
       const allowedSections = role === "vendedor"
-        ? (["courses", "technical-to-technologist", "second-graduation"] as const)
+        ? (["courses", "pos-graduacao", "technical-to-technologist", "second-graduation"] as const)
         : undefined;
       return (
         <CourseManager

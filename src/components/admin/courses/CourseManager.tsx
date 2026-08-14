@@ -6,10 +6,11 @@ import PostPlusCarouselManager from "./PostPlusCarouselManager";
 import HomeLaunchBannersManager from "./HomeLaunchBannersManager";
 import TechnicalToTechnologistManager from "./TechnicalToTechnologistManager";
 import SegundaGraduacaoManager from "./SegundaGraduacaoManager";
+import PosGraduacaoControlSection from "./PosGraduacaoControlSection";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type View = "list" | "form";
-type CourseSection = "courses" | "technical-to-technologist" | "second-graduation" | "post-plus-carousel" | "home-launch-banners";
+type CourseSection = "courses" | "pos-graduacao" | "technical-to-technologist" | "second-graduation" | "post-plus-carousel" | "home-launch-banners";
 
 type Props = {
   createSignal?: number;
@@ -60,12 +61,22 @@ export default function CourseManager({ createSignal, allowedSections, canEditCo
       <Tabs value={section} onValueChange={handleSectionChange}>
         <TabsList className="flex flex-wrap gap-2">
           <TabsTrigger value="courses">Cursos</TabsTrigger>
+          {isAllowed("pos-graduacao") && <TabsTrigger value="pos-graduacao">Pós-Graduação</TabsTrigger>}
           <TabsTrigger value="technical-to-technologist">Téc. → Tecnólogo</TabsTrigger>
           {isAllowed("second-graduation") && <TabsTrigger value="second-graduation">2ª Graduação</TabsTrigger>}
           {isAllowed("post-plus-carousel") && <TabsTrigger value="post-plus-carousel">Carrossel Pós+</TabsTrigger>}
           {isAllowed("home-launch-banners") && <TabsTrigger value="home-launch-banners">Lançamentos Home</TabsTrigger>}
         </TabsList>
       </Tabs>
+    );
+  }
+
+  if (section === "pos-graduacao") {
+    return (
+      <div className="space-y-6">
+        {renderTabs()}
+        <PosGraduacaoControlSection />
+      </div>
     );
   }
 

@@ -14,7 +14,7 @@ const PG_CACHE_DURATION_MS = 1800000; // 30 minutos
 // ─── Pós-Graduação (scraper HTML Tutor LMS) ───────────────────────────────────
 const PG_BASE_URL = "https://unicive.com/pos-graduacao-ead/";
 const PG_AJAX_URL = "https://unicive.com/wp-admin/admin-ajax.php";
-const PG_MAX_PAGES = 10;
+const PG_MAX_PAGES = 60;
 const PG_TIMEOUT_MS = 20000;
 const PG_RETRIES = 3;
 
@@ -134,7 +134,7 @@ async function handlePosGraduacao(response) {
     const nonce = pgExtractNonce(firstHtml);
     const allCourses = [...pgParseCoursesFromHtml(firstHtml)];
     
-    const CONCURRENT = 4;
+    const CONCURRENT = 6;
     for (let page = 2; page <= totalPages; page += CONCURRENT) {
       const batch = [];
       for (let i = page; i < page + CONCURRENT && i <= totalPages; i++) batch.push(i);

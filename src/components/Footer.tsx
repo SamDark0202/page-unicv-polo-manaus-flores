@@ -128,7 +128,7 @@ const Footer = ({ showPromoBanner = true }: FooterProps) => {
                 className="inline-block"
               >
                 <img
-                  src="https://unicv.edu.br/wp-content/uploads/elementor/thumbs/QR-code-footer-qcrkfgegejqs2ln4okid3scfy04njjpsp9lcpnirio.png"
+                  src="https://unicive.com/wp-content/uploads/elementor/thumbs/QR-code-footer-rrqc7t374ys3fizzz0nmdi0vvbegund9p2tn7ucd00.png"
                   alt="QR Code e-MEC"
                   className="w-24 h-24 mx-auto transition-transform hover:scale-105"
                 />
