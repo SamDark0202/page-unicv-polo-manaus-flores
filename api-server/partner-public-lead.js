@@ -117,9 +117,14 @@ async function parseBody(request) {
     return request.body;
   }
 
+  const bodyStream =
+    request.body && typeof request.body[Symbol.asyncIterator] === "function"
+      ? request.body
+      : request;
+
   const chunks = [];
-  for await (const chunk of request.body || []) {
-    chunks.push(chunk);
+  for await (const chunk of bodyStream || []) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
 
   const raw = Buffer.concat(chunks).toString("utf8");

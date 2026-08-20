@@ -29,7 +29,7 @@ async function parseBody(request) {
 
   const chunks = [];
   for await (const chunk of bodyStream || []) {
-    chunks.push(chunk);
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
 
   const raw = Buffer.concat(chunks).toString("utf8");
@@ -69,6 +69,7 @@ export default async function handler(request, response) {
     const cargoAtual = sanitizeString(body.cargoAtual, 100);
     const tempoExperiencia = sanitizeString(body.tempoExperiencia, 50);
     const resumoAtividades = sanitizeString(body.resumoAtividades, 200);
+    const cidadeUf = sanitizeString(body.cidadeUf || body.cidade || "", 100);
 
     const issues = [];
     if (!nome || nome.length < 3) {

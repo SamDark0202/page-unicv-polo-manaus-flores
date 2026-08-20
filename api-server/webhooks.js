@@ -18,8 +18,9 @@ async function parseBody(request) {
     return request.body;
   }
   const chunks = [];
-  for await (const chunk of request.body || []) {
-    chunks.push(chunk);
+  const bodyStream = request.body && typeof request.body[Symbol.asyncIterator] === "function" ? request.body : request;
+  for await (const chunk of bodyStream || []) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
   const raw = Buffer.concat(chunks).toString("utf8");
   return raw ? JSON.parse(raw) : {};
