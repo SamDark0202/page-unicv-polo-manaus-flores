@@ -45,7 +45,7 @@ Sempre manter o padrao de chamada no frontend como rota relativa:
 
 Ao criar endpoint novo, seguir esta sequencia:
 
-1. Criar handler em `api/novo-endpoint.js` reaproveitando os cores quando houver.
+1. Criar handler em `api-server/novo-endpoint.js` reaproveitando os cores quando houver.
 2. Registrar rota no worker em `worker/index.mjs` (mapa de loaders e roteamento `/api/*`).
 3. Garantir metodos HTTP permitidos e respostas JSON consistentes.
 4. Tratar erros com status correto (400, 401, 403, 404, 500, 502).
@@ -96,7 +96,7 @@ Ao criar endpoint novo, seguir esta sequencia:
 - Roteamento de producao: `vercel.json`.
 - Configuracao do worker: `wrangler.toml`.
 - Adaptador de API no worker: `worker/index.mjs`.
-- Endpoints serverless/handlers: pasta `api/`.
+- Endpoints serverless/handlers: pasta `api-server/`.
 - Migracao e operacao Cloudflare: `CLOUDFLARE_WORKERS_MIGRATION.md`.
 
 ---

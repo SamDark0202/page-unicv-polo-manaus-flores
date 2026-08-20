@@ -10,22 +10,22 @@ import {
   mapPartnersWithMetrics,
   resolveAllowedAdminEmails,
   validatePartnerPayload,
-} from "./api/_adminPartnersCore.js";
+} from "./api-server/_adminPartnersCore.js";
 import {
   buildIndicationFilters,
   validateAdminIndicationCreate,
   validateAdminIndicationDelete,
   validateAdminIndicationUpdate,
-} from "./api/_adminIndicationsCore.js";
-import { buildCommissionFilters, validateMarkAsPaid, validateCreateCommission } from "./api/_adminCommissionsCore.js";
-import { syncCommissionForIndication } from "./api/_indicationCommissionSync.js";
-import { buildPartnershipPayload, validatePartnershipBody } from "./api/_partnershipWebhookCore.js";
-import { buildIndicationPayload, validateIndicationBody } from "./api/_indicationWebhookCore.js";
-import { buildPartnerPublicLeadPayload, validatePartnerPublicLeadBody } from "./api/_partnerPublicLeadCore.js";
-import { resolvePublicAppPathUrl } from "./api/_publicAppUrlCore.js";
-import cursosHandler from "./api/cursos.js";
-import vocacionalLeadHandler from "./api/vocacional-lead.js";
-import tecnicoCompetenciaLeadHandler from "./api/tecnico-competencia-lead.js";
+} from "./api-server/_adminIndicationsCore.js";
+import { buildCommissionFilters, validateMarkAsPaid, validateCreateCommission } from "./api-server/_adminCommissionsCore.js";
+import { syncCommissionForIndication } from "./api-server/_indicationCommissionSync.js";
+import { buildPartnershipPayload, validatePartnershipBody } from "./api-server/_partnershipWebhookCore.js";
+import { buildIndicationPayload, validateIndicationBody } from "./api-server/_indicationWebhookCore.js";
+import { buildPartnerPublicLeadPayload, validatePartnerPublicLeadBody } from "./api-server/_partnerPublicLeadCore.js";
+import { resolvePublicAppPathUrl } from "./api-server/_publicAppUrlCore.js";
+import cursosHandler from "./api-server/cursos.js";
+import vocacionalLeadHandler from "./api-server/vocacional-lead.js";
+import tecnicoCompetenciaLeadHandler from "./api-server/tecnico-competencia-lead.js";
 
 async function readJsonBody(req: import("node:http").IncomingMessage) {
   const chunks: Buffer[] = [];
