@@ -1,0 +1,3 @@
+# Ignore API directory from Vercel deployment since APIs run on Cloudflare Workers
+api/
+api
