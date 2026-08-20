@@ -222,7 +222,7 @@ export default function IndicationApplicationForm() {
                           <FormItem className="md:col-span-2">
                             <FormLabel>{text.registeredNameLabel}</FormLabel>
                             <FormControl>
-                              <Input placeholder={text.registeredNamePlaceholder} autoComplete="name" {...field} />
+                              <Input placeholder={text.registeredNamePlaceholder} maxLength={200} autoComplete="name" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -238,6 +238,7 @@ export default function IndicationApplicationForm() {
                             <FormControl>
                               <Input
                                 placeholder={text.documentPlaceholder}
+                                maxLength={18}
                                 inputMode="numeric"
                                 autoComplete="off"
                                 {...field}
@@ -258,6 +259,7 @@ export default function IndicationApplicationForm() {
                             <FormControl>
                               <Input
                                 placeholder="(00) 00000-0000"
+                                maxLength={15}
                                 inputMode="tel"
                                 autoComplete="tel"
                                 {...field}
@@ -276,7 +278,7 @@ export default function IndicationApplicationForm() {
                           <FormItem className="md:col-span-2">
                             <FormLabel>E-mail</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="voce@exemplo.com.br" autoComplete="email" {...field} />
+                              <Input type="email" maxLength={100} placeholder="voce@exemplo.com.br" autoComplete="email" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -290,7 +292,7 @@ export default function IndicationApplicationForm() {
                           <FormItem className="md:col-span-2">
                             <FormLabel>Rua</FormLabel>
                             <FormControl>
-                              <Input placeholder="Nome da rua" autoComplete="address-line1" {...field} />
+                              <Input placeholder="Nome da rua" maxLength={120} autoComplete="address-line1" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -304,7 +306,7 @@ export default function IndicationApplicationForm() {
                           <FormItem>
                             <FormLabel>Número</FormLabel>
                             <FormControl>
-                              <Input placeholder="Ex.: 123" autoComplete="address-line2" {...field} />
+                              <Input placeholder="Ex.: 123" maxLength={20} autoComplete="address-line2" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -318,7 +320,7 @@ export default function IndicationApplicationForm() {
                           <FormItem>
                             <FormLabel>Bairro</FormLabel>
                             <FormControl>
-                              <Input placeholder="Bairro" autoComplete="address-level3" {...field} />
+                              <Input placeholder="Bairro" maxLength={80} autoComplete="address-level3" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -332,7 +334,7 @@ export default function IndicationApplicationForm() {
                           <FormItem className="md:col-span-2">
                             <FormLabel>Complemento</FormLabel>
                             <FormControl>
-                              <Input placeholder="Apartamento, bloco, sala ou referência" autoComplete="address-line2" {...field} />
+                              <Input placeholder="Apartamento, bloco, sala ou referência" maxLength={100} autoComplete="address-line2" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -346,7 +348,7 @@ export default function IndicationApplicationForm() {
                           <FormItem>
                             <FormLabel>Cidade</FormLabel>
                             <FormControl>
-                              <Input placeholder="Cidade" autoComplete="address-level2" {...field} />
+                              <Input placeholder="Cidade" maxLength={80} autoComplete="address-level2" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -382,6 +384,7 @@ export default function IndicationApplicationForm() {
                             <FormControl>
                               <Input
                                 placeholder="00000-000"
+                                maxLength={9}
                                 inputMode="numeric"
                                 autoComplete="postal-code"
                                 {...field}
@@ -400,7 +403,7 @@ export default function IndicationApplicationForm() {
                           <FormItem className="md:col-span-2">
                             <FormLabel>Chave Pix</FormLabel>
                             <FormControl>
-                              <Input placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória" autoComplete="off" {...field} />
+                              <Input placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória" maxLength={100} autoComplete="off" {...field} />
                             </FormControl>
                             <FormDescription>
                               A chave Pix informada deve ser da mesma titularidade da pessoa ou empresa cadastrada.

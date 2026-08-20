@@ -37,11 +37,12 @@ const Header = () => {
         { name: "Bacharelado", href: "/bacharelado" },
         { name: "Licenciatura", href: "/licenciatura" },
         { name: "Tecnólogo", href: "/tecnologo" },
+        { name: "Técnico para Tecnólogo", href: "/tecnico-para-tecnologo" },
+        { name: "2ª Graduação", href: "/segunda-graduacao" },
         { name: "Teste Vocacional", href: "/teste-vocacional" },
       ],
     },
-    { name: "Técnico para Tecnólogo", href: "/tecnico-para-tecnologo" },
-    { name: "2ª Graduação", href: "/segunda-graduacao" },
+    { name: "Técnico por Competência", href: "/tecnico-por-competencia" },
     { name: "Pós-Graduação", href: "/pos-graduacao" },
     {
       name: "Parcerias",
@@ -55,6 +56,10 @@ const Header = () => {
   ] satisfies NavigationItem[];
 
   const isCurrentPage = (href: string) => location.pathname.toLowerCase() === href.toLowerCase();
+  const isTecnicoCompetenciaPage =
+    location.pathname.toLowerCase() === "/tecnico-por-competencia" ||
+    location.pathname.toLowerCase() === "/certificacao-tecnica-por-competencia";
+
   const getMenuId = (menuName: string) => `mobile-submenu-${menuName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
   const isActiveItem = (item: NavigationItem) =>
@@ -112,140 +117,159 @@ const Header = () => {
 
   return (
     <header className="bg-background border-b sticky top-0 z-50">
-      <div className="container py-4 px-4 flex items-center justify-between">
-        {/* Logo com detalhe natalino (gorrito) */}
-        <Link to="/" className="flex items-center space-x-3">
-          <div className="relative">
-            <img 
-              src={logoImage} 
-              alt="Unicive Polo Manaus Flores" 
-              className="h-8 sm:h-10 md:h-12 lg:h-14 w-auto max-h-14 transition-all duration-200"
-              style={{ maxWidth: '180px', objectFit: 'contain' }}
-            />
-            {isChristmas && (
+      <div className="container py-3 sm:py-4 px-4 flex items-center justify-between">
+        {/* Logo com suporte a parceria no Técnico por Competência */}
+        <Link to="/" className="flex items-center space-x-2 sm:space-x-3 group">
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
+            <div className="relative flex items-center">
               <img
-                src="/gorro-natal.png"
-                alt="Gorro de Natal"
-                className="absolute -top-2 -right-2 w-8 sm:w-10 pointer-events-none"
+                src={logoImage}
+                alt="Unicive Polo Manaus Flores"
+                className="h-7 sm:h-9 md:h-11 lg:h-12 w-auto max-h-12 transition-all duration-200"
+                style={{ maxWidth: '170px', objectFit: 'contain' }}
               />
+              {isChristmas && (
+                <img
+                  src="/gorro-natal.png"
+                  alt="Gorro de Natal"
+                  className="absolute -top-2 -right-2 w-8 sm:w-10 pointer-events-none"
+                />
+              )}
+            </div>
+
+            {isTecnicoCompetenciaPage && (
+              <>
+                <span className="text-primary font-extrabold text-lg sm:text-xl lg:text-2xl px-0.5 sm:px-1 select-none animate-pulse">
+                  +
+                </span>
+                <div className="flex items-center bg-slate-50 dark:bg-slate-900/80 px-2 py-1 rounded-lg border border-primary/20 shadow-sm">
+                  <img
+                    src="/logo-colegio-tec-universal.png"
+                    alt="Colégio Técnico Universal"
+                    className="h-6 sm:h-8 md:h-9 lg:h-10 w-auto object-contain max-w-[120px] sm:max-w-[150px]"
+                  />
+                </div>
+              </>
             )}
           </div>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center space-x-5">
-          {navigation.map((item) =>
-            item.children ? (
-              <div
-                key={item.name}
-                className="relative"
-                onMouseEnter={() => openDesktopMenuWithDelay(item.name)}
-                onMouseLeave={closeDesktopMenuWithDelay}
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpenDesktopMenu((prev) => (prev === item.name ? null : item.name))}
-                  className={`inline-flex items-center gap-1 px-2 py-2 text-[15px] font-medium transition-all rounded-md border-b-2 ${
-                    isActiveItem(item)
+        {/* Desktop Navigation (Oculto na página de Técnico por Competência para layout ultra clean) */}
+        {!isTecnicoCompetenciaPage && (
+          <nav className="hidden lg:flex items-center space-x-5">
+            {navigation.map((item) =>
+              item.children ? (
+                <div
+                  key={item.name}
+                  className="relative"
+                  onMouseEnter={() => openDesktopMenuWithDelay(item.name)}
+                  onMouseLeave={closeDesktopMenuWithDelay}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenDesktopMenu((prev) => (prev === item.name ? null : item.name))}
+                    className={`inline-flex items-center gap-1 px-2 py-2 text-[15px] font-medium transition-all rounded-md border-b-2 ${isActiveItem(item)
+                        ? "text-primary border-primary"
+                        : "text-foreground border-transparent hover:text-primary hover:border-primary/50"
+                      }`}
+                    aria-haspopup="menu"
+                    aria-expanded={openDesktopMenu === item.name}
+                  >
+                    {item.name}
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${openDesktopMenu === item.name ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {openDesktopMenu === item.name && (
+                    <div
+                      className="absolute left-0 top-full mt-2 z-50 min-w-[260px] rounded-lg border bg-background shadow-elevated p-2 opacity-100 translate-y-0 transition-all duration-200 ease-out"
+                      role="menu"
+                      onMouseEnter={() => openDesktopMenuWithDelay(item.name)}
+                      onMouseLeave={closeDesktopMenuWithDelay}
+                    >
+                      <p className="px-3 pb-1 text-xs uppercase tracking-wide text-muted-foreground">{item.name}</p>
+                      {item.children.map((child) => (
+                        <Link
+                          key={child.name}
+                          to={child.href}
+                          className={`block px-3 py-2 rounded-md transition-colors text-sm ${isCurrentPage(child.href)
+                              ? "bg-primary text-primary-foreground"
+                              : "text-foreground hover:bg-muted"
+                            }`}
+                          role="menuitem"
+                        >
+                          {child.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  key={item.name}
+                  to={item.href!}
+                  className={`px-2 py-2 text-[15px] font-medium transition-all rounded-md border-b-2 ${isCurrentPage(item.href!)
                       ? "text-primary border-primary"
                       : "text-foreground border-transparent hover:text-primary hover:border-primary/50"
-                  }`}
-                  aria-haspopup="menu"
-                  aria-expanded={openDesktopMenu === item.name}
+                    }`}
                 >
                   {item.name}
-                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${openDesktopMenu === item.name ? "rotate-180" : ""}`} />
-                </button>
+                </Link>
+              )
+            )}
+          </nav>
+        )}
 
-                {openDesktopMenu === item.name && (
-                  <div
-                    className="absolute left-0 top-full mt-2 z-50 min-w-[260px] rounded-lg border bg-background shadow-elevated p-2 opacity-100 translate-y-0 transition-all duration-200 ease-out"
-                    role="menu"
-                    onMouseEnter={() => openDesktopMenuWithDelay(item.name)}
-                    onMouseLeave={closeDesktopMenuWithDelay}
-                  >
-                    <p className="px-3 pb-1 text-xs uppercase tracking-wide text-muted-foreground">{item.name}</p>
-                    {item.children.map((child) => (
-                      <Link
-                        key={child.name}
-                        to={child.href}
-                        className={`block px-3 py-2 rounded-md transition-colors text-sm ${
-                          isCurrentPage(child.href)
-                            ? "bg-primary text-primary-foreground"
-                            : "text-foreground hover:bg-muted"
-                        }`}
-                        role="menuitem"
-                      >
-                        {child.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Link
-                key={item.name}
-                to={item.href!}
-                className={`px-2 py-2 text-[15px] font-medium transition-all rounded-md border-b-2 ${
-                  isCurrentPage(item.href!)
-                    ? "text-primary border-primary"
-                    : "text-foreground border-transparent hover:text-primary hover:border-primary/50"
-                }`}
-              >
-                {item.name}
-              </Link>
-            )
+        {/* CTA Button & Menu Button */}
+        <div className="flex items-center space-x-3 sm:space-x-4">
+          {!isTecnicoCompetenciaPage && (
+            <div className="hidden sm:flex items-center space-x-4">
+              <Button variant="hero" asChild>
+                <a
+                  href="https://wa.me/559220201260?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20cursos%20da%20Unicive%20e%20as%20condi%C3%A7%C3%B5es%20especiais."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    (async () => {
+                      const { trackWhatsAppClick } = await import("@/lib/tracker");
+                      trackWhatsAppClick("header_cta");
+                    })();
+                    if (typeof window.fbq === "function") {
+                      window.fbq("track", "Contact");
+                    }
+                  }}
+                >
+                  Quero minha Bolsa!
+                </a>
+              </Button>
+            </div>
           )}
-        </nav>
 
-        {/* CTA Button */}
-        <div className="hidden lg:flex items-center space-x-4">
-          <Button variant="hero" asChild>
-            <a
-              href="https://wa.me/559220201260?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20cursos%20da%20Unicive%20e%20as%20condi%C3%A7%C3%B5es%20especiais."
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => {
-                (async () => {
-                  const { trackWhatsAppClick } = await import("@/lib/tracker");
-                  trackWhatsAppClick("header_cta");
-                })();
-                if (typeof window.fbq === "function") {
-                  window.fbq("track", "Contact");
-                }
-              }}
-            >
-              Quero minha Bolsa!
-            </a>
+          {/* Menu button (Sanduíche - visível sempre no Técnico por Competência ou em mobile nas demais) */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={isTecnicoCompetenciaPage ? "flex" : "lg:hidden"}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
+          >
+            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
         </div>
-
-        {/* Mobile menu button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
-        >
-          {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* Collapsible Navigation Drawer */}
       {isMenuOpen && (
-        <div className="lg:hidden py-4 border-t border-border">
+        <div className={isTecnicoCompetenciaPage ? "py-4 border-t border-border" : "lg:hidden py-4 border-t border-border"}>
           <nav className="flex flex-col space-y-2">
             {navigation.map((item) =>
               item.children ? (
                 <div key={item.name} className="space-y-1 px-2">
                   <button
                     type="button"
-                    className={`w-full text-left text-base font-medium py-3 px-4 rounded-lg transition-colors inline-flex items-center justify-between gap-2 ${
-                      isActiveItem(item)
+                    className={`w-full text-left text-base font-medium py-3 px-4 rounded-lg transition-colors inline-flex items-center justify-between gap-2 ${isActiveItem(item)
                         ? "bg-primary/10 text-primary"
                         : "text-foreground hover:bg-muted"
-                    }`}
+                      }`}
                     onClick={() => setOpenMobileMenu((prev) => (prev === item.name ? null : item.name))}
                     aria-expanded={openMobileMenu === item.name}
                     aria-controls={getMenuId(item.name)}
@@ -256,20 +280,18 @@ const Header = () => {
 
                   <div
                     id={getMenuId(item.name)}
-                    className={`overflow-hidden transition-all duration-300 ease-out ${
-                      openMobileMenu === item.name ? "max-h-64 opacity-100 mt-1" : "max-h-0 opacity-0"
-                    }`}
+                    className={`overflow-hidden transition-all duration-300 ease-out ${openMobileMenu === item.name ? "max-h-64 opacity-100 mt-1" : "max-h-0 opacity-0"
+                      }`}
                   >
                     <div className="ml-2 flex flex-col space-y-1 border-l border-border pl-3">
                       {item.children.map((child) => (
                         <Link
                           key={child.name}
                           to={child.href}
-                          className={`py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${
-                            isCurrentPage(child.href)
+                          className={`py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isCurrentPage(child.href)
                               ? "bg-primary text-primary-foreground"
                               : "text-foreground hover:bg-muted"
-                          }`}
+                            }`}
                           onClick={() => {
                             setIsMenuOpen(false);
                             setOpenMobileMenu(null);
@@ -285,27 +307,28 @@ const Header = () => {
                 <Link
                   key={item.name}
                   to={item.href!}
-                  className={`mx-2 py-3 px-4 rounded-lg text-base font-medium transition-colors ${
-                    isCurrentPage(item.href!)
+                  className={`mx-2 py-3 px-4 rounded-lg text-base font-medium transition-colors ${isCurrentPage(item.href!)
                       ? "bg-primary text-primary-foreground"
                       : "text-foreground hover:bg-muted"
-                  }`}
+                    }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
                 </Link>
               )
             )}
-            <Button variant="hero" className="mx-4 mt-4" asChild>
-              <a
-                href="https://wa.me/559220201260?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20cursos%20da%20Unicive%20e%20as%20condi%C3%A7%C3%B5es%20especiais."
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Quero minha Bolsa!
-              </a>
-            </Button>
+            {!isTecnicoCompetenciaPage && (
+              <Button variant="hero" className="mx-4 mt-4" asChild>
+                <a
+                  href="https://wa.me/559220201260?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20cursos%20da%20Unicive%20e%20as%20condi%C3%A7%C3%B5es%20especiais."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Quero minha Bolsa!
+                </a>
+              </Button>
+            )}
           </nav>
         </div>
       )}

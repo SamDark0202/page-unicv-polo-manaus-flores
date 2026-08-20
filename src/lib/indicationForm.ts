@@ -18,12 +18,15 @@ export type IndicationDocumentType = (typeof INDICATION_DOCUMENT_TYPES)[number];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PIX_RANDOM_KEY_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+const hasScript = (val: string) => /<[a-z][\s\S]*>/i.test(val) || /(javascript:|on\w+=)/i.test(val);
+
 const requiredString = (label: string, min = 2, max = 200) =>
   z
     .string()
     .trim()
     .min(min, `${label} é obrigatório.`)
-    .max(max, `${label} está muito longo.`);
+    .max(max, `${label} está muito longo.`)
+    .refine((v) => !hasScript(v), "Conteúdo inválido detectado.");
 
 export function formatDocumentValue(documentType: IndicationDocumentType, value: string) {
   return documentType === "CPF" ? formatCpf(value) : formatCnpj(value);

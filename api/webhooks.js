@@ -52,13 +52,23 @@ async function handleLead(request, response) {
     return response.status(400).json({ error: "Corpo inválido." });
   }
 
+  if (
+    /<[a-z][\s\S]*>/i.test(String(body.name || "")) ||
+    /(javascript:|on\w+=)/i.test(JSON.stringify(body))
+  ) {
+    return response.status(400).json({ error: "Conteúdo inválido detectado." });
+  }
+
+  const nameClean = String(body.name || "").trim().replace(/[<>]/g, "");
+  const emailClean = String(body.email || "").trim().toLowerCase().replace(/[<>]/g, "");
+
   const issues = [];
-  if (!body.name || typeof body.name !== "string") issues.push("Campo 'name' é obrigatório.");
+  if (!nameClean) issues.push("Campo 'name' é obrigatório.");
   if (!body.phone || typeof body.phone !== "string") issues.push("Campo 'phone' é obrigatório.");
-  if (!body.email || typeof body.email !== "string") issues.push("Campo 'email' é obrigatório.");
-  if (typeof body.name === "string" && body.name.length > 200) issues.push("Nome muito longo.");
-  if (typeof body.email === "string" && body.email.length > 254) issues.push("E-mail muito longo.");
-  if (typeof body.email === "string" && !EMAIL_RE.test(body.email)) issues.push("E-mail inválido.");
+  if (!emailClean) issues.push("Campo 'email' é obrigatório.");
+  if (nameClean.length > 100) issues.push("Nome muito longo (máximo 100 caracteres).");
+  if (emailClean.length > 100) issues.push("E-mail muito longo (máximo 100 caracteres).");
+  if (!EMAIL_RE.test(emailClean)) issues.push("E-mail inválido.");
   const phoneDigits = typeof body.phone === "string" ? body.phone.replace(/\D/g, "") : "";
   if (!PHONE_RE.test(phoneDigits)) issues.push("Telefone inválido (DDD + 9 + 8 dígitos).");
   if (issues.length) return response.status(400).json({ error: issues.join(", ") });
@@ -66,7 +76,7 @@ async function handleLead(request, response) {
   await fetch(MAKE_LEAD_WEBHOOK_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: body.name, phone: body.phone, email: body.email }),
+    body: JSON.stringify({ name: nameClean, phone: body.phone, email: emailClean }),
   });
 
   return response.status(200).json({ success: true });

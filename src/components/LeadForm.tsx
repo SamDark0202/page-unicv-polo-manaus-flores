@@ -64,12 +64,37 @@ const LeadForm = ({
     // Reset errors
     setErrors({ email: "", phone: "" });
     
-    // Validações
-    let hasError = false;
-    const newErrors = { email: "", phone: "" };
+    // Validações anti-script e tamanho
+    const hasScript = (val: string) => /<[a-z][\s\S]*>/i.test(val) || /(javascript:|on\w+=)/i.test(val);
+    if (hasScript(formData.name) || hasScript(formData.email) || hasScript(formData.phone)) {
+      toast({
+        title: "Erro de validação",
+        description: "Conteúdo ou scripts inválidos foram detectados.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    if (!validateEmail(formData.email)) {
-      newErrors.email = "Por favor, insira um e-mail válido";
+    if (!formData.name.trim() || formData.name.trim().length < 3) {
+      toast({
+        title: "Erro de validação",
+        description: "Informe seu nome completo.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.name.length > 100) {
+      toast({
+        title: "Erro de validação",
+        description: "Nome muito longo (máximo 100 caracteres).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!validateEmail(formData.email) || formData.email.length > 100) {
+      newErrors.email = "Por favor, insira um e-mail válido (máximo 100 caracteres)";
       hasError = true;
     }
 
@@ -151,6 +176,7 @@ const LeadForm = ({
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
+                maxLength={100}
                 className="h-12"
               />
             </div>
@@ -180,6 +206,7 @@ const LeadForm = ({
                   if (errors.email) setErrors({ ...errors, email: "" });
                 }}
                 required
+                maxLength={100}
                 className={`h-12 ${errors.email ? 'border-red-500' : ''}`}
               />
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
@@ -218,6 +245,7 @@ const LeadForm = ({
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
+                maxLength={100}
                 className="h-12"
               />
             </div>
@@ -257,6 +285,7 @@ const LeadForm = ({
                   if (errors.email) setErrors({ ...errors, email: "" });
                 }}
                 required
+                maxLength={100}
                 className={`h-12 ${errors.email ? 'border-red-500' : ''}`}
               />
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}

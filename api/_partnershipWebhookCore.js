@@ -56,7 +56,7 @@ export function digitsOnly(value) {
 }
 
 export function sanitizeString(value) {
-  return typeof value === "string" ? value.trim() : "";
+  return typeof value === "string" ? value.trim().replace(/[<>]/g, "") : "";
 }
 
 export function isValidCpf(value) {

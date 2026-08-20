@@ -786,10 +786,27 @@ const TesteVocacional = () => {
 
   async function handleLeadSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const hasScript = (val: string) => /<[a-z][\s\S]*>/i.test(val) || /(javascript:|on\w+=)/i.test(val);
+    if (hasScript(lead.nome) || hasScript(lead.telefone) || hasScript(lead.email)) {
+      setLeadError("Conteúdo ou scripts inválidos foram detectados.");
+      return;
+    }
+
     if (!lead.nome.trim() || !lead.telefone.trim() || !lead.email.trim()) {
       setLeadError("Preencha todos os campos para continuar.");
       return;
     }
+
+    if (lead.nome.trim().length > 100) {
+      setLeadError("Nome muito longo (máximo 100 caracteres).");
+      return;
+    }
+
+    if (lead.email.trim().length > 100) {
+      setLeadError("E-mail muito longo (máximo 100 caracteres).");
+      return;
+    }
+
     setLeadError("");
     setLeadLoading(true);
 
@@ -1028,6 +1045,7 @@ const TesteVocacional = () => {
                 <div>
                   <Input
                     placeholder="Seu nome completo"
+                    maxLength={100}
                     value={lead.nome}
                     onChange={(e) => setLead((l) => ({ ...l, nome: e.target.value }))}
                     className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:ring-emerald-400/20"
@@ -1036,6 +1054,7 @@ const TesteVocacional = () => {
                 <div>
                   <Input
                     placeholder="WhatsApp (92) 99999-9999"
+                    maxLength={15}
                     value={lead.telefone}
                     onChange={(e) => setLead((l) => ({ ...l, telefone: e.target.value }))}
                     className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:ring-emerald-400/20"
@@ -1045,6 +1064,7 @@ const TesteVocacional = () => {
                 <div>
                   <Input
                     placeholder="Seu melhor e-mail"
+                    maxLength={100}
                     value={lead.email}
                     onChange={(e) => setLead((l) => ({ ...l, email: e.target.value }))}
                     className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:ring-emerald-400/20"

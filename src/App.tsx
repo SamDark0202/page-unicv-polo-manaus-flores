@@ -36,6 +36,8 @@ const Licenciatura = lazy(() => import("./pages/Licenciatura"));
 const Tecnologo = lazy(() => import("./pages/Tecnologo"));
 const CourseDetails = lazy(() => import("./pages/CourseDetails"));
 const TecnicoParaTecnologo = lazy(() => import("./pages/TecnicoParaTecnologo"));
+const TecnicoPorCompetencia = lazy(() => import("./pages/TecnicoPorCompetencia"));
+const ObrigadoTecnicoCompetencia = lazy(() => import("./pages/ObrigadoTecnicoCompetencia"));
 const SegundaGraduacao = lazy(() => import("./pages/SegundaGraduacao"));
 const PosGraduacao = lazy(() => import("./pages/PosGraduacao"));
 const Parcerias = lazy(() => import("./pages/Parcerias"));
@@ -120,7 +122,21 @@ const AppRoutes = () => {
     location.pathname.startsWith("/parcerias") ||
     location.pathname.startsWith("/indique-e-ganhe");
     const isPartnerPublicRoute = location.pathname.startsWith('/parceiro/');
-    const hideGlobalChrome = isAdmin || isRedirectLanding || isPartnershipFlow || isPartnerPublicRoute || isVocationalTestRoute;
+  const isTecnicoCompetenciaRoute =
+    location.pathname.toLowerCase().startsWith("/tecnico-por-competencia") ||
+    location.pathname.toLowerCase() === "/certificacao-tecnica-por-competencia";
+
+  const isObrigadoRoute = location.pathname.toLowerCase().includes("obrigado");
+
+  const hideGlobalChrome =
+    isAdmin ||
+    isRedirectLanding ||
+    isPartnershipFlow ||
+    isPartnerPublicRoute ||
+    isVocationalTestRoute ||
+    isTecnicoCompetenciaRoute ||
+    isObrigadoRoute;
+
   const showWhatsApp =
     location.pathname !== "/form-parceria-mt" &&
     !hideGlobalChrome &&
@@ -141,6 +157,9 @@ const AppRoutes = () => {
           <Route path="/tecnologo" element={<Tecnologo />} />
           <Route path="/cursos/:modality/:slug" element={<CourseDetails />} />
           <Route path="/tecnico-para-tecnologo" element={<TecnicoParaTecnologo />} />
+          <Route path="/tecnico-por-competencia" element={<TecnicoPorCompetencia />} />
+          <Route path="/tecnico-por-competencia/obrigado" element={<ObrigadoTecnicoCompetencia />} />
+          <Route path="/certificacao-tecnica-por-competencia" element={<Navigate to="/tecnico-por-competencia" replace />} />
           <Route path="/segunda-graduacao" element={<SegundaGraduacao />} />
           <Route path="/pos-graduacao" element={<PosGraduacao />} />
           <Route path="/teste-vocacional" element={<TesteVocacional />} />
@@ -218,8 +237,23 @@ const AppContent = () => {
     location.pathname.startsWith("/parcerias") ||
     location.pathname.startsWith("/indique-e-ganhe");
   const isPartnerPublicRoute = location.pathname.startsWith("/parceiro/");
+  const isTecnicoCompetenciaRoute =
+    location.pathname.toLowerCase() === "/tecnico-por-competencia" ||
+    location.pathname.toLowerCase() === "/certificacao-tecnica-por-competencia";
+
   return (
-    <div className={isAdmin || isRedirectLanding || isPartnershipFlow || isPartnerPublicRoute || isVocationalTestRoute ? "min-h-screen" : "pt-[90px] min-h-screen"}>
+    <div
+      className={
+        isAdmin ||
+        isRedirectLanding ||
+        isPartnershipFlow ||
+        isPartnerPublicRoute ||
+        isVocationalTestRoute ||
+        isTecnicoCompetenciaRoute
+          ? "min-h-screen"
+          : "pt-[90px] min-h-screen"
+      }
+    >
       <AppRoutes />
     </div>
   );

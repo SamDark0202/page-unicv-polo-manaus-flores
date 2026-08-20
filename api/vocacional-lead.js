@@ -132,13 +132,20 @@ export default async function handler(request, response) {
     const body = await parseBody(request);
 
     if (request.method === "POST") {
-      const nome = String(body?.nome || "").trim();
-      const telefone = onlyDigits(body?.telefone);
-      const email = String(body?.email || "").trim().toLowerCase();
+      if (
+        /<[a-z][\s\S]*>/i.test(String(body?.nome || "")) ||
+        /(javascript:|on\w+=)/i.test(JSON.stringify(body))
+      ) {
+        return response.status(400).json({ error: "Conteúdo inválido detectado." });
+      }
 
-      if (nome.length < 2) return response.status(400).json({ error: "Nome inválido." });
+      const nome = String(body?.nome || "").trim().replace(/[<>]/g, "").slice(0, 100);
+      const telefone = onlyDigits(body?.telefone).slice(0, 15);
+      const email = String(body?.email || "").trim().toLowerCase().replace(/[<>]/g, "").slice(0, 100);
+
+      if (nome.length < 2 || nome.length > 100) return response.status(400).json({ error: "Nome inválido." });
       if (!(telefone.length === 10 || telefone.length === 11)) return response.status(400).json({ error: "Telefone inválido." });
-      if (!isEmailValid(email)) return response.status(400).json({ error: "E-mail inválido." });
+      if (!isEmailValid(email) || email.length > 100) return response.status(400).json({ error: "E-mail inválido." });
 
       const { data, error } = await admin
         .from("leads_vocacional")

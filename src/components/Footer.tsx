@@ -31,9 +31,9 @@ const Footer = ({ showPromoBanner = true }: FooterProps) => {
     { name: "Graduação Bacharelado", link: "/bacharelado" },
     { name: "Graduação Licenciatura", link: "/licenciatura" },
     { name: "Graduação Tecnólogo", link: "/tecnologo" },
+    { name: "Técnico por Competência", link: "/tecnico-por-competencia" },
     { name: "2ª Graduação", link: "/segunda-graduacao" },
     { name: "Pós-Graduação", link: "/pos-graduacao" },
-   
   ];
 
   const handleWhatsApp = () => {

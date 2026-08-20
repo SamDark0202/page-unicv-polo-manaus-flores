@@ -100,7 +100,7 @@ export default function CreatePartnerIndicationDialog({
                   <FormItem className="md:col-span-2">
                     <FormLabel>Nome</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nome completo" autoComplete="name" {...field} />
+                      <Input placeholder="Nome completo" maxLength={100} autoComplete="name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -116,6 +116,7 @@ export default function CreatePartnerIndicationDialog({
                     <FormControl>
                       <Input
                         placeholder="(00) 00000-0000"
+                        maxLength={15}
                         inputMode="tel"
                         autoComplete="tel"
                         {...field}
@@ -134,7 +135,7 @@ export default function CreatePartnerIndicationDialog({
                   <FormItem>
                     <FormLabel>Email (opcional)</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="lead@exemplo.com" autoComplete="email" {...field} />
+                      <Input type="email" maxLength={100} placeholder="lead@exemplo.com" autoComplete="email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -150,6 +151,7 @@ export default function CreatePartnerIndicationDialog({
                     <FormControl>
                       <Textarea
                         placeholder="Contexto da indicação, disponibilidade de horário ou detalhes relevantes"
+                        maxLength={500}
                         className="min-h-[110px]"
                         {...field}
                       />

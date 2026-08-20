@@ -25,6 +25,7 @@ import { buildPartnerPublicLeadPayload, validatePartnerPublicLeadBody } from "./
 import { resolvePublicAppPathUrl } from "./api/_publicAppUrlCore.js";
 import cursosHandler from "./api/cursos.js";
 import vocacionalLeadHandler from "./api/vocacional-lead.js";
+import tecnicoCompetenciaLeadHandler from "./api/tecnico-competencia-lead.js";
 
 async function readJsonBody(req: import("node:http").IncomingMessage) {
   const chunks: Buffer[] = [];
@@ -336,6 +337,40 @@ export default defineConfig(({ mode }) => {
 
           try {
             await vocacionalLeadHandler(req, vercelRes);
+          } catch (err) {
+            const message = err instanceof Error ? err.message : "Erro interno";
+            sendJson(res, 500, { error: message });
+          }
+        });
+      },
+    },
+    {
+      name: "local-tecnico-competencia-lead",
+      apply: "serve",
+      configureServer(server) {
+        server.middlewares.use(async (req, res, next) => {
+          if (!req.url || !req.url.startsWith("/api/tecnico-competencia-lead")) {
+            return next();
+          }
+
+          let pendingStatus = 200;
+          const extraHeaders: Record<string, string> = {};
+
+          const vercelRes = {
+            status(code: number) { pendingStatus = code; return vercelRes; },
+            setHeader(name: string, value: string) { extraHeaders[name] = value; },
+            json(data: unknown) {
+              res.statusCode = pendingStatus;
+              res.setHeader("Content-Type", "application/json; charset=utf-8");
+              for (const [k, v] of Object.entries(extraHeaders)) {
+                res.setHeader(k, v);
+              }
+              res.end(JSON.stringify(data));
+            },
+          };
+
+          try {
+            await tecnicoCompetenciaLeadHandler(req, vercelRes);
           } catch (err) {
             const message = err instanceof Error ? err.message : "Erro interno";
             sendJson(res, 500, { error: message });

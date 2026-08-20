@@ -29,27 +29,39 @@ export type PartnerIndicationFilters = {
   endDate?: string;
 };
 
+const hasScript = (val: string) => /<[a-z][\s\S]*>/i.test(val) || /(javascript:|on\w+=)/i.test(val);
+
 const requiredString = (label: string, min = 2, max = 200) =>
   z
     .string()
     .trim()
     .min(min, `${label} é obrigatório.`)
-    .max(max, `${label} está muito longo.`);
+    .max(max, `${label} está muito longo.`)
+    .refine((v) => !hasScript(v), "Conteúdo inválido detectado.");
 
 export const partnerIndicationSchema = z.object({
-  nome: requiredString("Nome", 2, 160),
+  nome: requiredString("Nome", 2, 100),
   telefone: z
     .string()
     .trim()
+    .max(15, "Telefone muito longo.")
+    .refine((v) => !hasScript(v), "Conteúdo inválido detectado.")
     .refine((value) => isValidBrazilianPhone(value), "Informe um telefone válido com DDD."),
   email: z
     .string()
     .trim()
     .email("Informe um e-mail válido.")
-    .max(254, "E-mail está muito longo.")
+    .max(100, "E-mail está muito longo.")
+    .refine((v) => !hasScript(v), "Conteúdo inválido detectado.")
     .optional()
     .or(z.literal("")),
-  observacao: z.string().trim().max(1000, "Observação está muito longa.").optional().or(z.literal("")),
+  observacao: z
+    .string()
+    .trim()
+    .max(500, "Observação está muito longa.")
+    .refine((v) => !hasScript(v), "Conteúdo inválido detectado.")
+    .optional()
+    .or(z.literal("")),
 });
 
 export type PartnerIndicationFormValues = z.infer<typeof partnerIndicationSchema>;

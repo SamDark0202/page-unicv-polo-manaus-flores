@@ -117,12 +117,15 @@ export function isValidBrazilianPhone(value: string) {
   return phone.length === 10 || phone.length === 11;
 }
 
+const hasScript = (val: string) => /<[a-z][\s\S]*>/i.test(val) || /(javascript:|on\w+=)/i.test(val);
+
 const requiredString = (label: string, min = 2, max = 200) =>
   z
     .string()
     .trim()
     .min(min, `${label} é obrigatório.`)
-    .max(max, `${label} está muito longo.`);
+    .max(max, `${label} está muito longo.`)
+    .refine((v) => !hasScript(v), "Conteúdo inválido detectado.");
 
 export const partnershipFormSchema = z.object({
   legalName: requiredString("Nome empresarial", 3, 200),

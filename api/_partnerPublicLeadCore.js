@@ -7,7 +7,7 @@ export function digitsOnly(value) {
 }
 
 function sanitizeString(value) {
-  return typeof value === "string" ? value.trim() : "";
+  return typeof value === "string" ? value.trim().replace(/[<>]/g, "") : "";
 }
 
 function safeDecode(value) {

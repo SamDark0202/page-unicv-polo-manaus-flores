@@ -9,6 +9,7 @@ const API_ROUTE_LOADERS = new Map([
   ["/api/cursos", () => import("../api/cursos.js")],
   ["/api/imagekit-upload", () => import("../api/imagekit-upload.js")],
   ["/api/partner-public-lead", () => import("../api/partner-public-lead.js")],
+  ["/api/tecnico-competencia-lead", () => import("../api/tecnico-competencia-lead.js")],
   ["/api/vocacional-lead", () => import("../api/vocacional-lead.js")],
   ["/api/webhooks", () => import("../api/webhooks.js")],
 ]);

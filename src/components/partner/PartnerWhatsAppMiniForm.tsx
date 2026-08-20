@@ -18,17 +18,27 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+const hasScript = (val: string) => /<[a-z][\s\S]*>/i.test(val) || /(javascript:|on\w+=)/i.test(val);
+
 const schema = z.object({
-  nome: z.string().trim().min(2, "Informe seu nome."),
+  nome: z
+    .string()
+    .trim()
+    .min(2, "Informe seu nome.")
+    .max(100, "Nome muito longo (máximo 100 caracteres).")
+    .refine((v) => !hasScript(v), "Conteúdo inválido detectado."),
   telefone: z
     .string()
     .trim()
+    .max(15, "Telefone muito longo.")
+    .refine((v) => !hasScript(v), "Conteúdo inválido detectado.")
     .refine((value) => value.replace(/\D/g, "").length >= 10, "Informe um telefone válido com DDD."),
   email: z
     .string()
     .trim()
     .email("Informe um e-mail válido.")
-    .max(254, "E-mail está muito longo.")
+    .max(100, "E-mail está muito longo.")
+    .refine((v) => !hasScript(v), "Conteúdo inválido detectado.")
     .optional()
     .or(z.literal("")),
   website: z.string().max(0).optional().or(z.literal("")),
@@ -149,7 +159,7 @@ export default function PartnerWhatsAppMiniForm({ partnerSlug }: PartnerWhatsApp
                   <FormItem>
                     <FormLabel>Nome</FormLabel>
                     <FormControl>
-                      <Input placeholder="Seu nome" autoComplete="name" {...field} />
+                      <Input placeholder="Seu nome" maxLength={100} autoComplete="name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -165,6 +175,7 @@ export default function PartnerWhatsAppMiniForm({ partnerSlug }: PartnerWhatsApp
                     <FormControl>
                       <Input
                         placeholder="(00) 00000-0000"
+                        maxLength={15}
                         inputMode="tel"
                         autoComplete="tel"
                         {...field}
@@ -183,7 +194,7 @@ export default function PartnerWhatsAppMiniForm({ partnerSlug }: PartnerWhatsApp
                   <FormItem>
                     <FormLabel>Email opcional</FormLabel>
                     <FormControl>
-                      <Input placeholder="seuemail@exemplo.com" autoComplete="email" type="email" {...field} />
+                      <Input placeholder="seuemail@exemplo.com" maxLength={100} autoComplete="email" type="email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

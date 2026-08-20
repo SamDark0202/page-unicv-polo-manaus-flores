@@ -202,7 +202,7 @@ export default function PartnershipApplicationForm({
                           <FormItem className="md:col-span-2">
                             <FormLabel>{text.legalNameLabel}</FormLabel>
                             <FormControl>
-                              <Input placeholder={text.legalNameLabel} autoComplete="organization" {...field} />
+                              <Input placeholder={text.legalNameLabel} maxLength={200} autoComplete="organization" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -218,6 +218,7 @@ export default function PartnershipApplicationForm({
                             <FormControl>
                               <Input
                                 placeholder="00.000.000/0000-00"
+                                maxLength={18}
                                 inputMode="numeric"
                                 autoComplete="off"
                                 {...field}
@@ -236,7 +237,7 @@ export default function PartnershipApplicationForm({
                           <FormItem>
                             <FormLabel>E-mail</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="contato@empresa.com.br" autoComplete="email" {...field} />
+                              <Input type="email" maxLength={100} placeholder="contato@empresa.com.br" autoComplete="email" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -250,7 +251,7 @@ export default function PartnershipApplicationForm({
                           <FormItem className="md:col-span-2">
                             <FormLabel>Rua</FormLabel>
                             <FormControl>
-                              <Input placeholder="Nome da rua" autoComplete="address-line1" {...field} />
+                              <Input placeholder="Nome da rua" maxLength={120} autoComplete="address-line1" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -264,7 +265,7 @@ export default function PartnershipApplicationForm({
                           <FormItem>
                             <FormLabel>Número</FormLabel>
                             <FormControl>
-                              <Input placeholder="Ex.: 123" autoComplete="address-line2" {...field} />
+                              <Input placeholder="Ex.: 123" maxLength={20} autoComplete="address-line2" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -278,7 +279,7 @@ export default function PartnershipApplicationForm({
                           <FormItem>
                             <FormLabel>Bairro</FormLabel>
                             <FormControl>
-                              <Input placeholder="Bairro" autoComplete="address-level3" {...field} />
+                              <Input placeholder="Bairro" maxLength={80} autoComplete="address-level3" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -292,7 +293,7 @@ export default function PartnershipApplicationForm({
                           <FormItem className="md:col-span-2">
                             <FormLabel>Complemento</FormLabel>
                             <FormControl>
-                              <Input placeholder="Sala, bloco, referência ou complemento" autoComplete="address-line2" {...field} />
+                              <Input placeholder="Sala, bloco, referência ou complemento" maxLength={100} autoComplete="address-line2" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -306,7 +307,7 @@ export default function PartnershipApplicationForm({
                           <FormItem>
                             <FormLabel>Cidade</FormLabel>
                             <FormControl>
-                              <Input placeholder="Cidade" autoComplete="address-level2" {...field} />
+                              <Input placeholder="Cidade" maxLength={80} autoComplete="address-level2" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -342,6 +343,7 @@ export default function PartnershipApplicationForm({
                             <FormControl>
                               <Input
                                 placeholder="00000-000"
+                                maxLength={9}
                                 inputMode="numeric"
                                 autoComplete="postal-code"
                                 {...field}
@@ -360,7 +362,7 @@ export default function PartnershipApplicationForm({
                           <FormItem className="md:col-span-2">
                             <FormLabel>{text.contractorLabel}</FormLabel>
                             <FormControl>
-                              <Input placeholder={text.contractorLabel} autoComplete="name" {...field} />
+                              <Input placeholder={text.contractorLabel} maxLength={160} autoComplete="name" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
